@@ -1,6 +1,10 @@
 import unittest
 
-from toram_search.fallback import QwenFallbackService
+from toram_search.fallback import (
+    QwenFallbackService,
+    SearchIntentRequest,
+    SearchStatIntent,
+)
 
 
 class FakeLLM:
@@ -13,10 +17,10 @@ class FakeLLM:
         return self.payload
 
 
-def service(payload, validator=lambda query: True):
+def service(payload, validator=lambda request: True):
     return QwenFallbackService(
         FakeLLM(payload),
-        validate_search_rewrite=validator,
+        validate_search_request=validator,
         validate_database_action=lambda request: True,
         stat_catalog=("Critical Rate", "Critical Damage", "MaxHP"),
         alias_catalog=(
@@ -29,7 +33,7 @@ def service(payload, validator=lambda query: True):
 
 
 class StructuredFallbackTests(unittest.TestCase):
-    def test_structured_candidate_renders_to_deterministic_query(self):
+    def test_structured_candidate_returns_typed_request(self):
         seen = []
         fallback = service(
             {
@@ -42,14 +46,19 @@ class StructuredFallbackTests(unittest.TestCase):
                     }
                 ],
             },
-            lambda query: seen.append(query) or True,
+            lambda request: seen.append(request) or True,
         )
 
         outcome = fallback.interpret("which bow has the most crit rate", ())
 
-        self.assertEqual(outcome.kind, "suggestions")
-        self.assertEqual(outcome.suggestions, ("Critical Rate bow",))
-        self.assertEqual(seen, ["Critical Rate bow"])
+        expected = SearchIntentRequest(
+            stats=(SearchStatIntent("Critical Rate"),),
+            item_filter="bow",
+            sort_stat="Critical Rate",
+        )
+        self.assertEqual(outcome.kind, "search_requests")
+        self.assertEqual(outcome.search_requests, (expected,))
+        self.assertEqual(seen, [expected])
 
     def test_multiple_structured_candidates_preserve_ambiguity(self):
         fallback = service(
@@ -65,11 +74,20 @@ class StructuredFallbackTests(unittest.TestCase):
         outcome = fallback.interpret("find a bow with crit", ())
 
         self.assertEqual(
-            outcome.suggestions,
-            ("Critical Rate bow", "Critical Damage bow"),
+            outcome.search_requests,
+            (
+                SearchIntentRequest(
+                    stats=(SearchStatIntent("Critical Rate"),),
+                    item_filter="bow",
+                ),
+                SearchIntentRequest(
+                    stats=(SearchStatIntent("Critical Damage"),),
+                    item_filter="bow",
+                ),
+            ),
         )
 
-    def test_numeric_and_query_renders(self):
+    def test_numeric_and_candidate_stays_structured(self):
         fallback = service(
             {
                 "intent": "search",
@@ -89,8 +107,17 @@ class StructuredFallbackTests(unittest.TestCase):
         outcome = fallback.interpret("bow with 5000 hp and crit rate", ())
 
         self.assertEqual(
-            outcome.suggestions,
-            ("MaxHP >= 5000 AND Critical Rate bow",),
+            outcome.search_requests,
+            (
+                SearchIntentRequest(
+                    stats=(
+                        SearchStatIntent("MaxHP", ">=", 5000),
+                        SearchStatIntent("Critical Rate"),
+                    ),
+                    item_filter="bow",
+                    match="all",
+                ),
+            ),
         )
 
     def test_invalid_operator_is_rejected(self):
@@ -122,39 +149,47 @@ class StructuredFallbackTests(unittest.TestCase):
         )
         self.assertEqual(fallback.interpret("x", ()).kind, "failed")
 
-    def test_candidate_must_pass_deterministic_validator(self):
+    def test_candidate_must_pass_typed_validator(self):
+        seen = []
         fallback = service(
             {
                 "intent": "search",
                 "candidates": [{"stats": [{"name": "Made Up Stat"}]}],
             },
-            lambda query: False,
-        )
-        self.assertEqual(fallback.interpret("x", ()).kind, "failed")
-
-    def test_simple_best_query_uses_deterministic_rewrite_before_llm(self):
-        class MustNotRunLLM:
-            def complete(self, *args, **kwargs):
-                raise AssertionError("LLM should not be called")
-
-        fallback = QwenFallbackService(
-            MustNotRunLLM(),
-            validate_search_rewrite=lambda query: query == "bow cr",
-            validate_database_action=lambda request: True,
-            stat_catalog=("Critical Rate",),
-            alias_catalog=("cr -> critical rate",),
-            item_filter_catalog=("bow -> Bow",),
+            lambda request: seen.append(request) or False,
         )
 
-        outcome = fallback.interpret("best bow cr", ())
+        outcome = fallback.interpret("x", ())
 
-        self.assertEqual(outcome.suggestions, ("bow cr",))
+        self.assertEqual(outcome.kind, "failed")
+        self.assertEqual(
+            seen,
+            [SearchIntentRequest(stats=(SearchStatIntent("Made Up Stat"),))],
+        )
+
+    def test_duplicate_typed_candidates_are_deduplicated(self):
+        fallback = service(
+            {
+                "intent": "search",
+                "candidates": [
+                    {"stats": [{"name": "Critical Rate"}]},
+                    {"stats": [{"name": "Critical Rate"}]},
+                ],
+            }
+        )
+
+        outcome = fallback.interpret("crit", ())
+
+        self.assertEqual(
+            outcome.search_requests,
+            (SearchIntentRequest(stats=(SearchStatIntent("Critical Rate"),)),),
+        )
 
     def test_schema_is_sent_to_llm_client(self):
         llm = FakeLLM({"intent": "refuse"})
         fallback = QwenFallbackService(
             llm,
-            validate_search_rewrite=lambda query: True,
+            validate_search_request=lambda request: True,
             validate_database_action=lambda request: True,
             stat_catalog=("Critical Rate",),
             alias_catalog=(),
