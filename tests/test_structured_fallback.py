@@ -45,7 +45,7 @@ class StructuredFallbackTests(unittest.TestCase):
             lambda query: seen.append(query) or True,
         )
 
-        outcome = fallback.interpret("which bow has highest crit rate", ())
+        outcome = fallback.interpret("which bow has the most crit rate", ())
 
         self.assertEqual(outcome.kind, "suggestions")
         self.assertEqual(outcome.suggestions, ("Critical Rate bow",))
@@ -62,7 +62,7 @@ class StructuredFallbackTests(unittest.TestCase):
             }
         )
 
-        outcome = fallback.interpret("best bow crit", ())
+        outcome = fallback.interpret("find a bow with crit", ())
 
         self.assertEqual(
             outcome.suggestions,
@@ -131,6 +131,24 @@ class StructuredFallbackTests(unittest.TestCase):
             lambda query: False,
         )
         self.assertEqual(fallback.interpret("x", ()).kind, "failed")
+
+    def test_simple_best_query_uses_deterministic_rewrite_before_llm(self):
+        class MustNotRunLLM:
+            def complete(self, *args, **kwargs):
+                raise AssertionError("LLM should not be called")
+
+        fallback = QwenFallbackService(
+            MustNotRunLLM(),
+            validate_search_rewrite=lambda query: query == "bow cr",
+            validate_database_action=lambda request: True,
+            stat_catalog=("Critical Rate",),
+            alias_catalog=("cr -> critical rate",),
+            item_filter_catalog=("bow -> Bow",),
+        )
+
+        outcome = fallback.interpret("best bow cr", ())
+
+        self.assertEqual(outcome.suggestions, ("bow cr",))
 
     def test_schema_is_sent_to_llm_client(self):
         llm = FakeLLM({"intent": "refuse"})
