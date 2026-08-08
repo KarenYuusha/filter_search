@@ -21,11 +21,15 @@ from typing import Any, Callable, Iterable, Literal
 from rapidfuzz import fuzz
 
 from toram_search.help_db import DatabaseActionRequest, DatabaseQuestionService, HelpService
-from toram_search.fallback import FallbackOutcome, QwenFallbackService
+from toram_search.fallback import (
+    FallbackOutcome,
+    QwenFallbackService,
+    SearchIntentRequest,
+)
 from toram_search.llm import OllamaQwenClient
 from toram_search.session import FailedQueryContext, classify_screen_input
 
-SCRIPT_VERSION = "2026.08.08-qwen-fallback-v10"
+SCRIPT_VERSION = "2026.08.08-direct-structured-intent-v11"
 
 DEFAULT_DATABASE = Path("coryn_data/database/items.sqlite")
 PAGE_SIZE = 5
@@ -175,6 +179,7 @@ class DeterministicRoute:
 class ResultScreenOutcome:
     kind: Literal["selected", "new_query", "new", "quit"]
     query: str | None = None
+    search_request: SearchIntentRequest | None = None
 
 
 def _normalize_filter_text(value: str) -> str:
@@ -1367,6 +1372,8 @@ def resolve_expression_interactively(
     if parsed.error:
         output_fn(parsed.error)
         return None
+    if parsed.resolved_expression is not None:
+        return parsed
     if parsed.parsed_expression is None:
         output_fn("No stat expression was parsed.")
         return None
@@ -1451,6 +1458,138 @@ def _resolve_stat_for_database(text: str, repository: ItemRepository) -> str | N
     resolution = resolve_stat_term(typed, repository.list_stat_names(), allow_fuzzy=False)
     if resolution.status in {"exact", "alias"} and len(resolution.candidates) == 1:
         return resolution.candidates[0]
+    return None
+
+
+def _resolve_structured_item_filter(
+    text: str,
+    repository: ItemRepository,
+) -> FilterResolution | None:
+    resolution, remaining = extract_item_filter(text, repository.list_item_types())
+    if resolution is None or remaining.strip():
+        return None
+    return resolution
+
+
+def parse_structured_search_request(
+    request: SearchIntentRequest,
+    repository: ItemRepository,
+    *,
+    raw_query: str = "",
+) -> ParsedSearch | None:
+    if not request.stats or request.match not in {"all", "any"}:
+        return None
+
+    filter_resolution: FilterResolution | None = None
+    if request.item_filter is not None:
+        filter_resolution = _resolve_structured_item_filter(request.item_filter, repository)
+        if filter_resolution is None:
+            return None
+
+    resolved_stats: list[tuple[object, str]] = []
+    for stat in request.stats:
+        canonical = _resolve_stat_for_database(stat.name, repository)
+        if canonical is None:
+            return None
+        if stat.operator is None:
+            if stat.value is not None:
+                return None
+        elif stat.value is None or isinstance(stat.value, bool):
+            return None
+        resolved_stats.append((stat, canonical))
+
+    ordered_stats = list(resolved_stats)
+    if request.sort_stat is not None:
+        sort_key = normalize_stat_text(request.sort_stat)
+        sort_index = next(
+            (
+                index
+                for index, (stat, canonical) in enumerate(ordered_stats)
+                if normalize_stat_text(stat.name) == sort_key
+                or normalize_stat_text(canonical) == sort_key
+            ),
+            None,
+        )
+        if sort_index is None:
+            return None
+        ordered_stats.insert(0, ordered_stats.pop(sort_index))
+
+    if len(ordered_stats) == 1 and ordered_stats[0][0].operator is None:
+        stat, canonical = ordered_stats[0]
+        return ParsedSearch(
+            intent="stat_search",
+            raw_query=raw_query or stat.name,
+            stat=StatResolution(canonical, stat.name, 100.0, False),
+            filter=filter_resolution,
+        )
+
+    clauses: list[ResolvedClause] = []
+    for stat, canonical in ordered_stats:
+        operator = stat.operator or ">="
+        if stat.operator is None:
+            value = Decimal("1")
+        else:
+            try:
+                value = Decimal(str(stat.value))
+            except (ValueError, ArithmeticError):
+                return None
+        clauses.append(
+            ResolvedClause(
+                typed_stat=stat.name,
+                stat_name=canonical,
+                operator=operator,
+                value=value,
+            )
+        )
+
+    if request.match == "all":
+        groups = (ResolvedAndGroup(tuple(clauses)),)
+    else:
+        groups = tuple(ResolvedAndGroup((clause,)) for clause in clauses)
+
+    return ParsedSearch(
+        intent="stat_expression",
+        raw_query=raw_query or "structured search",
+        filter=filter_resolution,
+        resolved_expression=ResolvedStatExpression(groups),
+    )
+
+
+def _format_structured_search_request(request: SearchIntentRequest) -> str:
+    rendered_stats: list[str] = []
+    for stat in request.stats:
+        rendered = stat.name
+        if stat.operator is not None and stat.value is not None:
+            rendered += f" {stat.operator} {_format_number(stat.value)}"
+        rendered_stats.append(rendered)
+    joiner = " AND " if request.match == "all" else " OR "
+    label = joiner.join(rendered_stats)
+    if request.item_filter:
+        label += f" — {request.item_filter}"
+    if request.sort_stat:
+        label += f" — highest {request.sort_stat} first"
+    return label
+
+
+def _try_simple_ranking_search(
+    raw: str,
+    repository: ItemRepository,
+) -> ParsedSearch | None:
+    match = re.match(r"^\s*(best|highest)\b", raw, flags=re.IGNORECASE)
+    if match is None:
+        return None
+    candidate = raw[match.end():].strip()
+    if not candidate:
+        return None
+    parsed = parse_search_query(candidate, repository)
+    if parsed.intent in {"stat_search", "stat_choices"} and not parsed.error:
+        return parsed
+    if (
+        parsed.intent == "stat_expression"
+        and not parsed.error
+        and not _parsed_expression_has_unknown_stats(parsed, repository)
+    ):
+        return parsed
     return None
 
 
@@ -1581,6 +1720,10 @@ def route_deterministically(
     ):
         return DeterministicRoute("search", parsed=parsed)
 
+    ranking_search = _try_simple_ranking_search(raw, repository)
+    if ranking_search is not None:
+        return DeterministicRoute("search", parsed=ranking_search)
+
     help_text = help_service.answer_direct(raw)
     if help_text is not None:
         return DeterministicRoute("help", help_text=help_text)
@@ -1599,36 +1742,6 @@ def route_deterministically(
         return DeterministicRoute("fallback", record_failure=True)
 
     return DeterministicRoute("search", parsed=parsed)
-
-
-def validate_rewrite_query(
-    query: str,
-    repository: ItemRepository,
-    all_items: list[ItemSummary],
-    help_service: HelpService,
-    database_service: DatabaseQuestionService,
-) -> bool:
-    route = route_deterministically(
-        query,
-        repository,
-        all_items,
-        help_service,
-        database_service,
-    )
-    if route.kind != "search" or route.parsed is None:
-        return False
-    parsed = route.parsed
-    if parsed.intent == "item_search":
-        return bool(repository.exact_name_matches(parsed.item_query or ""))
-    if parsed.intent in {"upgrade_search", "exact_item", "exact_upgrade"}:
-        return True
-    if parsed.intent == "stat_expression":
-        return (
-            not parsed.error
-            and parsed.parsed_expression is not None
-            and not _parsed_expression_has_unknown_stats(parsed, repository)
-        )
-    return parsed.intent in {"stat_search", "stat_choices"}
 
 
 def parse_search_query(query: str, repository: ItemRepository) -> ParsedSearch:
@@ -1772,6 +1885,7 @@ def _build_fallback_service(
     database_service: DatabaseQuestionService,
     llm_client: object,
 ) -> QwenFallbackService:
+    del all_items, help_service
     aliases: list[str] = []
     for alias, target in sorted(STAT_ALIASES.items()):
         aliases.append(f"{alias} -> {target}")
@@ -1790,13 +1904,10 @@ def _build_fallback_service(
 
     return QwenFallbackService(
         llm_client,
-        validate_search_rewrite=lambda query: validate_rewrite_query(
-            query,
+        validate_search_request=lambda request: parse_structured_search_request(
+            request,
             repository,
-            all_items,
-            help_service,
-            database_service,
-        ),
+        ) is not None,
         validate_database_action=database_service.validate_request,
         stat_catalog=tuple(repository.list_stat_names()),
         alias_catalog=tuple(aliases),
@@ -1804,40 +1915,40 @@ def _build_fallback_service(
     )
 
 
-def _interactive_query_suggestions(
+def _interactive_search_requests(
     original_query: str,
     outcome: FallbackOutcome,
     *,
     input_fn: Callable[[str], str],
     output_fn: Callable[[str], None],
 ) -> ResultScreenOutcome:
-    suggestions = outcome.suggestions
-    output_fn("I couldn't understand:\n" + original_query)
-    if not suggestions:
+    requests = outcome.search_requests
+    if not requests:
         output_fn("I couldn't convert that into a supported item/stat search. Type 'help' for search examples.")
         return ResultScreenOutcome("new")
 
-    if len(suggestions) == 1:
-        suggestion = suggestions[0]
-        output_fn("Did you mean:\n" + suggestion)
+    output_fn(f'I interpreted "{original_query}" as:')
+    if len(requests) == 1:
+        request = requests[0]
+        output_fn(_format_structured_search_request(request))
         while True:
             try:
-                answer = input_fn("[y] Use suggestion  [n] Enter another query: ").strip()
+                answer = input_fn("[y] Use this search  [n] Enter another query: ").strip()
             except (EOFError, KeyboardInterrupt, StopIteration):
                 return ResultScreenOutcome("quit")
             lowered = answer.casefold()
             if lowered in {"y", "yes", "1"}:
-                return ResultScreenOutcome("new_query", query=suggestion)
+                return ResultScreenOutcome("selected", search_request=request)
             if lowered in {"n", "no", "new", ""}:
                 return ResultScreenOutcome("new")
             if lowered in {"q", "quit", "exit"}:
                 return ResultScreenOutcome("quit")
             return ResultScreenOutcome("new_query", query=answer)
 
-    output_fn("Possible searches:")
-    for index, suggestion in enumerate(suggestions, start=1):
-        output_fn(f"{index}. {suggestion}")
-    output_fn("Enter a number to use a suggestion, or type a new query.")
+    output_fn("Possible interpretations:")
+    for index, request in enumerate(requests, start=1):
+        output_fn(f"{index}. {_format_structured_search_request(request)}")
+    output_fn("Enter a number to use an interpretation, or type a new query.")
     while True:
         try:
             answer = input_fn("> ").strip()
@@ -1848,9 +1959,12 @@ def _interactive_query_suggestions(
             return ResultScreenOutcome("quit")
         if parsed.kind == "select":
             assert parsed.selection is not None
-            if 1 <= parsed.selection <= len(suggestions):
-                return ResultScreenOutcome("new_query", query=suggestions[parsed.selection - 1])
-            output_fn(f"Choose a number from 1 to {len(suggestions)}.")
+            if 1 <= parsed.selection <= len(requests):
+                return ResultScreenOutcome(
+                    "selected",
+                    search_request=requests[parsed.selection - 1],
+                )
+            output_fn(f"Choose a number from 1 to {len(requests)}.")
             continue
         if parsed.kind == "empty":
             continue
@@ -2201,43 +2315,57 @@ def interactive_search(
             if route.record_failure:
                 context.record_failure(query)
             outcome = fallback_service.interpret(query, context.snapshot())
-            if outcome.kind == "suggestions":
-                if outcome.suggestions:
-                    context.set_latest_suggestion(outcome.suggestions[0])
-                screen = _interactive_query_suggestions(
+            if outcome.kind == "search_requests":
+                if outcome.search_requests:
+                    context.set_latest_suggestion(
+                        _format_structured_search_request(outcome.search_requests[0])
+                    )
+                screen = _interactive_search_requests(
                     query,
                     outcome,
                     input_fn=input_fn,
                     output_fn=output_fn,
                 )
-                should_quit, new_query = handle_screen(screen)
-                if should_quit:
+                if screen.kind == "quit":
                     output_fn("Goodbye.")
                     return 0
-                if new_query:
-                    pending_query = new_query
-                continue
-            if outcome.kind == "unavailable":
+                if screen.kind == "new_query":
+                    pending_query = screen.query
+                    continue
+                if screen.kind != "selected" or screen.search_request is None:
+                    continue
+                parsed_request = parse_structured_search_request(
+                    screen.search_request,
+                    repository,
+                    raw_query=query,
+                )
+                if parsed_request is None:
+                    output_fn("I couldn't convert that into a supported item/stat search. Type 'help' for search examples.")
+                    continue
+                context.clear()
+                route = DeterministicRoute("search", parsed=parsed_request)
+            elif outcome.kind == "unavailable":
                 output_fn("I couldn't interpret that query automatically because the local Qwen fallback is unavailable. Normal item/stat search is still available.")
                 continue
-            if outcome.kind == "refuse":
+            elif outcome.kind == "refuse":
                 output_fn("I can only help search this item database or answer questions about its stats, item types, counts, and supported search syntax.")
                 continue
-            if outcome.kind == "database_action":
+            elif outcome.kind == "database_action":
                 if outcome.database_request is None:
                     output_fn("I couldn't convert that into a supported database question.")
                 else:
                     output_fn(database_service.execute(outcome.database_request))
                 continue
-            if outcome.kind == "help":
+            elif outcome.kind == "help":
                 help_text = help_service.answer_topic(outcome.help_topic or "")
                 if help_text is None:
                     output_fn("I couldn't convert that into supported search help.")
                 else:
                     output_fn(help_text)
                 continue
-            output_fn("I couldn't convert that into a supported item/stat search. Type 'help' for search examples.")
-            continue
+            else:
+                output_fn("I couldn't convert that into a supported item/stat search. Type 'help' for search examples.")
+                continue
 
         parsed = route.parsed
         if parsed is None:
