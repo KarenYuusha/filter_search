@@ -1,73 +1,120 @@
-import io
-import json
 import os
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
-from urllib import error
 
-from toram_search.llm import LLMUnavailableError, OllamaQwenClient
+import ollama
+
+from toram_search.llm import LLMResponseError, LLMUnavailableError, OllamaQwenClient
 
 
-class FakeResponse:
-    def __init__(self, payload: dict[str, object]):
-        self._raw = json.dumps(payload).encode("utf-8")
+class FakeClient:
+    def __init__(self, response=None, error=None):
+        self.response = response
+        self.error = error
+        self.calls = []
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc, tb):
-        return False
-
-    def read(self):
-        return self._raw
+    def chat(self, **kwargs):
+        self.calls.append(kwargs)
+        if self.error is not None:
+            raise self.error
+        return self.response
 
 
 class OllamaQwenClientTests(unittest.TestCase):
-    def test_uses_ollama_host_environment(self):
-        with patch.dict(os.environ, {"OLLAMA_HOST": "host.docker.internal:11434"}, clear=False):
-            client = OllamaQwenClient()
-        self.assertEqual(client.endpoint, "http://host.docker.internal:11434/api/chat")
+    def test_uses_official_client_with_explicit_host(self):
+        built = {}
 
-    def test_explicit_endpoint_wins_over_environment(self):
-        with patch.dict(os.environ, {"OLLAMA_HOST": "http://wrong-host:11434"}, clear=False):
-            client = OllamaQwenClient(endpoint="http://right-host:11434/api/chat")
-        self.assertEqual(client.endpoint, "http://right-host:11434/api/chat")
-
-    def test_complete_posts_to_configured_ollama_endpoint(self):
-        seen = {}
-
-        def fake_urlopen(req, timeout):
-            seen["url"] = req.full_url
-            seen["timeout"] = timeout
-            seen["payload"] = json.loads(req.data.decode("utf-8"))
-            return FakeResponse({"message": {"content": '{"intent":"refuse"}'}})
+        def fake_factory(**kwargs):
+            built.update(kwargs)
+            return FakeClient()
 
         client = OllamaQwenClient(
-            endpoint="http://ollama.test:11434",
-            urlopen_fn=fake_urlopen,
+            host="http://ollama.test:11434",
+            client_factory=fake_factory,
         )
+
+        self.assertEqual(
+            built,
+            {"host": "http://ollama.test:11434", "timeout": 12.0},
+        )
+        self.assertIsNotNone(client)
+
+    def test_omits_host_so_library_can_use_ollama_host_environment(self):
+        built = {}
+
+        def fake_factory(**kwargs):
+            built.update(kwargs)
+            return FakeClient()
+
+        with patch.dict(
+            os.environ,
+            {"OLLAMA_HOST": "http://env-host:11434"},
+            clear=False,
+        ):
+            OllamaQwenClient(client_factory=fake_factory)
+
+        self.assertEqual(built, {"timeout": 12.0})
+
+    def test_complete_uses_chat_json_mode_and_parses_object(self):
+        fake = FakeClient(
+            response=SimpleNamespace(
+                message=SimpleNamespace(content='{"intent":"refuse"}')
+            )
+        )
+        client = OllamaQwenClient(client=fake)
+
         result = client.complete("system", "user")
 
         self.assertEqual(result, {"intent": "refuse"})
-        self.assertEqual(seen["url"], "http://ollama.test:11434/api/chat")
-        self.assertEqual(seen["payload"]["model"], "qwen3.5:2b")
+        self.assertEqual(len(fake.calls), 1)
+        call = fake.calls[0]
+        self.assertEqual(call["model"], "qwen3.5:2b")
+        self.assertEqual(call["format"], "json")
+        self.assertEqual(call["keep_alive"], "10m")
+        self.assertEqual(
+            call["options"],
+            {"temperature": 0, "num_predict": 192},
+        )
+        self.assertEqual(
+            call["messages"],
+            [
+                {"role": "system", "content": "system"},
+                {"role": "user", "content": "user"},
+            ],
+        )
 
-    def test_http_error_reports_ollama_error_body(self):
-        def fake_urlopen(req, timeout):
-            raise error.HTTPError(
-                req.full_url,
-                404,
-                "Not Found",
-                hdrs=None,
-                fp=io.BytesIO(b'{"error":"model qwen3.5:2b not found"}'),
-            )
+    def test_response_error_becomes_unavailable_with_server_detail(self):
+        fake = FakeClient(
+            error=ollama.ResponseError("model qwen3.5:2b not found", 404)
+        )
+        client = OllamaQwenClient(client=fake)
 
-        client = OllamaQwenClient(urlopen_fn=fake_urlopen)
         with self.assertRaises(LLMUnavailableError) as raised:
             client.complete("system", "user")
 
-        self.assertIn("HTTP 404", str(raised.exception))
         self.assertIn("model qwen3.5:2b not found", str(raised.exception))
+        self.assertIn("404", str(raised.exception))
+
+    def test_connection_error_becomes_unavailable(self):
+        fake = FakeClient(error=ConnectionError("connection refused"))
+        client = OllamaQwenClient(client=fake)
+
+        with self.assertRaises(LLMUnavailableError) as raised:
+            client.complete("system", "user")
+
+        self.assertIn("connection refused", str(raised.exception))
+
+    def test_malformed_message_content_becomes_response_error(self):
+        fake = FakeClient(
+            response=SimpleNamespace(
+                message=SimpleNamespace(content="not json")
+            )
+        )
+        client = OllamaQwenClient(client=fake)
+
+        with self.assertRaises(LLMResponseError):
+            client.complete("system", "user")
 
 
 if __name__ == "__main__":
