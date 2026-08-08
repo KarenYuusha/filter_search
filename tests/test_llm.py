@@ -3,6 +3,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
+import httpx
 import ollama
 
 from toram_search.llm import LLMResponseError, LLMUnavailableError, OllamaQwenClient
@@ -36,7 +37,7 @@ class OllamaQwenClientTests(unittest.TestCase):
 
         self.assertEqual(
             built,
-            {"host": "http://ollama.test:11434", "timeout": 12.0},
+            {"host": "http://ollama.test:11434", "timeout": 30.0},
         )
         self.assertIsNotNone(client)
 
@@ -54,7 +55,7 @@ class OllamaQwenClientTests(unittest.TestCase):
         ):
             OllamaQwenClient(client_factory=fake_factory)
 
-        self.assertEqual(built, {"timeout": 12.0})
+        self.assertEqual(built, {"timeout": 30.0})
 
     def test_complete_uses_chat_json_mode_and_parses_object(self):
         fake = FakeClient(
@@ -71,10 +72,11 @@ class OllamaQwenClientTests(unittest.TestCase):
         call = fake.calls[0]
         self.assertEqual(call["model"], "qwen3.5:2b")
         self.assertEqual(call["format"], "json")
+        self.assertFalse(call["think"])
         self.assertEqual(call["keep_alive"], "10m")
         self.assertEqual(
             call["options"],
-            {"temperature": 0, "num_predict": 192},
+            {"temperature": 0, "num_predict": 128},
         )
         self.assertEqual(
             call["messages"],
@@ -83,6 +85,31 @@ class OllamaQwenClientTests(unittest.TestCase):
                 {"role": "user", "content": "user"},
             ],
         )
+
+    def test_complete_forwards_explicit_json_schema(self):
+        schema = {
+            "type": "object",
+            "properties": {"intent": {"type": "string"}},
+        }
+        fake = FakeClient(
+            response=SimpleNamespace(
+                message=SimpleNamespace(content='{"intent":"refuse"}')
+            )
+        )
+        client = OllamaQwenClient(client=fake)
+
+        client.complete("system", "user", schema=schema)
+
+        self.assertEqual(fake.calls[0]["format"], schema)
+
+    def test_read_timeout_becomes_unavailable(self):
+        fake = FakeClient(error=httpx.ReadTimeout("timed out"))
+        client = OllamaQwenClient(client=fake)
+
+        with self.assertRaises(LLMUnavailableError) as raised:
+            client.complete("system", "user")
+
+        self.assertIn("timed out", str(raised.exception))
 
     def test_response_error_becomes_unavailable_with_server_detail(self):
         fake = FakeClient(

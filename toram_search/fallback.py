@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-import json
+import math
 import re
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import Callable, Literal, Protocol
 
 from .help_db import ALLOWED_DATABASE_ACTIONS, DatabaseActionRequest
@@ -13,6 +14,23 @@ from .session import FailedQueryAttempt
 FallbackKind = Literal[
     "suggestions", "database_action", "help", "refuse", "unavailable", "failed"
 ]
+SearchMatch = Literal["all", "any"]
+ComparisonOperator = Literal[">", ">=", "<", "<=", "=", "=="]
+
+
+@dataclass(frozen=True)
+class SearchStatIntent:
+    name: str
+    operator: ComparisonOperator | None = None
+    value: float | int | None = None
+
+
+@dataclass(frozen=True)
+class SearchIntentRequest:
+    stats: tuple[SearchStatIntent, ...]
+    item_filter: str | None = None
+    match: SearchMatch = "all"
+    sort_stat: str | None = None
 
 
 @dataclass(frozen=True)
@@ -25,7 +43,13 @@ class FallbackOutcome:
 
 
 class LLMClient(Protocol):
-    def complete(self, system_prompt: str, user_prompt: str) -> dict[str, object]: ...
+    def complete(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        *,
+        schema: dict[str, object] | None = None,
+    ) -> dict[str, object]: ...
 
 
 _BUILD_TERMS = {
@@ -33,13 +57,9 @@ _BUILD_TERMS = {
     "dps",
     "build",
     "mage",
-    "support build",
-    "tank build",
-    "dps build",
 }
-
-_SQL_KEYS = {"sql"}
 _HELP_TOPICS = {"syntax", "operators", "examples"}
+_COMPARISON_OPERATORS = {">", ">=", "<", "<=", "=", "=="}
 
 
 class QwenFallbackService:
@@ -62,27 +82,71 @@ class QwenFallbackService:
 
     @staticmethod
     def _contains_out_of_scope_build_concept(text: str) -> bool:
-        normalized = " ".join(text.casefold().split())
-        tokens = set(re.findall(r"[a-z0-9%]+", normalized))
-        if tokens & {"tank", "dps", "build", "mage"}:
-            return True
-        return any(term in normalized for term in _BUILD_TERMS)
+        tokens = set(re.findall(r"[a-z0-9%]+", text.casefold()))
+        return bool(tokens & _BUILD_TERMS)
+
+    @staticmethod
+    def _response_schema() -> dict[str, object]:
+        return {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "intent": {
+                    "type": "string",
+                    "enum": ["search", "database_action", "help", "refuse"],
+                },
+                "candidates": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 3,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "properties": {
+                            "item_filter": {"type": "string"},
+                            "match": {"type": "string", "enum": ["all", "any"]},
+                            "sort_stat": {"type": "string"},
+                            "stats": {
+                                "type": "array",
+                                "minItems": 1,
+                                "maxItems": 3,
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": False,
+                                    "properties": {
+                                        "name": {"type": "string"},
+                                        "operator": {
+                                            "type": "string",
+                                            "enum": [">", ">=", "<", "<=", "=", "=="],
+                                        },
+                                        "value": {"type": "number"},
+                                    },
+                                    "required": ["name"],
+                                },
+                            },
+                        },
+                        "required": ["stats"],
+                    },
+                },
+                "action": {"type": "string"},
+                "item_type": {"type": "string"},
+                "stat": {"type": "string"},
+                "topic": {"type": "string"},
+            },
+            "required": ["intent"],
+        }
 
     def _system_prompt(self) -> str:
         return (
-            "You are a constrained router for a local Toram item database search program. "
-            "You do not answer from general knowledge. The current phase supports only item-name searches, "
-            "actual stat searches, search syntax help, and factual database metadata/count questions. "
-            "Never answer tank/DPS/build/gameplay recommendations or general questions. Never write SQL. "
-            "Return exactly one JSON object and no prose. Allowed shapes: "
-            '{"intent":"search_rewrite","suggestions":["..."]}; '
-            '{"intent":"database_action","action":"count_items_by_type","item_type":"Bow"}; '
-            '{"intent":"database_action","action":"count_items_with_stat","stat":"Critical Rate"}; '
-            '{"intent":"database_action","action":"list_stats"}; '
-            '{"intent":"help","topic":"syntax"}; '
-            '{"intent":"refuse"}. '
-            "Use at most 3 search suggestions. Preserve numeric operators, signs, percentages, AND/OR meaning. "
-            "Only use canonical stats/aliases/item filters supplied by the user prompt."
+            "Convert the user's request into one constrained JSON object. "
+            "You are only an interpreter for a local Toram item database; never answer facts from memory and never write SQL. "
+            "For item/stat searches return intent=search with 1-3 structured candidates. "
+            "Each candidate has stats, optional item_filter, optional match=all|any, and optional sort_stat. "
+            "A stat entry has name and optionally operator plus numeric value. "
+            "Use sort_stat only for highest/best ranking and make it one of the candidate's stats. "
+            "If wording is ambiguous, return multiple candidates rather than guessing. "
+            "For factual database metadata/count requests use intent=database_action. "
+            "For search instructions use intent=help. For unsupported/general/build questions use intent=refuse."
         )
 
     def _user_prompt(
@@ -100,19 +164,132 @@ class QwenFallbackService:
         return "\n".join(
             [
                 f"Current input: {current_input}",
-                "Last failed attempts:",
+                "Recent failed inputs:",
                 history_text,
-                "Canonical stats:",
+                "Canonical stats (prefer these exact names):",
                 ", ".join(self.stat_catalog),
-                "Aliases:",
+                "Known stat aliases:",
                 ", ".join(self.alias_catalog),
-                "Item filters:",
+                "Allowed item-filter phrases (use the phrase before '->'):",
                 ", ".join(self.item_filter_catalog),
-                "Supported grammar: item name; bare stat; -stat; > >= < <= = ==; AND; OR; one global item filter; highest/lowest only when expressible as a stat search.",
                 "Database actions: " + ", ".join(sorted(ALLOWED_DATABASE_ACTIONS)),
                 "Help topics: syntax, operators, examples",
             ]
         )
+
+    @staticmethod
+    def _normalize_key(value: str) -> str:
+        return " ".join(value.casefold().split())
+
+    @staticmethod
+    def _format_number(value: float | int) -> str:
+        decimal = Decimal(str(value))
+        text = format(decimal, "f")
+        if "." in text:
+            text = text.rstrip("0").rstrip(".")
+        return "0" if text in {"", "-0", "+0"} else text
+
+    def _search_candidate_from_payload(
+        self,
+        payload: object,
+    ) -> SearchIntentRequest | None:
+        if not isinstance(payload, dict):
+            return None
+        allowed_keys = {"stats", "item_filter", "match", "sort_stat"}
+        if not set(payload).issubset(allowed_keys) or "stats" not in payload:
+            return None
+
+        stats_obj = payload.get("stats")
+        if not isinstance(stats_obj, list) or not 1 <= len(stats_obj) <= 3:
+            return None
+
+        stats: list[SearchStatIntent] = []
+        for stat_obj in stats_obj:
+            if not isinstance(stat_obj, dict):
+                return None
+            if not set(stat_obj).issubset({"name", "operator", "value"}) or "name" not in stat_obj:
+                return None
+            name = stat_obj.get("name")
+            if not isinstance(name, str) or not name.strip():
+                return None
+            operator = stat_obj.get("operator")
+            value = stat_obj.get("value")
+            if operator is None:
+                if value is not None:
+                    return None
+            else:
+                if not isinstance(operator, str) or operator not in _COMPARISON_OPERATORS:
+                    return None
+                if isinstance(value, bool) or not isinstance(value, (int, float)):
+                    return None
+                if not math.isfinite(float(value)):
+                    return None
+            stats.append(SearchStatIntent(name.strip(), operator, value))
+
+        item_filter_obj = payload.get("item_filter")
+        if item_filter_obj is not None:
+            if not isinstance(item_filter_obj, str) or not item_filter_obj.strip():
+                return None
+            item_filter = item_filter_obj.strip()
+        else:
+            item_filter = None
+
+        match_obj = payload.get("match", "all")
+        if match_obj not in {"all", "any"}:
+            return None
+        match: SearchMatch = match_obj
+
+        sort_obj = payload.get("sort_stat")
+        if sort_obj is not None:
+            if not isinstance(sort_obj, str) or not sort_obj.strip():
+                return None
+            sort_stat = sort_obj.strip()
+            sort_key = self._normalize_key(sort_stat)
+            if not any(self._normalize_key(stat.name) == sort_key for stat in stats):
+                return None
+        else:
+            sort_stat = None
+
+        return SearchIntentRequest(
+            stats=tuple(stats),
+            item_filter=item_filter,
+            match=match,
+            sort_stat=sort_stat,
+        )
+
+    def _render_search_candidate(self, request: SearchIntentRequest) -> str | None:
+        ordered = list(request.stats)
+        if request.sort_stat is not None:
+            sort_key = self._normalize_key(request.sort_stat)
+            index = next(
+                (
+                    index
+                    for index, stat in enumerate(ordered)
+                    if self._normalize_key(stat.name) == sort_key
+                ),
+                None,
+            )
+            if index is None:
+                return None
+            ordered.insert(0, ordered.pop(index))
+
+        rendered_stats: list[str] = []
+        for stat in ordered:
+            if self._contains_out_of_scope_build_concept(stat.name):
+                return None
+            rendered = stat.name
+            if stat.operator is not None:
+                assert stat.value is not None
+                rendered += f" {stat.operator} {self._format_number(stat.value)}"
+            rendered_stats.append(rendered)
+
+        joiner = " AND " if request.match == "all" else " OR "
+        query = joiner.join(rendered_stats)
+        if request.item_filter:
+            if self._contains_out_of_scope_build_concept(request.item_filter):
+                return None
+            query += " " + request.item_filter
+        return query.strip()
 
     def _database_request_from_payload(self, payload: dict[str, object]) -> DatabaseActionRequest | None:
         if "sql" in payload:
@@ -146,6 +323,25 @@ class QwenFallbackService:
             return None
         return request if self.validate_database_action(request) else None
 
+    def _try_simple_ranking_rewrite(self, current_input: str) -> str | None:
+        match = re.match(r"^\s*(best|highest)\b", current_input, flags=re.IGNORECASE)
+        if match is None:
+            return None
+        candidate = current_input[match.end() :].strip()
+        candidate = " ".join(candidate.split())
+        if candidate and self.validate_search_rewrite(candidate):
+            return candidate
+        return None
+
+    def _complete(self, system_prompt: str, user_prompt: str) -> dict[str, object]:
+        schema = self._response_schema()
+        try:
+            return self.llm_client.complete(system_prompt, user_prompt, schema=schema)
+        except TypeError as exc:
+            if "schema" not in str(exc):
+                raise
+            return self.llm_client.complete(system_prompt, user_prompt)
+
     def interpret(
         self,
         current_input: str,
@@ -153,8 +349,11 @@ class QwenFallbackService:
     ) -> FallbackOutcome:
         if self._contains_out_of_scope_build_concept(current_input):
             return FallbackOutcome("refuse")
+        quick_rewrite = self._try_simple_ranking_rewrite(current_input)
+        if quick_rewrite is not None:
+            return FallbackOutcome("suggestions", suggestions=(quick_rewrite,))
         try:
-            payload = self.llm_client.complete(
+            payload = self._complete(
                 self._system_prompt(),
                 self._user_prompt(current_input, history),
             )
@@ -182,26 +381,26 @@ class QwenFallbackService:
             if request is None:
                 return FallbackOutcome("failed")
             return FallbackOutcome("database_action", database_request=request)
-        if intent == "search_rewrite":
-            if set(payload) != {"intent", "suggestions"}:
+        if intent == "search":
+            if set(payload) != {"intent", "candidates"}:
                 return FallbackOutcome("failed")
-            suggestions_obj = payload.get("suggestions")
-            if not isinstance(suggestions_obj, list):
+            candidates_obj = payload.get("candidates")
+            if not isinstance(candidates_obj, list) or not 1 <= len(candidates_obj) <= 3:
                 return FallbackOutcome("failed")
+
             valid: list[str] = []
             seen: set[str] = set()
-            for candidate in suggestions_obj:
-                if len(valid) >= 3:
-                    break
-                if not isinstance(candidate, str):
+            for candidate_obj in candidates_obj:
+                request = self._search_candidate_from_payload(candidate_obj)
+                if request is None:
                     continue
-                candidate = candidate.strip()
+                candidate = self._render_search_candidate(request)
+                if not candidate:
+                    continue
                 key = candidate.casefold()
-                if not candidate or key in seen:
+                if key in seen:
                     continue
                 seen.add(key)
-                if self._contains_out_of_scope_build_concept(candidate):
-                    continue
                 if self.validate_search_rewrite(candidate):
                     valid.append(candidate)
             if valid:
