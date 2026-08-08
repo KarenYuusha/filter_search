@@ -3,7 +3,6 @@ from __future__ import annotations
 import math
 import re
 from dataclasses import dataclass
-from decimal import Decimal
 from typing import Callable, Literal, Protocol
 
 from .help_db import ALLOWED_DATABASE_ACTIONS, DatabaseActionRequest
@@ -12,7 +11,7 @@ from .session import FailedQueryAttempt
 
 
 FallbackKind = Literal[
-    "suggestions", "database_action", "help", "refuse", "unavailable", "failed"
+    "search_requests", "database_action", "help", "refuse", "unavailable", "failed"
 ]
 SearchMatch = Literal["all", "any"]
 ComparisonOperator = Literal[">", ">=", "<", "<=", "=", "=="]
@@ -36,7 +35,7 @@ class SearchIntentRequest:
 @dataclass(frozen=True)
 class FallbackOutcome:
     kind: FallbackKind
-    suggestions: tuple[str, ...] = ()
+    search_requests: tuple[SearchIntentRequest, ...] = ()
     database_request: DatabaseActionRequest | None = None
     help_topic: str | None = None
     message: str | None = None
@@ -67,14 +66,14 @@ class QwenFallbackService:
         self,
         llm_client: LLMClient,
         *,
-        validate_search_rewrite: Callable[[str], bool],
+        validate_search_request: Callable[[SearchIntentRequest], bool],
         validate_database_action: Callable[[DatabaseActionRequest], bool],
         stat_catalog: tuple[str, ...],
         alias_catalog: tuple[str, ...],
         item_filter_catalog: tuple[str, ...],
     ) -> None:
         self.llm_client = llm_client
-        self.validate_search_rewrite = validate_search_rewrite
+        self.validate_search_request = validate_search_request
         self.validate_database_action = validate_database_action
         self.stat_catalog = stat_catalog
         self.alias_catalog = alias_catalog
@@ -181,14 +180,6 @@ class QwenFallbackService:
     def _normalize_key(value: str) -> str:
         return " ".join(value.casefold().split())
 
-    @staticmethod
-    def _format_number(value: float | int) -> str:
-        decimal = Decimal(str(value))
-        text = format(decimal, "f")
-        if "." in text:
-            text = text.rstrip("0").rstrip(".")
-        return "0" if text in {"", "-0", "+0"} else text
-
     def _search_candidate_from_payload(
         self,
         payload: object,
@@ -257,40 +248,6 @@ class QwenFallbackService:
             sort_stat=sort_stat,
         )
 
-    def _render_search_candidate(self, request: SearchIntentRequest) -> str | None:
-        ordered = list(request.stats)
-        if request.sort_stat is not None:
-            sort_key = self._normalize_key(request.sort_stat)
-            index = next(
-                (
-                    index
-                    for index, stat in enumerate(ordered)
-                    if self._normalize_key(stat.name) == sort_key
-                ),
-                None,
-            )
-            if index is None:
-                return None
-            ordered.insert(0, ordered.pop(index))
-
-        rendered_stats: list[str] = []
-        for stat in ordered:
-            if self._contains_out_of_scope_build_concept(stat.name):
-                return None
-            rendered = stat.name
-            if stat.operator is not None:
-                assert stat.value is not None
-                rendered += f" {stat.operator} {self._format_number(stat.value)}"
-            rendered_stats.append(rendered)
-
-        joiner = " AND " if request.match == "all" else " OR "
-        query = joiner.join(rendered_stats)
-        if request.item_filter:
-            if self._contains_out_of_scope_build_concept(request.item_filter):
-                return None
-            query += " " + request.item_filter
-        return query.strip()
-
     def _database_request_from_payload(self, payload: dict[str, object]) -> DatabaseActionRequest | None:
         if "sql" in payload:
             return None
@@ -323,16 +280,6 @@ class QwenFallbackService:
             return None
         return request if self.validate_database_action(request) else None
 
-    def _try_simple_ranking_rewrite(self, current_input: str) -> str | None:
-        match = re.match(r"^\s*(best|highest)\b", current_input, flags=re.IGNORECASE)
-        if match is None:
-            return None
-        candidate = current_input[match.end() :].strip()
-        candidate = " ".join(candidate.split())
-        if candidate and self.validate_search_rewrite(candidate):
-            return candidate
-        return None
-
     def _complete(self, system_prompt: str, user_prompt: str) -> dict[str, object]:
         schema = self._response_schema()
         try:
@@ -349,9 +296,6 @@ class QwenFallbackService:
     ) -> FallbackOutcome:
         if self._contains_out_of_scope_build_concept(current_input):
             return FallbackOutcome("refuse")
-        quick_rewrite = self._try_simple_ranking_rewrite(current_input)
-        if quick_rewrite is not None:
-            return FallbackOutcome("suggestions", suggestions=(quick_rewrite,))
         try:
             payload = self._complete(
                 self._system_prompt(),
@@ -388,22 +332,16 @@ class QwenFallbackService:
             if not isinstance(candidates_obj, list) or not 1 <= len(candidates_obj) <= 3:
                 return FallbackOutcome("failed")
 
-            valid: list[str] = []
-            seen: set[str] = set()
+            valid: list[SearchIntentRequest] = []
+            seen: set[SearchIntentRequest] = set()
             for candidate_obj in candidates_obj:
                 request = self._search_candidate_from_payload(candidate_obj)
-                if request is None:
+                if request is None or request in seen:
                     continue
-                candidate = self._render_search_candidate(request)
-                if not candidate:
-                    continue
-                key = candidate.casefold()
-                if key in seen:
-                    continue
-                seen.add(key)
-                if self.validate_search_rewrite(candidate):
-                    valid.append(candidate)
+                seen.add(request)
+                if self.validate_search_request(request):
+                    valid.append(request)
             if valid:
-                return FallbackOutcome("suggestions", suggestions=tuple(valid))
+                return FallbackOutcome("search_requests", search_requests=tuple(valid))
             return FallbackOutcome("failed")
         return FallbackOutcome("failed")
