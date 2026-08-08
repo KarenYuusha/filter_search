@@ -4,6 +4,7 @@ import json
 import os
 from typing import Callable
 
+import httpx
 import ollama
 
 
@@ -11,7 +12,7 @@ DEFAULT_MODEL = "qwen3.5:2b"
 
 
 class LLMUnavailableError(RuntimeError):
-    """Raised when the local Ollama endpoint/model cannot be reached."""
+    """Raised when the local Ollama endpoint/model cannot be reached in time."""
 
 
 class LLMResponseError(RuntimeError):
@@ -23,7 +24,7 @@ class OllamaQwenClient:
         self,
         model: str | None = None,
         host: str | None = None,
-        timeout_seconds: float = 12.0,
+        timeout_seconds: float = 30.0,
         *,
         client: object | None = None,
         client_factory: Callable[..., object] = ollama.Client,
@@ -38,7 +39,14 @@ class OllamaQwenClient:
             client_options["host"] = host
         self._client = client_factory(**client_options)
 
-    def complete(self, system_prompt: str, user_prompt: str) -> dict[str, object]:
+    def complete(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        *,
+        schema: dict[str, object] | None = None,
+    ) -> dict[str, object]:
+        response_format: object = schema if schema is not None else "json"
         try:
             response = self._client.chat(
                 model=self.model,
@@ -46,10 +54,11 @@ class OllamaQwenClient:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
                 ],
-                format="json",
+                format=response_format,
+                think=False,
                 options={
                     "temperature": 0,
-                    "num_predict": 192,
+                    "num_predict": 128,
                 },
                 keep_alive="10m",
             )
@@ -60,7 +69,7 @@ class OllamaQwenClient:
             if isinstance(status_code, int) and status_code >= 0:
                 message += f" (HTTP {status_code})"
             raise LLMUnavailableError(message) from exc
-        except ConnectionError as exc:
+        except (ConnectionError, httpx.TransportError) as exc:
             raise LLMUnavailableError(str(exc)) from exc
         except ollama.RequestError as exc:
             raise LLMResponseError(str(exc)) from exc
