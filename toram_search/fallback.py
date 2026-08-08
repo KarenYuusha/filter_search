@@ -323,6 +323,16 @@ class QwenFallbackService:
             return None
         return request if self.validate_database_action(request) else None
 
+    def _try_simple_ranking_rewrite(self, current_input: str) -> str | None:
+        match = re.match(r"^\s*(best|highest)\b", current_input, flags=re.IGNORECASE)
+        if match is None:
+            return None
+        candidate = current_input[match.end() :].strip()
+        candidate = " ".join(candidate.split())
+        if candidate and self.validate_search_rewrite(candidate):
+            return candidate
+        return None
+
     def _complete(self, system_prompt: str, user_prompt: str) -> dict[str, object]:
         schema = self._response_schema()
         try:
@@ -339,6 +349,9 @@ class QwenFallbackService:
     ) -> FallbackOutcome:
         if self._contains_out_of_scope_build_concept(current_input):
             return FallbackOutcome("refuse")
+        quick_rewrite = self._try_simple_ranking_rewrite(current_input)
+        if quick_rewrite is not None:
+            return FallbackOutcome("suggestions", suggestions=(quick_rewrite,))
         try:
             payload = self._complete(
                 self._system_prompt(),
