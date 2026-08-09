@@ -39,6 +39,9 @@ class OllamaQwenClient:
             client_options["host"] = host
         self._client = client_factory(**client_options)
 
+    def _uses_qwen35_nonthinking_workaround(self, schema: dict[str, object] | None) -> bool:
+        return schema is not None and self.model.casefold().startswith("qwen3.5")
+
     def complete(
         self,
         system_prompt: str,
@@ -47,11 +50,27 @@ class OllamaQwenClient:
         schema: dict[str, object] | None = None,
     ) -> dict[str, object]:
         response_format: object = schema if schema is not None else "json"
+        effective_system_prompt = system_prompt
+
+        # Ollama has had a Qwen3.5-specific interaction where structured `format`
+        # constraints can be ignored when `think=False`. Keep non-thinking mode for
+        # router latency, but ground the exact schema in the prompt and use JSON mode;
+        # the caller still performs strict deterministic validation afterward.
+        if self._uses_qwen35_nonthinking_workaround(schema):
+            response_format = "json"
+            compact_schema = json.dumps(schema, separators=(",", ":"), ensure_ascii=False)
+            effective_system_prompt = (
+                f"{system_prompt}\n\n"
+                "Required JSON schema:\n"
+                f"{compact_schema}\n"
+                "Return exactly one JSON object that follows this schema."
+            )
+
         try:
             response = self._client.chat(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": system_prompt},
+                    {"role": "system", "content": effective_system_prompt},
                     {"role": "user", "content": user_prompt},
                 ],
                 format=response_format,
