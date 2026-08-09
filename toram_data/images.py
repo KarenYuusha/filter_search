@@ -79,6 +79,12 @@ class ManagedImageStore:
             else self.database_root
         )
         self.managed_root = self.data_root / "appearance"
+        self.legacy_managed_root = self.database_root / "item_images"
+
+    def _database_relative_path(self, path: Path) -> str:
+        if self.data_root == self.database_root:
+            return path.relative_to(self.database_root).as_posix()
+        return (Path("..") / path.relative_to(self.data_root)).as_posix()
 
     def stage(
         self,
@@ -122,25 +128,31 @@ class ManagedImageStore:
                 shutil.copy2(source, staged)
                 if file_sha256(source) != file_sha256(staged):
                     raise ImageStoreError(f"Image copy verification failed: {source}")
-                relative = final.relative_to(self.data_root).as_posix()
+                relative = self._database_relative_path(final)
                 prepared[index] = replace(image, local_path=relative, selected_source_path=None)
                 transfers.append((staged, final, index))
-            return PreparedImageBatch(self.data_root, staging_root, transfers, prepared)
+            return PreparedImageBatch(self.database_root, staging_root, transfers, prepared)
         except Exception:
             shutil.rmtree(staging_root, ignore_errors=True)
             raise
+
+    def _managed_root_for(self, candidate: Path) -> Path | None:
+        for managed_root in (self.managed_root, self.legacy_managed_root):
+            resolved_root = managed_root.resolve()
+            try:
+                candidate.relative_to(resolved_root)
+            except ValueError:
+                continue
+            return resolved_root
+        return None
 
     def _managed_candidate(self, value: str) -> Path | None:
         raw = Path(value).expanduser()
         if raw.is_absolute():
             candidate = raw.resolve()
         else:
-            candidate = (self.data_root / raw).resolve()
-        try:
-            candidate.relative_to(self.managed_root.resolve())
-        except ValueError:
-            return None
-        return candidate
+            candidate = (self.database_root / raw).resolve()
+        return candidate if self._managed_root_for(candidate) is not None else None
 
     def delete_managed_paths(self, relative_paths: Iterable[str]) -> list[Path]:
         failures: list[Path] = []
@@ -148,8 +160,10 @@ class ManagedImageStore:
             raw = Path(value).expanduser()
             candidate = self._managed_candidate(value)
             if candidate is None:
-                failures.append(raw if raw.is_absolute() else self.data_root / raw)
+                failures.append(raw if raw.is_absolute() else self.database_root / raw)
                 continue
+            managed_root = self._managed_root_for(candidate)
+            assert managed_root is not None
             try:
                 if candidate.is_file() or candidate.is_symlink():
                     candidate.unlink()
@@ -157,7 +171,7 @@ class ManagedImageStore:
                     failures.append(candidate)
                     continue
                 parent = candidate.parent
-                while parent != self.managed_root and parent.is_relative_to(self.managed_root):
+                while parent != managed_root and parent.is_relative_to(managed_root):
                     try:
                         parent.rmdir()
                     except OSError:
@@ -167,42 +181,50 @@ class ManagedImageStore:
                 failures.append(candidate)
         return failures
 
-    def delete_item_directory(self, item_id: int) -> list[Path]:
-        if not self.managed_root.exists():
+    @staticmethod
+    def _delete_directory(item_dir: Path, managed_root: Path) -> list[Path]:
+        resolved_root = managed_root.resolve()
+        resolved_item_dir = item_dir.resolve()
+        try:
+            resolved_item_dir.relative_to(resolved_root)
+        except ValueError:
+            return [item_dir]
+        if not resolved_item_dir.exists():
             return []
 
         failures: list[Path] = []
-        pattern = f"{item_id}-*"
-        candidates = sorted(self.managed_root.glob(f"*/{pattern}"))
-        for raw_item_dir in candidates:
-            item_dir = raw_item_dir.resolve()
+        for path in sorted(resolved_item_dir.rglob("*"), reverse=True):
             try:
-                item_dir.relative_to(self.managed_root.resolve())
-            except ValueError:
-                failures.append(raw_item_dir)
-                continue
-
-            if not item_dir.exists():
-                continue
-            for path in sorted(item_dir.rglob("*"), reverse=True):
-                try:
-                    if path.is_file() or path.is_symlink():
-                        path.unlink()
-                    elif path.is_dir():
-                        path.rmdir()
-                except OSError:
-                    failures.append(path)
-            try:
-                item_dir.rmdir()
+                if path.is_file() or path.is_symlink():
+                    path.unlink()
+                elif path.is_dir():
+                    path.rmdir()
             except OSError:
-                if item_dir.exists():
-                    failures.append(item_dir)
-                continue
+                failures.append(path)
+        try:
+            resolved_item_dir.rmdir()
+        except OSError:
+            if resolved_item_dir.exists():
+                failures.append(resolved_item_dir)
+        return failures
 
-            parent = raw_item_dir.parent
-            if parent != self.managed_root:
-                try:
-                    parent.rmdir()
-                except OSError:
-                    pass
+    def delete_item_directory(self, item_id: int) -> list[Path]:
+        failures: list[Path] = []
+
+        if self.managed_root.exists():
+            for item_dir in sorted(self.managed_root.glob(f"*/{item_id}-*")):
+                directory_failures = self._delete_directory(item_dir, self.managed_root)
+                failures.extend(directory_failures)
+                if not directory_failures:
+                    try:
+                        item_dir.parent.rmdir()
+                    except OSError:
+                        pass
+
+        legacy_item_dir = self.legacy_managed_root / str(item_id)
+        if legacy_item_dir.exists():
+            failures.extend(
+                self._delete_directory(legacy_item_dir, self.legacy_managed_root)
+            )
+
         return failures
