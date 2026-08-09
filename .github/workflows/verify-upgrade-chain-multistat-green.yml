@@ -1,0 +1,37 @@
+name: Verify Upgrade Chain Multi-Stat GREEN
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/upgrade-natural-discord-name-green
+      - name: Apply approved implementation
+        run: python .github/scripts/apply_chain_multistat_fix.py
+      - name: Commit implementation
+        shell: bash
+        run: |
+          if ! git diff --quiet -- toram_search/service.py search_items.py toram_data/stat_query.py; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add toram_search/service.py search_items.py toram_data/stat_query.py
+            git commit -m "fix: show full upgrade chains and parse multi-stat has queries"
+            git push origin HEAD:feat/upgrade-natural-discord-name-green
+          fi
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install 'discord.py>=2.7.1,<3' 'ollama>=0.6.2' 'python-dotenv>=1.1,<2' 'rapidfuzz>=3.14.5'
+      - name: Compile changed modules
+        run: python -m py_compile search_items.py discord_bot.py toram_search/service.py toram_data/stat_query.py
+      - name: Focused regression gate
+        run: python -m unittest tests.test_cli_upgrade tests.test_discord_followup_regressions tests.test_discord_bot tests.test_search_service tests.test_direct_structured_intent tests.test_llm -v
