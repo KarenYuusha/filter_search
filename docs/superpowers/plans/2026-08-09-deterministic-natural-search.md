@@ -4,7 +4,7 @@
 
 **Goal:** Route simple conversational item/stat requests through the existing deterministic parser before invoking Qwen.
 
-**Architecture:** Add a pure normalization helper in `search_items.py` that recognizes a narrow set of conversational patterns, validates the item-filter side with existing resolvers, and returns an existing-grammar query only when safe. `route_deterministically()` attempts that normalized query after the current direct parse/ranking checks and before help/database/Qwen fallback.
+**Architecture:** Add conversational-shell normalization to `toram_data/stat_query.py`, the parser already used by `parse_search_query()` before Qwen routing. Both `looks_like_stat_expression()` and `parse_stat_expression()` use the same normalization, so detection and execution cannot disagree. Existing item-filter/stat resolution remains authoritative.
 
 **Tech Stack:** Python 3.10+, `unittest`, existing `toram_data.aliases` and stat-query parser.
 
@@ -18,134 +18,126 @@
 
 ---
 
-### Task 1: Add regression tests for conversational normalization
+### Task 1: Add regression tests for conversational parsing
 
 **Files:**
 - Modify: `tests/test_direct_structured_intent.py`
 
 **Interfaces:**
-- Consumes: `route_deterministically(query, repository, all_items, help_service, database_service)` and the new `_try_natural_search_normalization(query, repository)` helper.
-- Produces: regression coverage for supported conversational forms and non-rewrite cases.
+- Consumes: `parse_search_query()`, `resolve_expression_interactively()`, and `route_deterministically()`.
+- Produces: regression coverage proving natural queries enter the normal deterministic stat-expression path before fallback.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Add tests for supported forms**
 
-Add tests using the existing `FakeRepository` plus `HelpService` / `DatabaseQuestionService` stubs where needed:
+Cover:
 
-```python
-def test_natural_armor_hp_routes_without_qwen(self):
-    parsed = _try_natural_search_normalization("can you find armor with hp", self.repository)
-    self.assertIsNotNone(parsed)
-    self.assertEqual(parsed.intent, "stat_search")
-    self.assertEqual(parsed.stat.stat_name, "MaxHP")
-    self.assertEqual(parsed.filter.label, "Armor")
-
-
-def test_natural_bow_cr_routes_without_qwen(self):
-    parsed = _try_natural_search_normalization("show me bow with cr", self.repository)
-    self.assertIsNotNone(parsed)
-    self.assertEqual(parsed.stat.stat_name, "Critical Rate")
-    self.assertEqual(parsed.filter.label, "Bow")
-
-
-def test_unsupported_conversation_is_not_rewritten(self):
-    self.assertIsNone(
-        _try_natural_search_normalization("tell me something interesting about armor", self.repository)
-    )
+```text
+can you find armor with hp
+show me bow with cr
+which bows have critical rate
+armor having hp
 ```
 
-Also cover `which bows have critical rate` and `armor having hp`.
+Assert the parsed expression keeps the original raw query, resolves the expected item filter, and deterministically resolves aliases such as `hp -> MaxHP` and `cr -> Critical Rate`.
 
-- [ ] **Step 2: Run focused tests and verify RED**
+- [x] **Step 2: Add tests for routing boundaries**
 
-Run:
+Assert:
 
-```bash
-uv run python -m unittest tests.test_direct_structured_intent -v
+```text
+tell me something interesting about armor
 ```
 
-Expected: import/test failures because `_try_natural_search_normalization` does not exist yet.
+still routes to fallback, while:
 
-- [ ] **Step 3: Commit RED tests**
-
-```bash
-git add tests/test_direct_structured_intent.py
-git commit -m "test: cover deterministic natural-language search"
+```text
+find tank armor with hp
 ```
+
+still follows the existing refusal path rather than being reduced to a plain Armor search.
 
 ---
 
-### Task 2: Implement narrow deterministic conversational normalization
+### Task 2: Implement shared conversational-shell normalization
 
 **Files:**
-- Modify: `search_items.py`
+- Modify: `toram_data/stat_query.py`
 - Test: `tests/test_direct_structured_intent.py`
 
 **Interfaces:**
-- Produces: `_try_natural_search_normalization(raw: str, repository: ItemRepository) -> ParsedSearch | None`
+- Produces: `normalize_natural_stat_query(text: str, available_item_types: set[str]) -> str`
 
-- [ ] **Step 1: Implement pattern extraction**
+- [x] **Step 1: Recognize only approved conversational forms**
 
-Recognize only the approved forms. Extract `item_text` and `stat_text`, trim punctuation/whitespace, and reject empty sides.
+Recognize:
 
-- [ ] **Step 2: Validate item filter completely**
-
-Use `_resolve_structured_item_filter(item_text, repository)` so partial/unknown item phrases are rejected rather than guessed.
-
-- [ ] **Step 3: Build existing-grammar candidate**
-
-Construct `candidate = f"{stat_text} {item_text}"` and call `parse_search_query(candidate, repository)`.
-
-Accept only parser outcomes already considered supported searches:
-
-```python
-{"stat_search", "stat_choices", "stat_expression"}
+```text
+can you find X with Y
+find X with Y
+show me X with Y
+give me X with Y
+I want X with Y
+which X has Y
+which X have Y
+X that has Y
+X that have Y
+X having Y
 ```
 
-Reject parsed errors and stat expressions containing unknown stats. Return the parsed object with `raw_query` replaced by the original conversational query for presentation/history.
+- [x] **Step 2: Require a complete item-filter match**
 
-- [ ] **Step 4: Integrate before Qwen fallback**
+Use the existing filter candidate machinery. A rewrite is produced only if the entire `X` side resolves to a known item filter. Extra words are never discarded.
 
-In `route_deterministically()`, after direct parsing and the existing simple ranking path, call `_try_natural_search_normalization(raw, repository)`. If it succeeds, return `DeterministicRoute("search", parsed=normalized_search)`.
+A one-word plural may be singularized only when the singular form then resolves completely, e.g. `bows -> bow`.
 
-- [ ] **Step 5: Run focused tests and verify GREEN**
+- [x] **Step 3: Rewrite into existing grammar**
+
+Return:
+
+```python
+f"{stat_text} {item_phrase}"
+```
+
+Otherwise return the original text unchanged.
+
+- [x] **Step 4: Share normalization between detection and parsing**
+
+Call the helper from both `looks_like_stat_expression()` and `parse_stat_expression()` so the query detected as deterministic is parsed using exactly the same normalized form.
+
+- [ ] **Step 5: Run focused verification**
+
+Preferred command in a local checkout:
 
 ```bash
 uv run python -m unittest tests.test_direct_structured_intent -v
 ```
 
-Expected: all tests pass.
+If the connector environment cannot run the repository, run a focused reconstructed harness and document the limitation; do not claim the full test module passed locally.
 
-- [ ] **Step 6: Run broader search tests**
+- [ ] **Step 6: Run the full suite when available**
 
 ```bash
 uv run python -m unittest discover -s tests -v
 ```
 
-Expected: full suite passes. If the connector environment cannot run the repository, document that limitation and run a focused reconstructed harness instead; do not claim the full suite passed.
-
-- [ ] **Step 7: Commit production change**
-
-```bash
-git add search_items.py tests/test_direct_structured_intent.py
-git commit -m "feat: normalize simple natural-language searches"
-```
+Do not claim this passed unless the command was actually executed successfully.
 
 ---
 
 ### Task 3: Review routing boundaries and open PR
 
 **Files:**
-- Review: `search_items.py`
+- Review: `toram_data/stat_query.py`
 - Review: `tests/test_direct_structured_intent.py`
 - Review: design/plan docs
 
-- [ ] **Step 1: Verify no semantic build expansion**
+- [ ] **Step 1: Verify direct syntax unchanged**
 
-Confirm `tank`, `dps`, `build`, and `mage` still follow the existing refusal path.
+Confirm `hp armor`, `cr bow`, and existing boolean/comparison expressions still use the same parser semantics.
 
-- [ ] **Step 2: Verify direct syntax unchanged**
+- [ ] **Step 2: Verify build/refusal boundary**
 
-Confirm queries such as `hp armor`, `cr bow`, and `best bow cr` still use existing deterministic behavior.
+Confirm incomplete item-filter sides containing `tank`, `dps`, `build`, or `mage` are not normalized away.
 
 - [ ] **Step 3: Compare branch with `main`**
 
