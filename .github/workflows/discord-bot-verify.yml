@@ -26,4 +26,4 @@ jobs:
             tests.test_search_service \
             tests.test_discord_bot \
             tests.test_direct_structured_intent \
-            tests.test_structured_fallback -v
+            tests.test_llm -v
