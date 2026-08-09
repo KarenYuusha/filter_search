@@ -348,25 +348,20 @@ class SearchService:
 
         if parsed.intent == "exact_upgrade":
             selected_id = int(parsed.item_id)
-            query = parsed.raw_query.partition(" ")[2].strip() or parsed.raw_query
-            successors = self.repository.get_upgrade_successors(selected_id)
-            return UpgradeResultsPayload(
-                query,
-                self._rank_upgrade_successors(successors),
+            return UpgradeDetailPayload(
+                graph=self.repository.get_upgrade_component(selected_id),
+                selected_item_id=selected_id,
             )
 
         if parsed.intent == "upgrade_search":
             query = parsed.item_query or ""
             exact = self.repository.exact_upgrade_name_matches(query)
-            if exact:
-                successors: list[core.ItemSummary] = []
-                for item in exact:
-                    successors.extend(self.repository.get_upgrade_successors(item.id))
-                if successors:
-                    return UpgradeResultsPayload(
-                        query,
-                        self._rank_upgrade_successors(successors),
-                    )
+            if len(exact) == 1:
+                selected_id = exact[0].id
+                return UpgradeDetailPayload(
+                    graph=self.repository.get_upgrade_component(selected_id),
+                    selected_item_id=selected_id,
+                )
             upgrade_items = [
                 item for item in self.all_items
                 if core.is_crysta_item_type(item.item_type)

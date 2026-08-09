@@ -26,60 +26,60 @@ class CliRepository(FakeRepository):
 
 
 class CliUpgradeTests(unittest.TestCase):
-    def test_exact_upgrade_lists_direct_successors_not_full_chain(self):
+    def _run(self, query: str, *extra_answers: str) -> str:
         repository = CliRepository()
-        answers = iter(["upgrade Don", "quit"])
+        answers = iter([query, *extra_answers, "quit"])
         output: list[str] = []
-
         result = core.interactive_search(
             repository,
             input_fn=lambda _prompt: next(answers),
             output_fn=output.append,
             llm_client=MustNotCallLLM(),
         )
-
-        rendered = "\n".join(output)
         self.assertEqual(result, 0)
-        self.assertIn("Upgrades from Don", rendered)
-        self.assertIn("1. Don Upgrade A — Enhancer Crysta (Blue)", rendered)
-        self.assertIn("2. Don Upgrade B — Enhancer Crysta (Blue)", rendered)
-        self.assertNotIn("Upgrade chain for Don", rendered)
+        return "\n".join(output)
 
-    def test_selecting_direct_upgrade_shows_item_detail(self):
-        repository = CliRepository()
-        answers = iter(["upgrade Don", "1", "quit"])
-        output: list[str] = []
-
-        result = core.interactive_search(
-            repository,
-            input_fn=lambda _prompt: next(answers),
-            output_fn=output.append,
-            llm_client=MustNotCallLLM(),
-        )
-
-        rendered = "\n".join(output)
-        self.assertEqual(result, 0)
-        self.assertIn("Don Upgrade A\n=============", rendered)
-        self.assertIn("Type: Enhancer Crysta (Blue)", rendered)
-
-    # Natural wording must reach the same deterministic direct-upgrade screen.
-    def test_natural_upgrade_query_uses_direct_successor_screen_without_qwen(self):
-        repository = CliRepository()
-        answers = iter(["what upgrades from Don?", "quit"])
-        output: list[str] = []
-
-        result = core.interactive_search(
-            repository,
-            input_fn=lambda _prompt: next(answers),
-            output_fn=output.append,
-            llm_client=MustNotCallLLM(),
-        )
-
-        rendered = "\n".join(output)
-        self.assertEqual(result, 0)
-        self.assertIn("Upgrades from Don", rendered)
+    def _assert_complete_chain(self, rendered: str, selected_name: str):
+        self.assertIn(f"Upgrade chain for {selected_name}", rendered)
+        self.assertIn("Don", rendered)
         self.assertIn("Don Upgrade A", rendered)
         self.assertIn("Don Upgrade B", rendered)
+        self.assertNotIn("No direct upgrade crystas found", rendered)
+
+    def test_first_upgrade_item_shows_complete_chain(self):
+        self._assert_complete_chain(self._run("upgrade Don"), "Don")
+
+    def test_middle_upgrade_item_shows_complete_chain(self):
+        self._assert_complete_chain(
+            self._run("upgrade Don Upgrade A"),
+            "Don Upgrade A",
+        )
+
+    def test_last_upgrade_item_still_shows_complete_chain(self):
+        self._assert_complete_chain(
+            self._run("upgrade Don Upgrade B"),
+            "Don Upgrade B",
+        )
+
+    def test_natural_upgrade_query_uses_complete_chain_without_qwen(self):
+        self._assert_complete_chain(
+            self._run("what upgrades from Don?"),
+            "Don",
+        )
+
+    def test_fuzzy_selected_last_item_shows_complete_chain(self):
+        rendered = self._run("upgrade Don Upgrad B", "2")
+        self._assert_complete_chain(rendered, "Don Upgrade B")
+
+    def test_plain_natural_multi_stat_query_stays_deterministic_in_cli(self):
+        rendered = self._run("bow has cr and ampr")
+        self.assertIn(
+            "Expression: Critical Rate >= 1 AND Attack MP Recovery >= 1",
+            rendered,
+        )
+        self.assertIn("Filter: Bow", rendered)
+        self.assertNotIn("I couldn't interpret that search", rendered)
+        self.assertNotIn("Automatic interpretation unavailable", rendered)
 
 
 if __name__ == "__main__":

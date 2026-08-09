@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import unittest
-from pathlib import Path
 from types import SimpleNamespace
 
 import search_items as core
 from discord_bot import is_allowed_message, load_config
-from toram_search.service import SearchService, UpgradeResultsPayload
+from toram_search.service import (
+    ExpressionResultsPayload,
+    SearchService,
+    StatClarificationPayload,
+    UpgradeDetailPayload,
+)
 from toram_search.session import FailedQueryContext
 
 
@@ -30,15 +34,23 @@ class FakeRepository:
         self.upgrade_a = core.ItemSummary(2, "Don Upgrade A", "Enhancer Crysta (Blue)")
         self.upgrade_b = core.ItemSummary(3, "Don Upgrade B", "Enhancer Crysta (Blue)")
         self.other = core.ItemSummary(4, "Other Crysta", "Normal Crysta")
+        self.bow = core.ItemSummary(5, "Training Bow", "Bow")
 
     def list_items(self):
-        return [self.don, self.upgrade_a, self.upgrade_b, self.other]
+        return [self.don, self.upgrade_a, self.upgrade_b, self.other, self.bow]
 
     def list_item_types(self):
         return {item.item_type for item in self.list_items()}
 
     def list_stat_names(self):
-        return ["Critical Rate", "MaxHP"]
+        return [
+            "Critical Rate",
+            "Critical Damage",
+            "Attack MP Recovery",
+            "MaxHP",
+            "Physical Resistance %",
+            "Stability",
+        ]
 
     def exact_name_matches(self, query):
         normalized = core.normalize_name(query)
@@ -55,17 +67,26 @@ class FakeRepository:
 
     def get_upgrade_successors(self, item_id):
         if item_id == self.don.id:
-            return [self.upgrade_a, self.upgrade_b]
+            return [self.upgrade_a]
+        if item_id == self.upgrade_a.id:
+            return [self.upgrade_b]
         return []
 
     def get_upgrade_component(self, item_id):
+        if item_id not in {self.don.id, self.upgrade_a.id, self.upgrade_b.id}:
+            item = next(item for item in self.list_items() if item.id == item_id)
+            return core.UpgradeGraph(nodes={item.id: item}, edges={item.id: ()}, missing_nodes={})
         return core.UpgradeGraph(
             nodes={
                 self.don.id: self.don,
                 self.upgrade_a.id: self.upgrade_a,
                 self.upgrade_b.id: self.upgrade_b,
             },
-            edges={self.don.id: (self.upgrade_a.id, self.upgrade_b.id)},
+            edges={
+                self.don.id: (self.upgrade_a.id,),
+                self.upgrade_a.id: (self.upgrade_b.id,),
+                self.upgrade_b.id: (),
+            },
             missing_nodes={},
         )
 
@@ -153,21 +174,25 @@ class DeterministicHelpTests(unittest.TestCase):
 
 
 class UpgradeLookupTests(unittest.TestCase):
-    def test_upgrade_exact_name_returns_direct_successors(self):
-        repository = FakeRepository()
-        service = SearchService(repository, llm_client=MustNotCallLLM())
-
-        outcome = service.handle_query(
-            "upgrade don",
-            FailedQueryContext(max_entries=3),
-        )
-
+    def _assert_whole_chain(self, outcome, selected_id):
         self.assertEqual(outcome.kind, "search")
-        self.assertIsInstance(outcome.payload, UpgradeResultsPayload)
-        self.assertEqual(
-            [result.item.name for result in outcome.payload.results],
-            ["Don Upgrade A", "Don Upgrade B"],
+        self.assertIsInstance(outcome.payload, UpgradeDetailPayload)
+        self.assertEqual(outcome.payload.selected_item_id, selected_id)
+        self.assertEqual(set(outcome.payload.graph.nodes), {1, 2, 3})
+        self.assertEqual(outcome.payload.graph.edges[1], (2,))
+        self.assertEqual(outcome.payload.graph.edges[2], (3,))
+
+    def test_upgrade_first_middle_and_last_return_same_complete_chain(self):
+        cases = (
+            ("upgrade Don", 1),
+            ("upgrade Don Upgrade A", 2),
+            ("upgrade Don Upgrade B", 3),
         )
+        for query, selected_id in cases:
+            with self.subTest(query=query):
+                service = SearchService(FakeRepository(), llm_client=MustNotCallLLM())
+                outcome = service.handle_query(query, FailedQueryContext(max_entries=3))
+                self._assert_whole_chain(outcome, selected_id)
 
     def test_natural_upgrade_forms_are_deterministic(self):
         queries = (
@@ -188,17 +213,8 @@ class UpgradeLookupTests(unittest.TestCase):
             with self.subTest(query=query):
                 llm = RecordingLLM()
                 service = SearchService(FakeRepository(), llm_client=llm)
-                outcome = service.handle_query(
-                    query,
-                    FailedQueryContext(max_entries=3),
-                )
-                self.assertEqual(outcome.kind, "search")
-                self.assertIsInstance(outcome.payload, UpgradeResultsPayload)
-                self.assertEqual(outcome.payload.query, "Don")
-                self.assertEqual(
-                    [result.item.name for result in outcome.payload.results],
-                    ["Don Upgrade A", "Don Upgrade B"],
-                )
+                outcome = service.handle_query(query, FailedQueryContext(max_entries=3))
+                self._assert_whole_chain(outcome, 1)
                 self.assertEqual(llm.calls, 0)
 
     def test_subjective_upgrade_wording_is_not_upgrade_intent(self):
@@ -212,19 +228,80 @@ class UpgradeLookupTests(unittest.TestCase):
                 parsed = core.parse_search_query(query, repository)
                 self.assertNotIn(parsed.intent, {"exact_upgrade", "upgrade_search"})
 
-    def test_selected_fuzzy_upgrade_candidate_returns_direct_successors(self):
+    def test_selected_fuzzy_last_upgrade_candidate_returns_complete_chain(self):
         service = SearchService(FakeRepository(), llm_client=MustNotCallLLM())
-        self.assertTrue(
-            hasattr(service, "continue_upgrade_selection"),
-            "SearchService must expose deterministic upgrade-candidate continuation",
+        outcome = service.continue_upgrade_selection(3, "Don Upgrade B")
+        self._assert_whole_chain(outcome, 3)
+
+
+class NaturalMultiStatTests(unittest.TestCase):
+    def _resolved_names(self, payload):
+        expression = payload.parsed.resolved_expression
+        self.assertIsNotNone(expression)
+        self.assertEqual(len(expression.groups), 1)
+        return [clause.stat_name for clause in expression.groups[0].clauses]
+
+    def test_plain_bow_has_two_stats_is_deterministic_without_qwen(self):
+        service = SearchService(FakeRepository(), llm_client=MustNotCallLLM())
+        outcome = service.handle_query(
+            "bow has cr and ampr",
+            FailedQueryContext(max_entries=3),
         )
-        outcome = service.continue_upgrade_selection(1, "Don")
         self.assertEqual(outcome.kind, "search")
-        self.assertIsInstance(outcome.payload, UpgradeResultsPayload)
-        self.assertEqual(outcome.payload.query, "Don")
+        self.assertIsInstance(outcome.payload, ExpressionResultsPayload)
+        self.assertEqual(outcome.payload.parsed.filter.label, "Bow")
         self.assertEqual(
-            [result.item.name for result in outcome.payload.results],
-            ["Don Upgrade A", "Don Upgrade B"],
+            self._resolved_names(outcome.payload),
+            ["Critical Rate", "Attack MP Recovery"],
+        )
+
+    def test_plural_bows_have_two_stats_uses_same_and_expression(self):
+        service = SearchService(FakeRepository(), llm_client=MustNotCallLLM())
+        outcome = service.handle_query(
+            "bows have cr and ampr",
+            FailedQueryContext(max_entries=3),
+        )
+        self.assertIsInstance(outcome.payload, ExpressionResultsPayload)
+        self.assertEqual(outcome.payload.parsed.filter.label, "Bow")
+        self.assertEqual(
+            self._resolved_names(outcome.payload),
+            ["Critical Rate", "Attack MP Recovery"],
+        )
+
+    def test_plain_has_preserves_three_and_stats(self):
+        service = SearchService(FakeRepository(), llm_client=MustNotCallLLM())
+        outcome = service.handle_query(
+            "bow has cr and ampr and stability",
+            FailedQueryContext(max_entries=3),
+        )
+        self.assertIsInstance(outcome.payload, ExpressionResultsPayload)
+        self.assertEqual(
+            self._resolved_names(outcome.payload),
+            ["Critical Rate", "Attack MP Recovery", "Stability"],
+        )
+
+    def test_crt_ambiguity_preserves_ampr_and_bow_filter(self):
+        service = SearchService(FakeRepository(), llm_client=MustNotCallLLM())
+        outcome = service.handle_query(
+            "bow has crt and ampr",
+            FailedQueryContext(max_entries=3),
+        )
+        self.assertEqual(outcome.kind, "search")
+        self.assertIsInstance(outcome.payload, StatClarificationPayload)
+        self.assertEqual(outcome.payload.clarification.typed_stat, "crt")
+        self.assertEqual(outcome.payload.parsed.filter.label, "Bow")
+        clauses = outcome.payload.parsed.parsed_expression.groups[0].clauses
+        self.assertEqual([clause.typed_stat for clause in clauses], ["crt", "ampr"])
+
+        continued = service.continue_clarification(
+            outcome.payload.parsed,
+            {(0, 0): "Critical Rate"},
+        )
+        self.assertIsInstance(continued.payload, ExpressionResultsPayload)
+        self.assertEqual(continued.payload.parsed.filter.label, "Bow")
+        self.assertEqual(
+            self._resolved_names(continued.payload),
+            ["Critical Rate", "Attack MP Recovery"],
         )
 
 
