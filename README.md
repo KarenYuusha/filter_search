@@ -8,13 +8,15 @@ The bot is intentionally mention-only and only responds inside one configured se
 
 ### Environment
 
-Set:
+Create a `.env` file in the repository root, beside `discord_bot.py`:
 
-```text
-DISCORD_BOT_TOKEN=<bot token>
-DISCORD_GUILD_ID=<allowed server id>
+```env
+DISCORD_BOT_TOKEN=your_real_token
+DISCORD_GUILD_ID=123456789012345678
 OLLAMA_MODEL=qwen3.5:2b
 ```
+
+You can copy `.env.example` as a safe template. The real `.env` is ignored by Git and must not be committed. Existing shell/OS environment variables take precedence over values in `.env`.
 
 `OLLAMA_MODEL` is optional; the existing local Ollama client defaults to `qwen3.5:2b`.
 
