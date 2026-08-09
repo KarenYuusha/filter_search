@@ -43,8 +43,15 @@ SessionKey = tuple[int, int, int]
 @dataclass(frozen=True)
 class DiscordBotConfig:
     token: str
-    guild_id: int
+    guild_ids: frozenset[int]
     database_path: Path = core.DEFAULT_DATABASE
+
+    @property
+    def guild_id(self) -> int:
+        """Legacy single-guild accessor kept for compatibility."""
+        if len(self.guild_ids) != 1:
+            raise RuntimeError("guild_id is only available when exactly one guild is configured")
+        return next(iter(self.guild_ids))
 
 
 @dataclass
@@ -106,12 +113,23 @@ def load_project_environment(env_path: Path | None = None) -> Path:
 
 def load_config(environ: Mapping[str, str] = os.environ) -> DiscordBotConfig:
     token = environ.get("DISCORD_BOT_TOKEN", "").strip()
-    guild_text = environ.get("DISCORD_GUILD_ID", "").strip()
+    plural_guild_text = environ.get("DISCORD_GUILD_IDS", "").strip()
+    legacy_guild_text = environ.get("DISCORD_GUILD_ID", "").strip()
+    guild_setting = "DISCORD_GUILD_IDS" if plural_guild_text else "DISCORD_GUILD_ID"
+    guild_text = plural_guild_text or legacy_guild_text
+
     if not token:
         raise RuntimeError("DISCORD_BOT_TOKEN is required")
-    if not guild_text.isdigit():
-        raise RuntimeError("DISCORD_GUILD_ID must be a Discord server ID")
-    return DiscordBotConfig(token=token, guild_id=int(guild_text))
+    if not guild_text:
+        raise RuntimeError("DISCORD_GUILD_IDS or DISCORD_GUILD_ID is required")
+
+    guild_parts = [part.strip() for part in guild_text.split(",")]
+    if any(not part.isdigit() for part in guild_parts):
+        raise RuntimeError(f"{guild_setting} must contain valid Discord server IDs")
+    guild_ids = frozenset(int(part) for part in guild_parts)
+    if not guild_ids:
+        raise RuntimeError(f"{guild_setting} must contain at least one Discord server ID")
+    return DiscordBotConfig(token=token, guild_ids=guild_ids)
 
 
 def build_intents() -> discord.Intents:
@@ -121,10 +139,10 @@ def build_intents() -> discord.Intents:
     return intents
 
 
-def is_allowed_message(message, *, bot_user_id: int, guild_id: int) -> bool:
+def is_allowed_message(message, *, bot_user_id: int, guild_ids: Iterable[int]) -> bool:
     return (
         message.guild is not None
-        and message.guild.id == guild_id
+        and message.guild.id in guild_ids
         and not getattr(message.author, "bot", False)
         and getattr(message, "webhook_id", None) is None
         and any(user.id == bot_user_id for user in getattr(message, "mentions", ()))
@@ -263,8 +281,15 @@ def build_search_results_embed(payload: SearchPayload, page: int) -> discord.Emb
         title = f'Item search: {payload.query}'
         order = "Closest matches first"
     elif isinstance(payload, UpgradeResultsPayload):
-        title = f'Upgrade search: {payload.query}'
-        order = "Closest matches first"
+        direct_upgrade_results = bool(payload.results) and all(
+            result.match_kind == "upgrade" for result in payload.results
+        )
+        if direct_upgrade_results:
+            title = f"Upgrades from {payload.query}"
+            order = "Direct upgrades"
+        else:
+            title = f'Upgrade search: {payload.query}'
+            order = "Closest matches first"
     elif isinstance(payload, StatResultsPayload):
         stat_name = payload.parsed.stat.stat_name if payload.parsed.stat else "Stat"
         title = f"{stat_name} — {_filter_label(payload.parsed)}"
@@ -296,6 +321,8 @@ def build_search_results_embed(payload: SearchPayload, page: int) -> discord.Emb
                 f"Item type: {_filter_label(payload.parsed)}\n"
                 f"Query: {payload.parsed.raw_query}"
             )
+        elif isinstance(payload, UpgradeResultsPayload):
+            embed.description = f"No direct upgrade crystas were found for **{payload.query}**."
         else:
             embed.description = "No matching items were found."
         return embed
@@ -1349,7 +1376,11 @@ def create_client(config: DiscordBotConfig) -> discord.Client:
 
     @client.event
     async def on_ready() -> None:
-        logger.info("Discord bot connected as %s for guild %s", client.user, config.guild_id)
+        logger.info(
+            "Discord bot connected as %s for guilds %s",
+            client.user,
+            ", ".join(str(guild_id) for guild_id in sorted(config.guild_ids)),
+        )
 
     @client.event
     async def on_message(message: discord.Message) -> None:
@@ -1358,7 +1389,7 @@ def create_client(config: DiscordBotConfig) -> discord.Client:
         if not is_allowed_message(
             message,
             bot_user_id=client.user.id,
-            guild_id=config.guild_id,
+            guild_ids=config.guild_ids,
         ):
             return
         try:
