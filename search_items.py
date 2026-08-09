@@ -261,127 +261,6 @@ def build_upgrade_display(graph: UpgradeGraph, selected_item_id: int) -> Upgrade
     return UpgradeDisplay(selected.name, selected_paths, tuple(tree_lines))
 
 
-@dataclass(frozen=True)
-class UpgradeDisplay:
-    selected_name: str
-    selected_paths: tuple[str, ...]
-    tree_lines: tuple[str, ...]
-
-
-def build_upgrade_display(graph: UpgradeGraph, selected_item_id: int) -> UpgradeDisplay:
-    all_nodes = {**graph.missing_nodes, **graph.nodes}
-    selected = all_nodes.get(
-        selected_item_id,
-        ItemSummary(selected_item_id, "Unknown item", "Unknown"),
-    )
-
-    def node(node_id: int) -> ItemSummary:
-        return all_nodes.get(node_id, ItemSummary(node_id, "Unknown item", "Unknown"))
-
-    def sort_key(node_id: int) -> tuple[str, int]:
-        value = node(node_id)
-        return value.name.casefold(), node_id
-
-    incoming = {
-        target_id
-        for target_ids in graph.edges.values()
-        for target_id in target_ids
-    }
-    roots = sorted(
-        (node_id for node_id in all_nodes if node_id not in incoming),
-        key=sort_key,
-    )
-    traversal_roots = roots or [selected_item_id]
-
-    path_ids: list[tuple[int, ...]] = []
-
-    def collect_paths(node_id: int, active: tuple[int, ...]) -> None:
-        if node_id in active:
-            return
-        current = active + (node_id,)
-        if node_id == selected_item_id:
-            path_ids.append(current)
-            return
-        for child_id in sorted(graph.edges.get(node_id, ()), key=sort_key):
-            collect_paths(child_id, current)
-
-    for root_id in traversal_roots:
-        collect_paths(root_id, ())
-    if not path_ids:
-        path_ids = [(selected_item_id,)]
-
-    path_ids.sort(
-        key=lambda path_ids_value: tuple(
-            (node(path_node_id).name.casefold(), path_node_id)
-            for path_node_id in path_ids_value
-        )
-    )
-    selected_paths = tuple(
-        f"{index}. " + " → ".join(node(node_id).name for node_id in path_value)
-        for index, path_value in enumerate(path_ids, start=1)
-    )
-
-    tree_lines: list[str] = []
-    expanded: set[int] = set()
-
-    def render_node(
-        node_id: int,
-        *,
-        prefix: str,
-        is_last: bool,
-        is_root: bool,
-        active_path: frozenset[int],
-    ) -> None:
-        value = node(node_id)
-        connector = "" if is_root else ("└── " if is_last else "├── ")
-        label = value.name + ("  ◀ selected" if node_id == selected_item_id else "")
-        if node_id in active_path:
-            tree_lines.append(prefix + connector + label + " [cycle]")
-            return
-        if node_id in expanded:
-            tree_lines.append(prefix + connector + label + "  ↩ already shown")
-            return
-
-        tree_lines.append(prefix + connector + label)
-        expanded.add(node_id)
-        children = sorted(graph.edges.get(node_id, ()), key=sort_key)
-        child_prefix = prefix if is_root else prefix + ("    " if is_last else "│   ")
-        next_active = active_path | {node_id}
-        for index, child_id in enumerate(children):
-            render_node(
-                child_id,
-                prefix=child_prefix,
-                is_last=index == len(children) - 1,
-                is_root=False,
-                active_path=next_active,
-            )
-
-    for root_index, root_id in enumerate(traversal_roots):
-        if root_index:
-            tree_lines.append("")
-        render_node(
-            root_id,
-            prefix="",
-            is_last=True,
-            is_root=True,
-            active_path=frozenset(),
-        )
-
-    for node_id in sorted(all_nodes, key=sort_key):
-        if node_id not in expanded:
-            if tree_lines:
-                tree_lines.append("")
-            render_node(
-                node_id,
-                prefix="",
-                is_last=True,
-                is_root=True,
-                active_path=frozenset(),
-            )
-
-    return UpgradeDisplay(selected.name, selected_paths, tuple(tree_lines))
-
-
 SearchIntent = Literal["exact_item", "item_search", "stat_search", "stat_choices", "guided_stat", "stat_expression", "exact_upgrade", "upgrade_search"]
 
 
@@ -1290,84 +1169,17 @@ def render_item(detail: ItemDetail) -> str:
 
 
 def render_upgrade_terminal(graph: UpgradeGraph, selected_item_id: int) -> str:
-    all_nodes = {**graph.missing_nodes, **graph.nodes}
-    selected = all_nodes.get(
-        selected_item_id,
-        ItemSummary(selected_item_id, "Unknown item", "Unknown"),
-    )
-    incoming = {
-        target_id
-        for target_ids in graph.edges.values()
-        for target_id in target_ids
-    }
-    roots = [node_id for node_id in all_nodes if node_id not in incoming]
-    if not roots:
-        roots = [selected_item_id]
-
-    def node_sort_key(node_id: int) -> tuple[str, int]:
-        node = all_nodes.get(node_id, ItemSummary(node_id, "Unknown item", "Unknown"))
-        return node.name.casefold(), node_id
-
-    roots.sort(key=node_sort_key)
-    lines = ["", f"Upgrade chain for {selected.name}", ""]
-    expanded: set[int] = set()
-
-    def render_node(
-        node_id: int,
-        *,
-        prefix: str,
-        is_last: bool,
-        is_root: bool,
-        active_path: set[int],
-    ) -> None:
-        node = all_nodes.get(node_id, ItemSummary(node_id, "Unknown item", "Unknown"))
-        label = ("> " if node_id == selected_item_id else "") + node.name
-        connector = "" if is_root else ("└─ " if is_last else "├─ ")
-
-        if node_id in active_path:
-            lines.append(prefix + connector + label + " [cycle]")
-            return
-        if node_id in expanded:
-            lines.append(prefix + connector + label + " [already shown]")
-            return
-
-        lines.append(prefix + connector + label)
-        expanded.add(node_id)
-        children = list(graph.edges.get(node_id, ()))
-        children.sort(key=node_sort_key)
-        child_prefix = prefix if is_root else prefix + ("   " if is_last else "│  ")
-        next_active = set(active_path)
-        next_active.add(node_id)
-        for index, child_id in enumerate(children):
-            render_node(
-                child_id,
-                prefix=child_prefix,
-                is_last=index == len(children) - 1,
-                is_root=False,
-                active_path=next_active,
-            )
-
-    for root_index, root_id in enumerate(roots):
-        if root_index:
-            lines.append("")
-        render_node(
-            root_id,
-            prefix="",
-            is_last=True,
-            is_root=True,
-            active_path=set(),
-        )
-
-    for node_id in sorted(all_nodes, key=node_sort_key):
-        if node_id not in expanded:
-            lines.append("")
-            render_node(
-                node_id,
-                prefix="",
-                is_last=True,
-                is_root=True,
-                active_path=set(),
-            )
+    display = build_upgrade_display(graph, selected_item_id)
+    lines = [
+        "",
+        f"Upgrade Tree — {display.selected_name}",
+        "",
+        "Selected paths",
+        *display.selected_paths,
+        "",
+        "Full tree",
+        *display.tree_lines,
+    ]
     return "\n".join(lines)
 
 
