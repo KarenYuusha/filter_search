@@ -305,6 +305,15 @@ class SearchService:
     def item_detail(self, item_id: int) -> ItemDetailPayload:
         return ItemDetailPayload(self.repository.get_item(item_id))
 
+    @staticmethod
+    def _rank_upgrade_successors(items: list[core.ItemSummary]) -> tuple[core.RankedItem, ...]:
+        unique: dict[int, core.ItemSummary] = {item.id: item for item in items}
+        ordered = sorted(unique.values(), key=lambda item: (item.name.casefold(), item.id))
+        return tuple(
+            core.RankedItem(item=item, score=100.0, match_kind="upgrade")
+            for item in ordered
+        )
+
     def _materialize(
         self,
         parsed: core.ParsedSearch,
@@ -327,18 +336,29 @@ class SearchService:
 
         if parsed.intent == "exact_upgrade":
             selected_id = int(parsed.item_id)
-            return UpgradeDetailPayload(
-                self.repository.get_upgrade_component(selected_id),
-                selected_id,
+            query = parsed.raw_query.partition(" ")[2].strip() or parsed.raw_query
+            successors = self.repository.get_upgrade_successors(selected_id)
+            return UpgradeResultsPayload(
+                query,
+                self._rank_upgrade_successors(successors),
             )
 
         if parsed.intent == "upgrade_search":
             query = parsed.item_query or ""
+            exact = self.repository.exact_upgrade_name_matches(query)
+            if exact:
+                successors: list[core.ItemSummary] = []
+                for item in exact:
+                    successors.extend(self.repository.get_upgrade_successors(item.id))
+                if successors:
+                    return UpgradeResultsPayload(
+                        query,
+                        self._rank_upgrade_successors(successors),
+                    )
             upgrade_items = [
                 item for item in self.all_items
                 if core.is_crysta_item_type(item.item_type)
             ]
-            exact = self.repository.exact_upgrade_name_matches(query)
             results = (
                 [core.RankedItem(item=item, score=100.0, match_kind="exact") for item in exact]
                 if len(exact) > 1
