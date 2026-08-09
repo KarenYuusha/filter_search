@@ -15,6 +15,15 @@ class MustNotCallLLM:
         raise AssertionError("deterministic query must not call Qwen")
 
 
+class RecordingLLM:
+    def __init__(self):
+        self.calls = 0
+
+    def complete(self, *args, **kwargs):
+        self.calls += 1
+        return {"intent": "refuse"}
+
+
 class FakeRepository:
     def __init__(self):
         self.don = core.ItemSummary(1, "Don", "Normal Crysta")
@@ -159,6 +168,48 @@ class UpgradeLookupTests(unittest.TestCase):
             [result.item.name for result in outcome.payload.results],
             ["Don Upgrade A", "Don Upgrade B"],
         )
+
+    def test_natural_upgrade_forms_are_deterministic(self):
+        queries = (
+            "upgrade Don",
+            "upgrade for Don",
+            "upgrades for Don",
+            "show upgrades for Don",
+            "find upgrades for Don",
+            "what upgrades from Don",
+            "what can upgrade Don",
+            "what comes after Don",
+            "next xtal after Don",
+            "WHAT UPGRADES FROM DON?",
+            "show upgrades for Don.",
+        )
+
+        for query in queries:
+            with self.subTest(query=query):
+                llm = RecordingLLM()
+                service = SearchService(FakeRepository(), llm_client=llm)
+                outcome = service.handle_query(
+                    query,
+                    FailedQueryContext(max_entries=3),
+                )
+                self.assertEqual(outcome.kind, "search")
+                self.assertIsInstance(outcome.payload, UpgradeResultsPayload)
+                self.assertEqual(
+                    [result.item.name for result in outcome.payload.results],
+                    ["Don Upgrade A", "Don Upgrade B"],
+                )
+                self.assertEqual(llm.calls, 0)
+
+    def test_subjective_upgrade_wording_is_not_upgrade_intent(self):
+        repository = FakeRepository()
+        for query in (
+            "best upgrade for Don",
+            "strongest upgrade for Don",
+            "better xtal after Don",
+        ):
+            with self.subTest(query=query):
+                parsed = core.parse_search_query(query, repository)
+                self.assertNotIn(parsed.intent, {"exact_upgrade", "upgrade_search"})
 
 
 if __name__ == "__main__":
