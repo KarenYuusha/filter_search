@@ -71,6 +71,16 @@ class CliUpgradeTests(unittest.TestCase):
         rendered = self._run("upgrade Don Upgrad B", "2")
         self._assert_complete_chain(rendered, "Don Upgrade B")
 
+    def test_plain_natural_multi_stat_query_stays_deterministic_in_cli(self):
+        rendered = self._run("bow has cr and ampr")
+        self.assertIn(
+            "Expression: Critical Rate >= 1 AND Attack MP Recovery >= 1",
+            rendered,
+        )
+        self.assertIn("Filter: Bow", rendered)
+        self.assertNotIn("I couldn't interpret that search", rendered)
+        self.assertNotIn("Automatic interpretation unavailable", rendered)
+
 
 if __name__ == "__main__":
     unittest.main()
