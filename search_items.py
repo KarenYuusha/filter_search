@@ -1762,11 +1762,43 @@ def route_deterministically(
     return DeterministicRoute("search", parsed=parsed)
 
 
+
+_NATURAL_UPGRADE_PATTERNS = (
+    r"upgrade\s+for\s+(.+)",
+    r"upgrades\s+for\s+(.+)",
+    r"(?:show|find)\s+upgrades\s+for\s+(.+)",
+    r"what\s+upgrades\s+from\s+(.+)",
+    r"what\s+can\s+upgrade\s+(.+)",
+    r"what\s+comes\s+after\s+(.+)",
+    r"next\s+xtal\s+after\s+(.+)",
+)
+
+
+def extract_natural_upgrade_target(text: str) -> str | None:
+    cleaned = " ".join(text.strip().rstrip("?.!").split())
+    if not cleaned:
+        return None
+    for pattern in _NATURAL_UPGRADE_PATTERNS:
+        match = re.fullmatch(pattern, cleaned, flags=re.IGNORECASE)
+        if match is not None:
+            target = match.group(1).strip()
+            return target or None
+    return None
+
 def parse_search_query(query: str, repository: ItemRepository) -> ParsedSearch:
     raw = query.strip()
     normalized = normalize_stat_text(raw)
     if not normalized:
         return ParsedSearch("item_search", raw, item_query="")
+
+    natural_upgrade_target = extract_natural_upgrade_target(raw)
+    if natural_upgrade_target is not None:
+        upgrade_exact = repository.exact_upgrade_name_matches(natural_upgrade_target)
+        if len(upgrade_exact) == 1:
+            canonical_query = f"upgrade {upgrade_exact[0].name}"
+            return ParsedSearch("exact_upgrade", canonical_query, item_id=upgrade_exact[0].id)
+        canonical_query = f"upgrade {natural_upgrade_target}"
+        return ParsedSearch("upgrade_search", canonical_query, item_query=natural_upgrade_target)
 
     first, _, remainder = raw.partition(" ")
     command = normalize_name(first)

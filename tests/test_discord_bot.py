@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import os
 import tempfile
 import unittest
@@ -7,6 +8,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
+import discord_bot
 import search_items as core
 from discord_bot import (
     DiscordSessionManager,
@@ -21,7 +23,7 @@ from discord_bot import (
     valid_local_image_paths,
     visible_attachment_name,
 )
-from toram_search.service import ItemResultsPayload
+from toram_search.service import ItemResultsPayload, UpgradeResultsPayload
 
 
 class DiscordConfigTests(unittest.TestCase):
@@ -282,6 +284,56 @@ class DiscordFormattingTests(unittest.TestCase):
         self.assertIsNotNone(view.item_select)
         self.assertEqual([option.value for option in view.item_select.options], ["0", "1", "2", "3", "4"])
         self.assertNotIn("9000", [option.value for option in view.item_select.options])
+
+    def test_upgrade_suggestion_payload_is_distinguished_from_direct_results(self):
+        self.assertTrue(
+            hasattr(discord_bot, "is_upgrade_suggestion_payload"),
+            "Discord UI needs an upgrade-suggestion classifier",
+        )
+        fuzzy = UpgradeResultsPayload(
+            "Dno",
+            (core.RankedItem(core.ItemSummary(1, "Don", "Normal Crysta"), 90.0, "fuzzy"),),
+        )
+        direct = UpgradeResultsPayload(
+            "Don",
+            (
+                core.RankedItem(
+                    core.ItemSummary(2, "Don Upgrade A", "Enhancer Crysta (Blue)"),
+                    100.0,
+                    "upgrade",
+                ),
+            ),
+        )
+        self.assertTrue(discord_bot.is_upgrade_suggestion_payload(fuzzy))
+        self.assertFalse(discord_bot.is_upgrade_suggestion_payload(direct))
+
+    def test_bot_example_prefix_prefers_guild_display_name(self):
+        self.assertTrue(
+            hasattr(discord_bot, "bot_example_prefix"),
+            "Discord output needs a guild display-name example helper",
+        )
+        member = SimpleNamespace(display_name="Toram Search")
+        guild = SimpleNamespace(get_member=lambda user_id: member if user_id == 99 else None)
+        bot_user = SimpleNamespace(id=99, display_name="GlobalBot", name="GlobalBot")
+        self.assertEqual(discord_bot.bot_example_prefix(guild, bot_user), "@Toram Search")
+
+    def test_bot_example_prefix_falls_back_to_account_name(self):
+        self.assertTrue(hasattr(discord_bot, "bot_example_prefix"))
+        guild = SimpleNamespace(get_member=lambda _user_id: None)
+        bot_user = SimpleNamespace(id=99, display_name="GlobalBot", name="GlobalBot")
+        self.assertEqual(discord_bot.bot_example_prefix(guild, bot_user), "@GlobalBot")
+
+    def test_help_examples_use_plain_display_name_not_raw_mention(self):
+        embed = discord_bot.build_help_embed("@Toram Search")
+        visible = "\n".join(field.value for field in embed.fields)
+        self.assertIn("@Toram Search hp armor", visible)
+        self.assertIn("@Toram Search upgrade <crysta name>", visible)
+        self.assertNotIn("<@", visible)
+
+    def test_service_message_builder_uses_display_name_parameter(self):
+        parameters = inspect.signature(discord_bot.build_service_outcome_message).parameters
+        self.assertIn("bot_example_prefix", parameters)
+        self.assertNotIn("bot_mention", parameters)
 
 
 if __name__ == "__main__":
