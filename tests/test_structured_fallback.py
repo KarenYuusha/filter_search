@@ -28,7 +28,7 @@ def service(payload, validator=lambda request: True):
             "crit -> Critical Rate / Critical Damage",
             "hp -> maxhp",
         ),
-        item_filter_catalog=("bow -> Bow", "xtal -> All Crysta"),
+        item_filter_catalog=("bow -> Bow", "armor -> Armor", "xtal -> All Crysta"),
     )
 
 
@@ -185,6 +185,47 @@ class StructuredFallbackTests(unittest.TestCase):
             (SearchIntentRequest(stats=(SearchStatIntent("Critical Rate"),)),),
         )
 
+    def test_schema_constrains_search_to_required_candidates(self):
+        fallback = service({"intent": "refuse"})
+        schema = fallback._response_schema()
+
+        branches = schema["oneOf"]
+        search_branch = next(
+            branch
+            for branch in branches
+            if branch["properties"]["intent"].get("const") == "search"
+        )
+
+        self.assertEqual(set(search_branch["required"]), {"intent", "candidates"})
+        self.assertEqual(set(search_branch["properties"]), {"intent", "candidates"})
+        self.assertFalse(search_branch["additionalProperties"])
+        self.assertEqual(search_branch["properties"]["candidates"]["minItems"], 1)
+
+    def test_schema_has_exact_refuse_branch(self):
+        fallback = service({"intent": "refuse"})
+        schema = fallback._response_schema()
+
+        refuse_branch = next(
+            branch
+            for branch in schema["oneOf"]
+            if branch["properties"]["intent"].get("const") == "refuse"
+        )
+
+        self.assertEqual(refuse_branch["required"], ["intent"])
+        self.assertEqual(set(refuse_branch["properties"]), {"intent"})
+        self.assertFalse(refuse_branch["additionalProperties"])
+
+    def test_rejected_payload_is_logged_with_reason(self):
+        fallback = service({"intent": "search"})
+
+        with self.assertLogs("toram_search.fallback", level="DEBUG") as captured:
+            outcome = fallback.interpret("which bow has the highest critical rate", ())
+
+        self.assertEqual(outcome.kind, "failed")
+        log_text = "\n".join(captured.output)
+        self.assertIn("missing or invalid search candidates", log_text)
+        self.assertIn("{'intent': 'search'}", log_text)
+
     def test_schema_is_sent_to_llm_client(self):
         llm = FakeLLM({"intent": "refuse"})
         fallback = QwenFallbackService(
@@ -199,10 +240,12 @@ class StructuredFallbackTests(unittest.TestCase):
         fallback.interpret("hello", ())
 
         self.assertIsInstance(llm.schemas[0], dict)
-        self.assertEqual(
-            llm.schemas[0]["properties"]["intent"]["enum"],
-            ["search", "database_action", "help", "refuse"],
-        )
+        self.assertIn("oneOf", llm.schemas[0])
+        intents = {
+            branch["properties"]["intent"].get("const")
+            for branch in llm.schemas[0]["oneOf"]
+        }
+        self.assertTrue({"search", "database_action", "help", "refuse"}.issubset(intents))
 
 
 if __name__ == "__main__":
