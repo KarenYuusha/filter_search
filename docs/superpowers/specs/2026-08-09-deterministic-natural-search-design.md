@@ -19,7 +19,9 @@ Qwen remains the fallback for requests that cannot be reduced deterministically.
 
 ## Architecture
 
-Add a small pure helper in `search_items.py` that attempts to normalize supported conversational forms into existing search text. `route_deterministically()` tries the original query first, then tries the normalized query. The normalized text is fed into the same existing parser and stat/item-type resolvers; no new search semantics or SQL path is introduced.
+Put the normalization inside `toram_data/stat_query.py`, which is already the shared deterministic parser used by `search_items.py` before Qwen routing. `looks_like_stat_expression()` first checks whether the input matches a supported conversational shell; `parse_stat_expression()` applies the same normalization before its existing item-filter/stat parsing.
+
+No new search semantics are introduced. The normalizer only rearranges a validated conversational shell into the existing grammar, then the existing aliases, ambiguity handling, item-filter extraction, and stat resolution remain authoritative.
 
 Supported wrapper families:
 
@@ -34,22 +36,22 @@ Supported wrapper families:
 - `which X has Y`
 - `which X have Y`
 
-For these forms, `X` is treated as the item-filter phrase and `Y` as the stat expression. The helper only returns a rewrite if `X` resolves completely to a known item filter and the resulting deterministic parser resolves the search without unknown stats.
+For these forms, `X` is treated as the item-filter phrase and `Y` as the stat expression. The rewrite is only produced if `X` resolves completely to a known item filter. A single-word plural item phrase may be singularized only when the singular form then resolves completely to a known item filter, e.g. `bows` → `bow`.
 
 ## Data Flow
 
 ```text
 user query
   ↓
-existing deterministic parse
-  ↓ if not already supported
-conversational normalizer
+parse_search_query()
   ↓
-validated deterministic rewrite
+looks_like_stat_expression()
   ↓
-existing parser/resolvers
+conversational shell normalization
+  ↓
+existing stat/item filter parser
   ↓ if supported
-SQLite search
+normal deterministic search route
   ↓ otherwise
 Qwen fallback
 ```
@@ -57,10 +59,12 @@ Qwen fallback
 ## Safety / Ambiguity
 
 - Never guess unknown item types.
-- Never fuzzy-resolve model/build concepts.
+- Never strip arbitrary extra words from the item side.
+- Never infer model/build concepts.
 - Preserve existing stat ambiguity behavior (`crit` remains ambiguous unless the deterministic parser already has a defined choice path).
 - Do not turn arbitrary prose into a search just because it contains `with`.
-- A rewrite is accepted only when the item-filter side resolves completely and the rewritten query is accepted by the existing deterministic parser.
+- A rewrite is accepted only when the item-filter side resolves completely.
+- `tank armor with hp` must not normalize to plain Armor + MaxHP because `tank armor` is not a complete item-filter phrase; existing refusal logic remains in control.
 
 ## Ranking
 
@@ -70,9 +74,10 @@ This spec does not add new ranking-direction semantics. Existing deterministic h
 
 Add focused tests proving:
 
-1. `can you find armor with hp` routes directly to search and resolves Armor + MaxHP.
-2. `show me bow with cr` routes directly to search and resolves Bow + Critical Rate.
-3. `which bows have critical rate` routes directly to search.
-4. unsupported prose still routes to Qwen fallback rather than being guessed.
-5. out-of-scope build language remains refused.
-6. direct deterministic search syntax is unchanged.
+1. `can you find armor with hp` routes directly to a deterministic stat expression and resolves Armor + MaxHP.
+2. `show me bow with cr` routes directly and resolves Bow + Critical Rate.
+3. `which bows have critical rate` routes directly using safe singularization.
+4. `armor having hp` routes directly.
+5. unsupported prose still routes to Qwen fallback rather than being guessed.
+6. out-of-scope build language remains refused.
+7. direct deterministic search syntax is unchanged.
