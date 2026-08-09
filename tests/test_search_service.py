@@ -79,6 +79,23 @@ class SearchServiceTests(unittest.TestCase):
         clause = repository.expression_calls[0][0].groups[0].clauses[0]
         self.assertEqual(clause.stat_name, "MaxHP")
 
+    def test_natural_highest_critical_rate_bow_never_calls_qwen(self):
+        repository = FakeRepository()
+        service = SearchService(repository, llm_client=MustNotCallLLM())
+
+        outcome = service.handle_query(
+            "which bow has the highest critical rate",
+            FailedQueryContext(max_entries=3),
+        )
+
+        self.assertEqual(outcome.kind, "search")
+        self.assertIsInstance(outcome.payload, ExpressionResultsPayload)
+        self.assertEqual(len(repository.expression_calls), 1)
+        expression, item_types, ascending = repository.expression_calls[0]
+        self.assertEqual(item_types, ("Bow",))
+        self.assertFalse(ascending)
+        self.assertEqual(expression.groups[0].clauses[0].stat_name, "Critical Rate")
+
     def test_ambiguous_crit_returns_clarification_without_input(self):
         repository = FakeRepository()
         service = SearchService(repository, llm_client=MustNotCallLLM())
