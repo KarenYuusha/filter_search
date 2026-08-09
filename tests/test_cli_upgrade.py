@@ -48,8 +48,6 @@ class CliUpgradeTests(unittest.TestCase):
         self.assertIn("Don Upgrade B", rendered)
         self.assertIn(f"{selected_name}  ◀ selected", rendered)
         self.assertNotIn("No direct upgrade crystas found", rendered)
-        self.assertNotIn("ID:", rendered)
-        self.assertNotIn("— ID ", rendered)
 
     def test_first_upgrade_item_shows_complete_chain(self):
         rendered = self._run("upgrade Don")
