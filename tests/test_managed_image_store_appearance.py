@@ -40,34 +40,49 @@ class ManagedImageStoreAppearanceTests(unittest.TestCase):
         prepared = batch.prepared_images[0]
         self.assertEqual(
             prepared.local_path,
-            "appearance/1-handed-sword/1044-rapier/00-my-photo.jpg",
+            "../appearance/1-handed-sword/1044-rapier/00-my-photo.jpg",
         )
         self.assertIsNone(prepared.selected_source_path)
 
         batch.materialize()
-        final = self.data_root / str(prepared.local_path)
+        final = (self.database_dir / str(prepared.local_path)).resolve()
+        self.assertEqual(
+            final,
+            (
+                self.data_root
+                / "appearance"
+                / "1-handed-sword"
+                / "1044-rapier"
+                / "00-my-photo.jpg"
+            ).resolve(),
+        )
         self.assertTrue(final.is_file())
         self.assertEqual(final.read_bytes(), b"image-bytes")
         self.assertFalse((self.database_dir / "item_images").exists())
 
-    def test_managed_candidate_is_scoped_to_appearance_tree(self) -> None:
+    def test_managed_candidate_accepts_appearance_and_legacy_editor_paths(self) -> None:
         store = ManagedImageStore(self.database_path)
 
-        appearance = "appearance/bow/500-test-bow/00-photo.jpg"
-        old_editor_path = "database/item_images/500/00-photo.jpg"
+        appearance = "../appearance/bow/500-test-bow/00-photo.jpg"
+        legacy = "item_images/500/00-photo.jpg"
 
         self.assertEqual(
             store._managed_candidate(appearance),
-            (self.data_root / appearance).resolve(),
+            (self.database_dir / appearance).resolve(),
         )
-        self.assertIsNone(store._managed_candidate(old_editor_path))
+        self.assertEqual(
+            store._managed_candidate(legacy),
+            (self.database_dir / legacy).resolve(),
+        )
+        self.assertIsNone(store._managed_candidate("../manual-images/photo.jpg"))
 
-    def test_delete_item_directory_removes_all_slugged_folders_for_item_id(self) -> None:
+    def test_delete_item_directory_removes_slugged_and_legacy_folders(self) -> None:
         store = ManagedImageStore(self.database_path)
         old_name = self.data_root / "appearance" / "1-handed-sword" / "1044-old-name"
         moved_type = self.data_root / "appearance" / "bow" / "1044-new-name"
         other_item = self.data_root / "appearance" / "bow" / "1045-other-item"
-        for directory in (old_name, moved_type, other_item):
+        legacy = self.database_dir / "item_images" / "1044"
+        for directory in (old_name, moved_type, other_item, legacy):
             directory.mkdir(parents=True)
             (directory / "image.jpg").write_bytes(b"x")
 
@@ -76,6 +91,7 @@ class ManagedImageStoreAppearanceTests(unittest.TestCase):
         self.assertEqual(failures, [])
         self.assertFalse(old_name.exists())
         self.assertFalse(moved_type.exists())
+        self.assertFalse(legacy.exists())
         self.assertTrue(other_item.exists())
 
 
