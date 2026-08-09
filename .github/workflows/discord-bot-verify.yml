@@ -1,9 +1,9 @@
 name: Discord Bot Verify
 
 on:
-  push:
+  pull_request:
     branches:
-      - feat/discord-bot
+      - main
 
 jobs:
   focused-tests:
