@@ -73,6 +73,15 @@ _COMPARISON_RE = re.compile(r"(>=|<=|==|>|<|=)")
 _NUMBER_RE = re.compile(r"^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$")
 _UNSUPPORTED_BOOLEAN_RE = re.compile(r"\b(not|without|no)\b", re.IGNORECASE)
 _STAT_PREFIX_RE = re.compile(r"^\s*stat\b", re.IGNORECASE)
+_NATURAL_SEARCH_PATTERNS = (
+    re.compile(r"^\s*(?:can\s+you\s+)?find\s+(.+?)\s+with\s+(.+?)\s*$", re.IGNORECASE),
+    re.compile(r"^\s*show\s+me\s+(.+?)\s+with\s+(.+?)\s*$", re.IGNORECASE),
+    re.compile(r"^\s*give\s+me\s+(.+?)\s+with\s+(.+?)\s*$", re.IGNORECASE),
+    re.compile(r"^\s*i\s+want\s+(.+?)\s+with\s+(.+?)\s*$", re.IGNORECASE),
+    re.compile(r"^\s*which\s+(.+?)\s+(?:has|have)\s+(.+?)\s*$", re.IGNORECASE),
+    re.compile(r"^\s*(.+?)\s+that\s+(?:has|have)\s+(.+?)\s*$", re.IGNORECASE),
+    re.compile(r"^\s*(.+?)\s+having\s+(.+?)\s*$", re.IGNORECASE),
+)
 
 
 def compare_amount(amount: float, operator: ComparisonOperator, expected: Decimal) -> bool:
@@ -281,6 +290,48 @@ def _extract_edge_filter(
     return _extract_leading_filter(text, available_item_types, available_stats)
 
 
+def _complete_natural_item_filter_phrase(
+    text: str,
+    available_item_types: set[str],
+) -> str | None:
+    item_text = text.strip().strip(".,!?;:")
+    if not item_text:
+        return None
+
+    item_filter, remaining = _extract_trailing_filter(item_text, available_item_types)
+    if item_filter is not None and not remaining.strip():
+        return item_filter.consumed_text
+
+    normalized = normalize_name(item_text)
+    if " " not in normalized and normalized.endswith("s") and len(normalized) > 1:
+        singular = item_text.rstrip().rstrip("sS")
+        item_filter, remaining = _extract_trailing_filter(singular, available_item_types)
+        if item_filter is not None and not remaining.strip():
+            return item_filter.consumed_text
+    return None
+
+
+def normalize_natural_stat_query(
+    text: str,
+    available_item_types: set[str],
+) -> str:
+    raw = text.strip()
+    for pattern in _NATURAL_SEARCH_PATTERNS:
+        match = pattern.fullmatch(raw)
+        if match is None:
+            continue
+        item_text, stat_text = match.groups()
+        item_phrase = _complete_natural_item_filter_phrase(
+            item_text,
+            available_item_types,
+        )
+        cleaned_stat = stat_text.strip().strip(".,!?;:")
+        if item_phrase is None or not cleaned_stat:
+            continue
+        return f"{cleaned_stat} {item_phrase}"
+    return raw
+
+
 def _parse_clause(text: str) -> ParsedClause:
     clause_text = text.strip()
     operator_match = _COMPARISON_RE.search(clause_text)
@@ -309,11 +360,12 @@ def parse_stat_expression(
     available_stats: list[str] | None = None,
 ) -> ParsedStatExpression:
     raw_query = text.strip()
-    if "(" in raw_query or ")" in raw_query:
+    normalized_query = normalize_natural_stat_query(raw_query, available_item_types)
+    if "(" in normalized_query or ")" in normalized_query:
         raise StatQuerySyntaxError("Parentheses are not supported.")
 
-    had_stat_prefix = bool(_STAT_PREFIX_RE.match(raw_query))
-    expression_text = _STAT_PREFIX_RE.sub("", raw_query, count=1).strip()
+    had_stat_prefix = bool(_STAT_PREFIX_RE.match(normalized_query))
+    expression_text = _STAT_PREFIX_RE.sub("", normalized_query, count=1).strip()
     if not expression_text:
         raise StatQuerySyntaxError("Invalid stat query: expected a stat.")
 
@@ -381,7 +433,7 @@ def looks_like_stat_expression(
     available_item_types: set[str],
     ambiguous_terms: set[str],
 ) -> bool:
-    raw = text.strip()
+    raw = normalize_natural_stat_query(text, available_item_types)
     if not raw:
         return False
     if _STAT_PREFIX_RE.match(raw):
