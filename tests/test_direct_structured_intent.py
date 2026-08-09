@@ -46,6 +46,19 @@ class DirectStructuredIntentTests(unittest.TestCase):
     def setUp(self):
         self.repository = FakeRepository()
 
+    def _resolve_natural_query(self, query):
+        parsed = parse_search_query(query, self.repository)
+        self.assertEqual(parsed.intent, "stat_expression")
+        self.assertIsNotNone(parsed.parsed_expression)
+        resolved = resolve_expression_interactively(
+            parsed,
+            self.repository,
+            input_fn=lambda prompt: self.fail(f"unexpected clarification: {prompt}"),
+            output_fn=lambda text: None,
+        )
+        self.assertIsNotNone(resolved)
+        return parsed, resolved
+
     def test_one_bare_stat_becomes_direct_stat_search(self):
         request = SearchIntentRequest(
             stats=(SearchStatIntent("Critical Rate"),),
@@ -163,33 +176,39 @@ class DirectStructuredIntentTests(unittest.TestCase):
         self.assertIn(parsed.intent, {"stat_search", "stat_choices", "stat_expression"})
 
     def test_natural_armor_hp_is_parsed_without_qwen(self):
-        parsed = parse_search_query("can you find armor with hp", self.repository)
+        parsed, resolved = self._resolve_natural_query("can you find armor with hp")
 
-        self.assertEqual(parsed.intent, "stat_search")
         self.assertEqual(parsed.raw_query, "can you find armor with hp")
-        self.assertEqual(parsed.stat.stat_name, "MaxHP")
         self.assertEqual(parsed.filter.label, "Armor")
+        clause = resolved.resolved_expression.groups[0].clauses[0]
+        self.assertEqual(clause.typed_stat, "hp")
+        self.assertEqual(clause.stat_name, "MaxHP")
 
     def test_natural_bow_cr_is_parsed_without_qwen(self):
-        parsed = parse_search_query("show me bow with cr", self.repository)
+        parsed, resolved = self._resolve_natural_query("show me bow with cr")
 
-        self.assertEqual(parsed.intent, "stat_search")
-        self.assertEqual(parsed.stat.stat_name, "Critical Rate")
         self.assertEqual(parsed.filter.label, "Bow")
+        clause = resolved.resolved_expression.groups[0].clauses[0]
+        self.assertEqual(clause.typed_stat, "cr")
+        self.assertEqual(clause.stat_name, "Critical Rate")
 
     def test_which_plural_item_have_stat_is_parsed(self):
-        parsed = parse_search_query("which bows have critical rate", self.repository)
+        parsed, resolved = self._resolve_natural_query("which bows have critical rate")
 
-        self.assertEqual(parsed.intent, "stat_search")
-        self.assertEqual(parsed.stat.stat_name, "Critical Rate")
         self.assertEqual(parsed.filter.label, "Bow")
+        self.assertEqual(
+            resolved.resolved_expression.groups[0].clauses[0].stat_name,
+            "Critical Rate",
+        )
 
     def test_having_form_is_parsed(self):
-        parsed = parse_search_query("armor having hp", self.repository)
+        parsed, resolved = self._resolve_natural_query("armor having hp")
 
-        self.assertEqual(parsed.intent, "stat_search")
-        self.assertEqual(parsed.stat.stat_name, "MaxHP")
         self.assertEqual(parsed.filter.label, "Armor")
+        self.assertEqual(
+            resolved.resolved_expression.groups[0].clauses[0].stat_name,
+            "MaxHP",
+        )
 
     def test_unsupported_conversation_still_uses_fallback(self):
         route = route_deterministically(
@@ -202,6 +221,17 @@ class DirectStructuredIntentTests(unittest.TestCase):
 
         self.assertEqual(route.kind, "fallback")
 
+    def test_build_language_is_not_normalized_into_plain_search(self):
+        route = route_deterministically(
+            "find tank armor with hp",
+            self.repository,
+            [],
+            NoHelpService(),
+            NoDatabaseService(),
+        )
+
+        self.assertEqual(route.kind, "refuse")
+
     def test_natural_query_routes_to_search_before_fallback(self):
         route = route_deterministically(
             "can you find armor with hp",
@@ -213,7 +243,7 @@ class DirectStructuredIntentTests(unittest.TestCase):
 
         self.assertEqual(route.kind, "search")
         self.assertIsNotNone(route.parsed)
-        self.assertEqual(route.parsed.stat.stat_name, "MaxHP")
+        self.assertEqual(route.parsed.intent, "stat_expression")
         self.assertEqual(route.parsed.filter.label, "Armor")
 
     def test_single_confirmation_returns_typed_request(self):
