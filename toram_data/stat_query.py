@@ -73,6 +73,10 @@ _COMPARISON_RE = re.compile(r"(>=|<=|==|>|<|=)")
 _NUMBER_RE = re.compile(r"^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$")
 _UNSUPPORTED_BOOLEAN_RE = re.compile(r"\b(not|without|no)\b", re.IGNORECASE)
 _STAT_PREFIX_RE = re.compile(r"^\s*stat\b", re.IGNORECASE)
+_HIGH_RANK_PREFIX_RE = re.compile(
+    r"^(?:the\s+)?(?:highest|best|most)\s+(.+)$",
+    re.IGNORECASE,
+)
 _NATURAL_SEARCH_PATTERNS = (
     re.compile(r"^\s*(?:can\s+you\s+)?find\s+(.+?)\s+with\s+(.+?)\s*$", re.IGNORECASE),
     re.compile(r"^\s*show\s+me\s+(.+?)\s+with\s+(.+?)\s*$", re.IGNORECASE),
@@ -326,6 +330,9 @@ def normalize_natural_stat_query(
             available_item_types,
         )
         cleaned_stat = stat_text.strip().strip(".,!?;:")
+        rank_match = _HIGH_RANK_PREFIX_RE.fullmatch(cleaned_stat)
+        if rank_match is not None:
+            cleaned_stat = rank_match.group(1).strip()
         if item_phrase is None or not cleaned_stat:
             continue
         return f"{cleaned_stat} {item_phrase}"
