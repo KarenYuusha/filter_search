@@ -62,6 +62,24 @@ class CliUpgradeTests(unittest.TestCase):
         self.assertIn("Don Upgrade A\n=============", rendered)
         self.assertIn("Type: Enhancer Crysta (Blue)", rendered)
 
+    def test_natural_upgrade_query_uses_direct_successor_screen_without_qwen(self):
+        repository = CliRepository()
+        answers = iter(["what upgrades from Don?", "quit"])
+        output: list[str] = []
+
+        result = core.interactive_search(
+            repository,
+            input_fn=lambda _prompt: next(answers),
+            output_fn=output.append,
+            llm_client=MustNotCallLLM(),
+        )
+
+        rendered = "\n".join(output)
+        self.assertEqual(result, 0)
+        self.assertIn("Upgrades from Don", rendered)
+        self.assertIn("Don Upgrade A", rendered)
+        self.assertIn("Don Upgrade B", rendered)
+
 
 if __name__ == "__main__":
     unittest.main()
