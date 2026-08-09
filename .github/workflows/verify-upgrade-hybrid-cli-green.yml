@@ -4,30 +4,13 @@ on:
   pull_request:
     branches: [main]
 
-permissions:
-  contents: write
-
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Prepare CLI patch helper
-        shell: bash
-        run: |
-          cp .github/scripts/apply_upgrade_hybrid_cli.py /tmp/apply_upgrade_hybrid_cli.py
-          git fetch origin design/upgrade-hybrid-display
-          git checkout -B design/upgrade-hybrid-display origin/design/upgrade-hybrid-display
-      - name: Apply terminal implementation
-        run: python /tmp/apply_upgrade_hybrid_cli.py
-      - name: Commit terminal implementation
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add search_items.py
-          git commit -m "feat: show hybrid upgrade display in terminal"
-          git push origin HEAD:design/upgrade-hybrid-display
+        with:
+          ref: design/upgrade-hybrid-display
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
