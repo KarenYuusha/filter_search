@@ -212,6 +212,21 @@ class UpgradeLookupTests(unittest.TestCase):
                 parsed = core.parse_search_query(query, repository)
                 self.assertNotIn(parsed.intent, {"exact_upgrade", "upgrade_search"})
 
+    def test_selected_fuzzy_upgrade_candidate_returns_direct_successors(self):
+        service = SearchService(FakeRepository(), llm_client=MustNotCallLLM())
+        self.assertTrue(
+            hasattr(service, "continue_upgrade_selection"),
+            "SearchService must expose deterministic upgrade-candidate continuation",
+        )
+        outcome = service.continue_upgrade_selection(1, "Don")
+        self.assertEqual(outcome.kind, "search")
+        self.assertIsInstance(outcome.payload, UpgradeResultsPayload)
+        self.assertEqual(outcome.payload.query, "Don")
+        self.assertEqual(
+            [result.item.name for result in outcome.payload.results],
+            ["Don Upgrade A", "Don Upgrade B"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
