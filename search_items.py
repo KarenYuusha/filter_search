@@ -1794,9 +1794,10 @@ def parse_search_query(query: str, repository: ItemRepository) -> ParsedSearch:
     natural_upgrade_target = extract_natural_upgrade_target(raw)
     if natural_upgrade_target is not None:
         upgrade_exact = repository.exact_upgrade_name_matches(natural_upgrade_target)
-        canonical_query = f"upgrade {natural_upgrade_target}"
         if len(upgrade_exact) == 1:
+            canonical_query = f"upgrade {upgrade_exact[0].name}"
             return ParsedSearch("exact_upgrade", canonical_query, item_id=upgrade_exact[0].id)
+        canonical_query = f"upgrade {natural_upgrade_target}"
         return ParsedSearch("upgrade_search", canonical_query, item_query=natural_upgrade_target)
 
     first, _, remainder = raw.partition(" ")
