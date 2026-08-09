@@ -638,7 +638,9 @@ class DiscordSessionManager:
         context = FailedQueryContext(max_entries=3)
         if previous is not None:
             for attempt in previous.failed_context.snapshot():
-                context.record_failure(attempt.query)
+                context.record_failure(attempt.original_query)
+                if attempt.suggested_query:
+                    context.set_latest_suggestion(attempt.suggested_query)
         session = DiscordSearchSession(generation, query, context)
         self._sessions[key] = session
         return session
@@ -651,7 +653,7 @@ class DiscordSessionManager:
         return session is not None and session.generation == generation
 ```
 
-If `FailedQueryAttempt` exposes additional state that must be preserved, copy it through the public `FailedQueryContext` API rather than mutating private fields.
+This preserves both the prior failed query and the latest deterministic/Qwen suggestion without sharing the old mutable context object with a superseded worker.
 
 - [ ] **Step 7: Use minimum intents**
 
@@ -767,8 +769,13 @@ async def send_if_current(
 - [ ] **Step 5: Implement `process_tagged_query`**
 
 ```python
-async def process_tagged_query(message, *, config, sessions) -> None:
-    bot_user_id = message._state.user.id
+async def process_tagged_query(
+    message,
+    *,
+    bot_user_id: int,
+    config: DiscordBotConfig,
+    sessions: DiscordSessionManager,
+) -> None:
     query = extract_mentioned_query(message.content, bot_user_id)
     key = (message.guild.id, message.channel.id, message.author.id)
     session = sessions.start_query(key, query)
@@ -785,7 +792,7 @@ async def process_tagged_query(message, *, config, sessions) -> None:
     await render_service_outcome(message, outcome, key, session, sessions, config)
 ```
 
-When implementation has direct access to `client.user`, pass the bot user ID explicitly instead of depending on private Discord state. The final handler must not use a private discord.py attribute.
+`on_message` in Task 8 passes `client.user.id` explicitly. No helper in `discord_bot.py` may depend on discord.py private state.
 
 - [ ] **Step 6: Verify and commit Task 4**
 
@@ -1071,10 +1078,10 @@ Add tests asserting these service outcomes map to safe user-visible text:
 
 ```text
 help -> compact examples
- database -> compact answer
- refuse -> explicit-stat-only limitation
- unavailable -> "I couldn't interpret that automatically right now. Explicit item/stat searches are still available."
- failed -> supported-search examples
+database -> compact answer
+refuse -> explicit-stat-only limitation
+unavailable -> "I couldn't interpret that automatically right now. Explicit item/stat searches are still available."
+failed -> supported-search examples
 ```
 
 Add a fake-client/fake-message test proving an allowed tagged message invokes `process_tagged_query`, while an ignored message sends nothing. Add a test asserting `discord.AllowedMentions.none()` is configured for outgoing bot responses.
@@ -1134,8 +1141,6 @@ def create_client(config: DiscordBotConfig) -> discord.Client:
 
     return client
 ```
-
-Update `process_tagged_query` to accept `bot_user_id` explicitly; do not use private discord.py state.
 
 - [ ] **Step 5: Add safe boundary exception handling**
 
