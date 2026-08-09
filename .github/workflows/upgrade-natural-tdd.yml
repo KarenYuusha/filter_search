@@ -1,8 +1,8 @@
 name: Upgrade Natural TDD
 
 on:
-  pull_request:
-    branches: [main]
+  push:
+    branches: [feat/upgrade-natural-discord-name]
 
 permissions:
   contents: write
@@ -12,8 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
       - name: Apply shared natural-upgrade normalization
         shell: bash
         run: |
@@ -67,7 +65,7 @@ def extract_natural_upgrade_target(text: str) -> str | None:
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add search_items.py
             git commit -m "feat: normalize natural upgrade queries"
-            git push origin HEAD:${{ github.head_ref }}
+            git push origin HEAD:feat/upgrade-natural-discord-name
           fi
       - uses: actions/setup-python@v5
         with:
