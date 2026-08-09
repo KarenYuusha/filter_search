@@ -2,34 +2,36 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make approved natural-language upgrade queries deterministic in both the CLI and Discord, and render Discord example queries with the bot's current guild display name instead of raw mention IDs.
+**Goal:** Make approved natural-language upgrade queries deterministic in both the CLI and Discord, preserve fuzzy upgrade selection through to direct successors, and render Discord example queries with the bot's current guild display name instead of raw mention IDs.
 
-**Architecture:** Add a narrow natural-upgrade target extractor in the shared `search_items.py` parser so both `interactive_search()` and `toram_search.service.SearchService` receive the same `exact_upgrade` / `upgrade_search` intents without Qwen. Keep Discord naming presentation-only by deriving an `@<display_name>` example prefix from the current guild member, falling back to the client account name, and pass that prefix through existing Discord embed/message builders.
+**Architecture:** Add a narrow natural-upgrade target extractor in shared `search_items.py`, so CLI and `SearchService` receive the same upgrade intents without Qwen. Add one public `SearchService.continue_upgrade_selection()` path for Discord fuzzy candidate selection, then keep Discord naming presentation-only through a helper that returns plain `@<display_name>` example text.
 
-**Tech Stack:** Python 3.12, `unittest`, existing `discord.py>=2.7.1,<3`, existing Toram SQLite repository/search services.
+**Tech Stack:** Python 3.12, `unittest`, existing `discord.py>=2.7.1,<3`, existing Toram search/repository code.
 
 ## Global Constraints
 
-- Supported natural upgrade forms are exactly the approved whitelist: `upgrade <name>`, `upgrade for <name>`, `upgrades for <name>`, `show upgrades for <name>`, `find upgrades for <name>`, `what upgrades from <name>`, `what can upgrade <name>`, `what comes after <name>`, and `next xtal after <name>`.
-- Matching is case-insensitive and ignores simple trailing `?`, `.`, and `!` punctuation.
-- Supported natural forms must bypass Qwen and preserve existing exact/fuzzy crysta resolution.
-- Subjective/build-dependent forms such as `best upgrade for Don`, `strongest upgrade for Don`, and `better xtal after Don` must not be normalized.
-- Upgrade semantics remain direct successors only; no full-chain traversal or ranking behavior changes.
-- Discord examples use the bot guild member's `display_name`; if unavailable, fall back to the bot account `display_name`/`name`.
-- Discord example prefixes are plain text such as `@Toram Search`; they must never contain raw `<@123...>` mention syntax or create a ping.
-- Existing `AllowedMentions.none()` behavior remains unchanged.
-- No new runtime dependency is required.
+- Supported forms: `upgrade <name>`, `upgrade for <name>`, `upgrades for <name>`, `show upgrades for <name>`, `find upgrades for <name>`, `what upgrades from <name>`, `what can upgrade <name>`, `what comes after <name>`, `next xtal after <name>`.
+- Matching is case-insensitive and ignores trailing `?`, `.`, `!`.
+- Supported forms must bypass Qwen.
+- Existing exact/fuzzy crysta resolution stays available.
+- Selecting a fuzzy Discord upgrade candidate must show that candidate's direct upgrade successors, not normal item detail.
+- `best upgrade`, `strongest upgrade`, `better xtal`, build-role wording, and other subjective forms are not normalized.
+- Upgrade semantics remain direct successors only.
+- Discord examples use guild member `display_name`, falling back to account `display_name`/`name`.
+- Example prefixes are plain text such as `@Toram Search`, never `<@123...>` mention syntax.
+- Existing `AllowedMentions.none()` remains unchanged.
+- No new dependency.
 
 ---
 
 ## File Structure
 
-- Modify `search_items.py`: shared natural-upgrade phrase extraction and parser integration only.
-- Modify `discord_bot.py`: presentation-only bot example-prefix resolution and renaming of `bot_mention` message-builder parameters to reflect plain-text usage.
-- Modify `tests/test_discord_followup_regressions.py`: shared service/parser deterministic upgrade normalization regressions and subjective-form guard.
-- Modify `tests/test_cli_upgrade.py`: CLI natural-upgrade end-to-end regression.
-- Modify `tests/test_discord_bot.py`: Discord guild display-name/fallback/raw-ID rendering regressions.
-- Keep `toram_search/service.py` unchanged unless a failing regression proves shared parser output is not propagated correctly.
+- Modify `search_items.py`: shared natural-upgrade target extraction and parser integration.
+- Modify `toram_search/service.py`: public deterministic continuation from selected fuzzy upgrade candidate to direct successors.
+- Modify `discord_bot.py`: fuzzy upgrade selection continuation plus display-name example prefix rendering.
+- Modify `tests/test_discord_followup_regressions.py`: shared parser/service normalization and continuation tests.
+- Modify `tests/test_cli_upgrade.py`: CLI natural-query regression.
+- Modify `tests/test_discord_bot.py`: Discord display-name and upgrade-selection helper regressions.
 
 ---
 
@@ -41,17 +43,16 @@
 - Modify: `tests/test_cli_upgrade.py`
 
 **Interfaces:**
-- Consumes: existing `normalize_name()`, `ItemRepository.exact_upgrade_name_matches()`, `ParsedSearch`, `SearchService.handle_query()`, and `_interactive_direct_upgrade_results()`.
-- Produces: `extract_natural_upgrade_target(text: str) -> str | None`, used by `parse_search_query()` before ordinary item/stat parsing.
+- Produces: `extract_natural_upgrade_target(text: str) -> str | None`.
+- `parse_search_query()` uses this before normal item/stat parsing and returns existing `exact_upgrade` or `upgrade_search` intents.
 
-- [ ] **Step 1: Add failing shared-service regressions for every approved phrase**
+- [ ] **Step 1: Add failing service regressions for the whitelist**
 
 Add to `UpgradeLookupTests`:
 
 ```python
     def test_natural_upgrade_forms_are_deterministic(self):
-        repository = FakeRepository()
-        service = SearchService(repository, llm_client=MustNotCallLLM())
+        service = SearchService(FakeRepository(), llm_client=MustNotCallLLM())
         queries = (
             "upgrade Don",
             "upgrade for Don",
@@ -65,7 +66,6 @@ Add to `UpgradeLookupTests`:
             "WHAT UPGRADES FROM DON?",
             "show upgrades for Don.",
         )
-
         for query in queries:
             with self.subTest(query=query):
                 outcome = service.handle_query(query, FailedQueryContext(max_entries=3))
@@ -75,45 +75,34 @@ Add to `UpgradeLookupTests`:
                     [result.item.name for result in outcome.payload.results],
                     ["Don Upgrade A", "Don Upgrade B"],
                 )
-```
 
-Add a guard proving subjective wording is not rewritten:
-
-```python
     def test_subjective_upgrade_wording_is_not_normalized(self):
-        repository = FakeRepository()
         for query in ("best upgrade for Don", "strongest upgrade for Don", "better xtal after Don"):
             with self.subTest(query=query):
                 self.assertIsNone(core.extract_natural_upgrade_target(query))
 ```
 
-- [ ] **Step 2: Run shared regressions and verify RED**
-
-Run:
+- [ ] **Step 2: Run and verify RED**
 
 ```bash
 python -m unittest tests.test_discord_followup_regressions.UpgradeLookupTests -v
 ```
 
-Expected: FAIL because `extract_natural_upgrade_target` does not exist and/or natural forms do not produce `UpgradeResultsPayload`.
+Expected: FAIL because the extractor/natural routing does not exist.
 
 - [ ] **Step 3: Add failing CLI end-to-end regression**
-
-Add to `CliUpgradeTests`:
 
 ```python
     def test_natural_upgrade_query_uses_direct_successor_screen_without_qwen(self):
         repository = CliRepository()
         answers = iter(["what upgrades from Don?", "quit"])
         output: list[str] = []
-
         result = core.interactive_search(
             repository,
             input_fn=lambda _prompt: next(answers),
             output_fn=output.append,
             llm_client=MustNotCallLLM(),
         )
-
         rendered = "\n".join(output)
         self.assertEqual(result, 0)
         self.assertIn("Upgrades from Don", rendered)
@@ -121,17 +110,15 @@ Add to `CliUpgradeTests`:
         self.assertIn("Don Upgrade B", rendered)
 ```
 
-- [ ] **Step 4: Run the CLI regression and verify RED**
-
-Run:
+- [ ] **Step 4: Run and verify CLI RED**
 
 ```bash
 python -m unittest tests.test_cli_upgrade.CliUpgradeTests.test_natural_upgrade_query_uses_direct_successor_screen_without_qwen -v
 ```
 
-Expected: FAIL because the natural phrase does not yet route to the direct-upgrade screen.
+Expected: FAIL because the natural phrase does not reach the upgrade screen.
 
-- [ ] **Step 5: Implement the narrow shared target extractor**
+- [ ] **Step 5: Implement the narrow extractor**
 
 Add before `parse_search_query()`:
 
@@ -149,8 +136,6 @@ _NATURAL_UPGRADE_PATTERNS = (
 
 def extract_natural_upgrade_target(text: str) -> str | None:
     cleaned = " ".join(text.strip().rstrip("?.!").split())
-    if not cleaned:
-        return None
     for pattern in _NATURAL_UPGRADE_PATTERNS:
         match = re.fullmatch(pattern, cleaned, flags=re.IGNORECASE)
         if match is not None:
@@ -159,36 +144,32 @@ def extract_natural_upgrade_target(text: str) -> str | None:
     return None
 ```
 
-Do not include patterns containing `best`, `strongest`, `better`, build roles, or arbitrary filler-word stripping.
+Do not add generic filler stripping or subjective keywords.
 
-- [ ] **Step 6: Integrate normalization into the existing upgrade parser without duplicating relationship logic**
+- [ ] **Step 6: Integrate with existing parser**
 
-At the start of `parse_search_query()` after empty-query handling, resolve the natural target before the existing `first/command/remainder` branch:
+After empty-query handling in `parse_search_query()`:
 
 ```python
     natural_upgrade_target = extract_natural_upgrade_target(raw)
     if natural_upgrade_target is not None:
-        upgrade_exact = repository.exact_upgrade_name_matches(natural_upgrade_target)
-        if len(upgrade_exact) == 1:
-            return ParsedSearch("exact_upgrade", raw, item_id=upgrade_exact[0].id)
+        exact = repository.exact_upgrade_name_matches(natural_upgrade_target)
+        if len(exact) == 1:
+            return ParsedSearch("exact_upgrade", raw, item_id=exact[0].id)
         return ParsedSearch("upgrade_search", raw, item_query=natural_upgrade_target)
 ```
 
-Keep the existing explicit `upgrade Don` command branch unchanged so its current validation/error behavior remains authoritative.
+Keep explicit `upgrade Don` handling unchanged.
 
-- [ ] **Step 7: Run Task 1 regressions and verify GREEN**
-
-Run:
+- [ ] **Step 7: Run Task 1 GREEN gate**
 
 ```bash
-python -m unittest \
-  tests.test_discord_followup_regressions.UpgradeLookupTests \
-  tests.test_cli_upgrade -v
+python -m unittest tests.test_discord_followup_regressions.UpgradeLookupTests tests.test_cli_upgrade -v
 ```
 
-Expected: all tests pass; `MustNotCallLLM` proves supported natural forms are deterministic.
+Expected: PASS.
 
-- [ ] **Step 8: Commit Task 1**
+- [ ] **Step 8: Commit**
 
 ```bash
 git add search_items.py tests/test_discord_followup_regressions.py tests/test_cli_upgrade.py
@@ -197,95 +178,168 @@ git commit -m "feat: normalize natural upgrade queries"
 
 ---
 
-### Task 2: Discord Guild Display-Name Example Prefixes
+### Task 2: Discord Fuzzy Upgrade Candidate Continuation
 
 **Files:**
-- Modify: `discord_bot.py` near `build_help_embed()`, `build_service_outcome_message()`, `edit_service_outcome()`, and `process_tagged_query()`
+- Modify: `toram_search/service.py`
+- Modify: `discord_bot.py` in `SearchResultsView._select_item()` and worker helpers
+- Modify: `tests/test_discord_followup_regressions.py`
 - Modify: `tests/test_discord_bot.py`
 
 **Interfaces:**
-- Consumes: a Discord guild-like object exposing `get_member(user_id)`, and a bot-user-like object exposing `id`, `display_name` and/or `name`.
-- Produces: `bot_example_prefix(guild, bot_user) -> str`, returning presentation-only text such as `@Toram Search`.
-- Changes message-builder keyword from `bot_mention` to `bot_example_prefix` so callers cannot mistake the value for raw Discord mention syntax.
+- Produces: `SearchService.continue_upgrade_selection(item_id: int, item_name: str) -> ServiceOutcome`.
+- Produces: `run_upgrade_selection_sync(database_path, item_id, item_name, *, repository_factory=...) -> ServiceOutcome`.
+- Produces: `is_upgrade_suggestion_payload(payload: SearchPayload) -> bool` for a pure UI decision test.
 
-- [ ] **Step 1: Add failing display-name prefix unit tests**
+- [ ] **Step 1: Add failing service continuation test**
 
-Import `bot_example_prefix`, `build_help_embed`, and `build_service_outcome_message` in `tests/test_discord_bot.py`. Add:
+```python
+    def test_selected_fuzzy_upgrade_candidate_returns_direct_successors(self):
+        service = SearchService(FakeRepository(), llm_client=MustNotCallLLM())
+        outcome = service.continue_upgrade_selection(1, "Don")
+        self.assertEqual(outcome.kind, "search")
+        self.assertIsInstance(outcome.payload, UpgradeResultsPayload)
+        self.assertEqual(
+            [result.item.name for result in outcome.payload.results],
+            ["Don Upgrade A", "Don Upgrade B"],
+        )
+```
+
+- [ ] **Step 2: Run and verify RED**
+
+```bash
+python -m unittest tests.test_discord_followup_regressions.UpgradeLookupTests.test_selected_fuzzy_upgrade_candidate_returns_direct_successors -v
+```
+
+Expected: FAIL because `continue_upgrade_selection()` does not exist.
+
+- [ ] **Step 3: Implement public service continuation**
+
+Add beside `item_detail()`:
+
+```python
+    def continue_upgrade_selection(self, item_id: int, item_name: str) -> ServiceOutcome:
+        parsed = core.ParsedSearch(
+            intent="exact_upgrade",
+            raw_query=f"upgrade {item_name}",
+            item_id=item_id,
+        )
+        return ServiceOutcome("search", payload=self._materialize(parsed, {}))
+```
+
+This reuses `_materialize()` and therefore the same direct-successor ranking as normal exact upgrade queries.
+
+- [ ] **Step 4: Add failing pure Discord suggestion classifier test**
+
+Add imports for `is_upgrade_suggestion_payload`. Build two `UpgradeResultsPayload` objects: one with `RankedItem(..., match_kind="fuzzy")` and one with `match_kind="upgrade"`. Assert the first is `True` and the second `False`.
+
+```python
+    def test_upgrade_suggestion_payload_is_distinguished_from_direct_results(self):
+        fuzzy = UpgradeResultsPayload(
+            "Dno",
+            (core.RankedItem(core.ItemSummary(1, "Don", "Normal Crysta"), 90.0, "fuzzy"),),
+        )
+        direct = UpgradeResultsPayload(
+            "Don",
+            (core.RankedItem(core.ItemSummary(2, "Don Upgrade A", "Enhancer Crysta (Blue)"), 100.0, "upgrade"),),
+        )
+        self.assertTrue(is_upgrade_suggestion_payload(fuzzy))
+        self.assertFalse(is_upgrade_suggestion_payload(direct))
+```
+
+- [ ] **Step 5: Implement Discord continuation worker and selection branch**
+
+Add:
+
+```python
+def is_upgrade_suggestion_payload(payload: SearchPayload) -> bool:
+    return (
+        isinstance(payload, UpgradeResultsPayload)
+        and bool(payload.results)
+        and not all(result.match_kind == "upgrade" for result in payload.results)
+    )
+
+
+def run_upgrade_selection_sync(
+    database_path: Path,
+    item_id: int,
+    item_name: str,
+    *,
+    repository_factory=core.ItemRepository,
+) -> ServiceOutcome:
+    repository = repository_factory(database_path.resolve())
+    try:
+        return SearchService(repository).continue_upgrade_selection(item_id, item_name)
+    finally:
+        repository.close()
+```
+
+In `SearchResultsView._select_item()`, before `run_item_detail_sync`, branch on `is_upgrade_suggestion_payload(self.payload)`. Resolve the selected item using `_result_item()`, defer, call `run_upgrade_selection_sync` in `asyncio.to_thread`, recheck session generation, set `session.page = 0`, then call `edit_service_outcome(...)` with the same session/generation. Do not start a new query or generation.
+
+- [ ] **Step 6: Run Task 2 GREEN gate**
+
+```bash
+python -m unittest tests.test_discord_followup_regressions.UpgradeLookupTests tests.test_discord_bot.DiscordFormattingTests -v
+```
+
+Expected: PASS.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add toram_search/service.py discord_bot.py tests/test_discord_followup_regressions.py tests/test_discord_bot.py
+git commit -m "fix: continue fuzzy Discord upgrade selection"
+```
+
+---
+
+### Task 3: Discord Guild Display-Name Example Prefixes
+
+**Files:**
+- Modify: `discord_bot.py` near `extract_mentioned_query()`, `build_help_embed()`, `build_service_outcome_message()`, `edit_service_outcome()`, `process_tagged_query()`, `create_client()`
+- Modify: `tests/test_discord_bot.py`
+
+**Interfaces:**
+- Produces: `bot_example_prefix(guild, bot_user) -> str`.
+- Renames message-builder keyword `bot_mention` to `bot_example_prefix`.
+
+- [ ] **Step 1: Add failing prefix tests**
 
 ```python
     def test_bot_example_prefix_prefers_guild_display_name(self):
         member = SimpleNamespace(display_name="Toram Search")
         guild = SimpleNamespace(get_member=lambda user_id: member if user_id == 99 else None)
         bot_user = SimpleNamespace(id=99, display_name="GlobalBot", name="GlobalBot")
-
         self.assertEqual(bot_example_prefix(guild, bot_user), "@Toram Search")
 
     def test_bot_example_prefix_falls_back_to_account_name(self):
         guild = SimpleNamespace(get_member=lambda _user_id: None)
         bot_user = SimpleNamespace(id=99, display_name="GlobalBot", name="GlobalBot")
-
         self.assertEqual(bot_example_prefix(guild, bot_user), "@GlobalBot")
 ```
 
-- [ ] **Step 2: Add failing rendering regression proving no raw mention ID appears**
+- [ ] **Step 2: Add failing no-raw-ID rendering tests**
 
-Use the help embed directly:
+For `build_help_embed("@Toram Search")`, assert examples include `@Toram Search hp armor` and contain no `<@`.
 
-```python
-    def test_help_examples_use_plain_display_name_not_raw_mention(self):
-        embed = build_help_embed("@Toram Search")
-        visible = "\n".join(field.value for field in embed.fields)
+For `build_service_outcome_message(ServiceOutcome(kind="failed"), bot_example_prefix="@Toram Search", ...)`, assert description contains `@Toram Search hp armor` and no `<@`.
 
-        self.assertIn("@Toram Search hp armor", visible)
-        self.assertIn("@Toram Search upgrade <crysta name>", visible)
-        self.assertNotIn("<@", visible)
-```
-
-Also test the failed-search surface, because it currently interpolates the same raw mention input:
-
-```python
-    def test_failed_search_examples_use_display_name_prefix(self):
-        sessions = DiscordSessionManager()
-        key = (10, 30, 20)
-        session = sessions.start_query(key, "bad query")
-        outcome = ServiceOutcome(kind="failed")
-
-        embed, _view, _file = build_service_outcome_message(
-            outcome,
-            bot_example_prefix="@Toram Search",
-            sessions=sessions,
-            key=key,
-            generation=session.generation,
-            database_path=Path("coryn_data/database/items.sqlite"),
-        )
-
-        self.assertIn("@Toram Search hp armor", embed.description or "")
-        self.assertNotIn("<@", embed.description or "")
-```
-
-Import `ServiceOutcome` from `toram_search.service` for this test.
-
-- [ ] **Step 3: Run Discord formatting tests and verify RED**
-
-Run:
+- [ ] **Step 3: Run and verify RED**
 
 ```bash
 python -m unittest tests.test_discord_bot.DiscordFormattingTests -v
 ```
 
-Expected: FAIL because `bot_example_prefix` and the renamed message-builder keyword do not exist.
+Expected: FAIL because the helper/new keyword do not exist.
 
-- [ ] **Step 4: Implement guild display-name prefix resolution**
-
-Add near `extract_mentioned_query()`:
+- [ ] **Step 4: Implement prefix helper**
 
 ```python
 def bot_example_prefix(guild, bot_user) -> str:
     member = None
-    if guild is not None and bot_user is not None:
-        get_member = getattr(guild, "get_member", None)
-        if callable(get_member):
-            member = get_member(bot_user.id)
+    get_member = getattr(guild, "get_member", None) if guild is not None else None
+    if bot_user is not None and callable(get_member):
+        member = get_member(bot_user.id)
     display_name = (
         getattr(member, "display_name", None)
         or getattr(bot_user, "display_name", None)
@@ -295,93 +349,46 @@ def bot_example_prefix(guild, bot_user) -> str:
     return f"@{display_name}"
 ```
 
-This helper returns plain text only; do not construct `<@...>` syntax.
+- [ ] **Step 5: Replace raw mention example plumbing**
 
-- [ ] **Step 5: Rename presentation parameters and replace raw mention construction**
+Rename `build_help_embed(bot_mention)` and `build_service_outcome_message(..., bot_mention=...)` parameters to `bot_example_prefix` and update every help/refusal/failed-search interpolation.
 
-Change:
-
-```python
-def build_help_embed(bot_mention: str) -> discord.Embed:
-```
-
-to:
-
-```python
-def build_help_embed(bot_example_prefix: str) -> discord.Embed:
-```
-
-and use `bot_example_prefix` in every example line.
-
-Change `build_service_outcome_message(..., bot_mention: str, ...)` to `bot_example_prefix: str` and replace the `bot_mention` interpolations in help/refusal/failed-search examples.
-
-In `edit_service_outcome()`:
+In `edit_service_outcome()` compute:
 
 ```python
     prefix = bot_example_prefix(interaction.guild, interaction.client.user)
-    embed, view, file = build_service_outcome_message(
-        outcome,
-        bot_example_prefix=prefix,
-        ...
-    )
 ```
 
-In `process_tagged_query()`, accept a bot-user object rather than only a numeric ID:
+and pass it to the message builder.
 
-```python
-async def process_tagged_query(
-    message: discord.Message,
-    *,
-    bot_user,
-    config: DiscordBotConfig,
-    sessions: DiscordSessionManager,
-) -> None:
-    bot_user_id = bot_user.id
-    ...
-    prefix = bot_example_prefix(message.guild, bot_user)
-    embed, view, file = build_service_outcome_message(
-        outcome,
-        bot_example_prefix=prefix,
-        ...
-    )
-```
+Change `process_tagged_query()` to accept `bot_user`, derive `bot_user_id = bot_user.id`, compute `prefix = bot_example_prefix(message.guild, bot_user)`, and pass it to the message builder. Update `create_client().on_message()` to pass `bot_user=client.user`.
 
-Update `create_client().on_message()` to call `process_tagged_query(..., bot_user=client.user, ...)`.
+Incoming gating still uses real mention IDs; only output examples change.
 
-Do not modify `is_allowed_message()` or `extract_mentioned_query()`; incoming messages still require a real Discord mention.
-
-- [ ] **Step 6: Run Task 2 regressions and verify GREEN**
-
-Run:
+- [ ] **Step 6: Run Task 3 GREEN gate**
 
 ```bash
 python -m unittest tests.test_discord_bot -v
 ```
 
-Expected: all Discord config/gating/session/formatting tests pass, including guild nickname preference and account-name fallback.
+Expected: PASS.
 
-- [ ] **Step 7: Commit Task 2**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add discord_bot.py tests/test_discord_bot.py
-git commit -m "feat: show Discord bot display name in examples"
+git commit -m "feat: show Discord display name in examples"
 ```
 
 ---
 
-### Task 3: Final Cross-Frontend Verification and PR Cleanup
+### Task 4: Final Verification and PR Cleanup
 
 **Files:**
-- Verify only; no production file should change unless a test exposes a defect.
-- Remove any temporary CI workflow used solely for remote verification before final review.
-
-**Interfaces:**
-- Consumes: Task 1 shared parser behavior and Task 2 Discord presentation behavior.
-- Produces: a review-ready PR with no temporary workflow files and documented test evidence.
+- Verify final diff only.
+- Remove any temporary GitHub Actions workflow used solely for remote test execution.
 
 - [ ] **Step 1: Compile changed modules**
-
-Run:
 
 ```bash
 python -m py_compile search_items.py discord_bot.py toram_search/service.py
@@ -389,9 +396,7 @@ python -m py_compile search_items.py discord_bot.py toram_search/service.py
 
 Expected: exit code 0.
 
-- [ ] **Step 2: Run the focused cross-frontend regression gate**
-
-Run:
+- [ ] **Step 2: Run focused gate**
 
 ```bash
 python -m unittest \
@@ -405,40 +410,40 @@ python -m unittest \
 
 Expected: all focused tests pass.
 
-- [ ] **Step 3: Run the complete unittest suite**
-
-Run:
+- [ ] **Step 3: Run full suite**
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-Expected baseline: all new/related tests pass. If `test_structured_fallback.StructuredFallbackTests.test_rejected_payload_is_logged_with_reason` still fails because it expects `missing or invalid search candidates` while production reports `search payload has unexpected fields`, record it explicitly as the existing unrelated baseline failure rather than changing fallback behavior in this PR.
+If `test_structured_fallback.StructuredFallbackTests.test_rejected_payload_is_logged_with_reason` still expects `missing or invalid search candidates` while production logs `search payload has unexpected fields`, record that unchanged baseline failure; do not change fallback behavior in this PR.
 
-- [ ] **Step 4: Review final diff scope**
+- [ ] **Step 4: Review final diff**
 
-Confirm the final PR contains only the approved spec/plan plus relevant code/tests:
+Expected final files:
 
 ```text
 docs/superpowers/specs/2026-08-09-upgrade-normalization-discord-display-name-design.md
 docs/superpowers/plans/2026-08-09-upgrade-normalization-discord-display-name.md
 search_items.py
+toram_search/service.py
 discord_bot.py
 tests/test_discord_followup_regressions.py
 tests/test_cli_upgrade.py
 tests/test_discord_bot.py
 ```
 
-No `.env`, token, raw Discord guild/user IDs from real configuration, or temporary CI workflow should remain.
+No `.env`, real token/config IDs, or temporary CI workflow remains.
 
-- [ ] **Step 5: Prepare the PR for review**
+- [ ] **Step 5: Prepare PR for review**
 
-PR summary must state:
+PR body must state:
 
 ```text
-- natural upgrade aliases are deterministic in both CLI and Discord
+- natural upgrade aliases work deterministically in CLI and Discord
+- fuzzy Discord base-crysta selection continues to direct upgrades
 - supported aliases do not call Qwen
-- subjective `best/strongest` upgrade wording remains outside scope
-- Discord examples show the current guild bot display name as plain text, never a raw mention ID
-- focused and full-suite verification results, including any unchanged baseline failure
+- subjective best/strongest upgrade wording remains outside scope
+- Discord examples show guild display name as plain text with no raw mention ID
+- focused/full-suite verification results and any unchanged baseline failure
 ```
