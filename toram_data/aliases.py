@@ -190,6 +190,7 @@ STAT_CATEGORY_ALIASES = {
 
 STAT_AMBIGUOUS_GROUPS = {
     "crit": ("Critical Rate", "Critical Damage"),
+    "crt": ("Critical Rate", "Critical Damage"),
 }
 
 STAT_PREFERRED_DISPLAY_ALIASES = {
