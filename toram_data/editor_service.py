@@ -151,7 +151,12 @@ class EditorService:
         report = validate_item_draft(draft, self.repository, original=original)
         if not report.is_valid:
             raise ValidationFailed(report)
-        batch = self.image_store.stage(draft.id, draft.images)
+        batch = self.image_store.stage(
+            draft.id,
+            draft.item_type,
+            draft.name,
+            draft.images,
+        )
         try:
             backup_path = self.backup_manager.create_verified_backup()
             prepared_images = batch.materialize()
