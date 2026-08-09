@@ -1129,6 +1129,31 @@ def render_upgrade_terminal(graph: UpgradeGraph, selected_item_id: int) -> str:
     return "\n".join(lines)
 
 
+def render_direct_upgrade_results(
+    base_name: str,
+    results: list[RankedItem],
+    page: int,
+) -> str:
+    current = page_results(results, page=page)
+    start = page * PAGE_SIZE
+    end = start + len(current)
+    lines = [
+        "",
+        f"Upgrades from {base_name}",
+        f"Showing {start + 1 if current else 0}–{end} of {len(results)}",
+        "",
+    ]
+    for index, result in enumerate(current, start=1):
+        lines.append(f"{index}. {result.item.name} — {result.item.item_type}")
+    if not results:
+        lines.append("No direct upgrade crystas found.")
+    lines.extend([
+        "",
+        "Choose 1–5, type 'next', 'prev', a new search, or 'quit'.",
+    ])
+    return "\n".join(lines)
+
+
 def render_suggestions(query: str, results: list[RankedItem], page: int) -> str:
     current = page_results(results, page=page)
     start = page * PAGE_SIZE
@@ -2040,6 +2065,69 @@ def _interactive_item_results(
         return ResultScreenOutcome("new_query", query=command)
 
 
+def _interactive_direct_upgrade_results(
+    repository: ItemRepository,
+    base_item: ItemSummary,
+    successors: Iterable[ItemSummary],
+    *,
+    input_fn: Callable[[str], str],
+    output_fn: Callable[[str], None],
+) -> ResultScreenOutcome:
+    unique = {item.id: item for item in successors}
+    ordered = sorted(unique.values(), key=lambda item: (item.name.casefold(), item.id))
+    results = [
+        RankedItem(item=item, score=100.0, match_kind="upgrade")
+        for item in ordered
+    ]
+    if not results:
+        output_fn(f"No direct upgrade crystas found for {base_item.name}.")
+        return ResultScreenOutcome("new")
+
+    page = 0
+    while True:
+        current = page_results(results, page=page)
+        if not current:
+            page = max(page - 1, 0)
+            output_fn("There are no more results.")
+            continue
+        output_fn(render_direct_upgrade_results(base_item.name, results, page))
+        try:
+            command = input_fn("> ").strip()
+        except (EOFError, KeyboardInterrupt, StopIteration):
+            return ResultScreenOutcome("quit")
+        parsed_input = classify_screen_input(
+            command,
+            allow_filter=False,
+            allow_new_command=False,
+        )
+        if parsed_input.kind == "quit":
+            return ResultScreenOutcome("quit")
+        if parsed_input.kind == "next":
+            if (page + 1) * PAGE_SIZE >= len(results):
+                output_fn("There are no more results.")
+            else:
+                page += 1
+            continue
+        if parsed_input.kind == "prev":
+            if page == 0:
+                output_fn("You are already on the first page.")
+            else:
+                page -= 1
+            continue
+        if parsed_input.kind == "select":
+            assert parsed_input.selection is not None
+            if 1 <= parsed_input.selection <= len(current):
+                selected = current[parsed_input.selection - 1].item
+                output_fn(render_item(repository.get_item(selected.id)))
+                return ResultScreenOutcome("selected")
+            output_fn(f"Choose a number from 1 to {len(current)}.")
+            continue
+        if parsed_input.kind == "empty":
+            output_fn("Enter a number, 'next', 'prev', a new search, or 'quit'.")
+            continue
+        return ResultScreenOutcome("new_query", query=command)
+
+
 def _interactive_upgrade_results(
     repository: ItemRepository,
     query: str,
@@ -2051,9 +2139,14 @@ def _interactive_upgrade_results(
     upgrade_items = [item for item in all_items if is_crysta_item_type(item.item_type)]
     exact = repository.exact_upgrade_name_matches(query)
     if len(exact) == 1:
-        selected_id = exact[0].id
-        output_fn(render_upgrade_terminal(repository.get_upgrade_component(selected_id), selected_id))
-        return ResultScreenOutcome("new")
+        selected = exact[0]
+        return _interactive_direct_upgrade_results(
+            repository,
+            selected,
+            repository.get_upgrade_successors(selected.id),
+            input_fn=input_fn,
+            output_fn=output_fn,
+        )
     results = (
         [RankedItem(item=item, score=100.0, match_kind="exact") for item in exact]
         if len(exact) > 1 else rank_items(query, upgrade_items)
@@ -2091,9 +2184,14 @@ def _interactive_upgrade_results(
         if parsed_input.kind == "select":
             assert parsed_input.selection is not None
             if 1 <= parsed_input.selection <= len(current):
-                selected_id = current[parsed_input.selection - 1].item.id
-                output_fn(render_upgrade_terminal(repository.get_upgrade_component(selected_id), selected_id))
-                return ResultScreenOutcome("selected")
+                selected = current[parsed_input.selection - 1].item
+                return _interactive_direct_upgrade_results(
+                    repository,
+                    selected,
+                    repository.get_upgrade_successors(selected.id),
+                    input_fn=input_fn,
+                    output_fn=output_fn,
+                )
             output_fn(f"Choose a number from 1 to {len(current)}.")
             continue
         if parsed_input.kind == "empty":
@@ -2365,7 +2463,22 @@ def interactive_search(
             continue
         if parsed.intent == "exact_upgrade":
             selected_id = int(parsed.item_id)
-            output_fn(render_upgrade_terminal(repository.get_upgrade_component(selected_id), selected_id))
+            selected = next((item for item in all_items if item.id == selected_id), None)
+            if selected is None:
+                output_fn("Selected crysta could not be found.")
+                continue
+            screen = _interactive_direct_upgrade_results(
+                repository,
+                selected,
+                repository.get_upgrade_successors(selected_id),
+                input_fn=input_fn,
+                output_fn=output_fn,
+            )
+            should_quit, new_query = handle_screen(screen)
+            if should_quit:
+                output_fn("Goodbye.")
+                return 0
+            pending_query = new_query
             continue
         if parsed.intent == "upgrade_search":
             if parsed.error:
