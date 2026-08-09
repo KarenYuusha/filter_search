@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import math
 import re
 from dataclasses import dataclass
@@ -9,6 +10,8 @@ from .help_db import ALLOWED_DATABASE_ACTIONS, DatabaseActionRequest
 from .llm import LLMResponseError, LLMUnavailableError
 from .session import FailedQueryAttempt
 
+
+logger = logging.getLogger(__name__)
 
 FallbackKind = Literal[
     "search_requests", "database_action", "help", "refuse", "unavailable", "failed"
@@ -59,6 +62,9 @@ _BUILD_TERMS = {
 }
 _HELP_TOPICS = {"syntax", "operators", "examples"}
 _COMPARISON_OPERATORS = {">", ">=", "<", "<=", "=", "=="}
+_NO_ARG_DATABASE_ACTIONS = {"list_stats", "list_item_types", "count_items_total"}
+_ITEM_DATABASE_ACTIONS = {"count_items_by_type", "item_type_exists"}
+_STAT_DATABASE_ACTIONS = {"count_items_with_stat", "stat_exists"}
 
 
 class QwenFallbackService:
@@ -86,63 +92,130 @@ class QwenFallbackService:
 
     @staticmethod
     def _response_schema() -> dict[str, object]:
-        return {
+        stat_schema: dict[str, object] = {
             "type": "object",
             "additionalProperties": False,
             "properties": {
-                "intent": {
+                "name": {"type": "string"},
+                "operator": {
                     "type": "string",
-                    "enum": ["search", "database_action", "help", "refuse"],
+                    "enum": [">", ">=", "<", "<=", "=", "=="],
                 },
+                "value": {"type": "number"},
+            },
+            "required": ["name"],
+        }
+        candidate_schema: dict[str, object] = {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "item_filter": {"type": "string"},
+                "match": {"type": "string", "enum": ["all", "any"]},
+                "sort_stat": {"type": "string"},
+                "stats": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 3,
+                    "items": stat_schema,
+                },
+            },
+            "required": ["stats"],
+        }
+
+        search_branch: dict[str, object] = {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "intent": {"const": "search"},
                 "candidates": {
                     "type": "array",
                     "minItems": 1,
                     "maxItems": 3,
-                    "items": {
-                        "type": "object",
-                        "additionalProperties": False,
-                        "properties": {
-                            "item_filter": {"type": "string"},
-                            "match": {"type": "string", "enum": ["all", "any"]},
-                            "sort_stat": {"type": "string"},
-                            "stats": {
-                                "type": "array",
-                                "minItems": 1,
-                                "maxItems": 3,
-                                "items": {
-                                    "type": "object",
-                                    "additionalProperties": False,
-                                    "properties": {
-                                        "name": {"type": "string"},
-                                        "operator": {
-                                            "type": "string",
-                                            "enum": [">", ">=", "<", "<=", "=", "=="],
-                                        },
-                                        "value": {"type": "number"},
-                                    },
-                                    "required": ["name"],
-                                },
-                            },
-                        },
-                        "required": ["stats"],
-                    },
+                    "items": candidate_schema,
                 },
-                "action": {"type": "string"},
+            },
+            "required": ["intent", "candidates"],
+        }
+        database_no_arg_branch: dict[str, object] = {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "intent": {"const": "database_action"},
+                "action": {
+                    "type": "string",
+                    "enum": sorted(_NO_ARG_DATABASE_ACTIONS),
+                },
+            },
+            "required": ["intent", "action"],
+        }
+        database_item_branch: dict[str, object] = {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "intent": {"const": "database_action"},
+                "action": {
+                    "type": "string",
+                    "enum": sorted(_ITEM_DATABASE_ACTIONS),
+                },
                 "item_type": {"type": "string"},
+            },
+            "required": ["intent", "action", "item_type"],
+        }
+        database_stat_branch: dict[str, object] = {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "intent": {"const": "database_action"},
+                "action": {
+                    "type": "string",
+                    "enum": sorted(_STAT_DATABASE_ACTIONS),
+                },
                 "stat": {"type": "string"},
-                "topic": {"type": "string"},
+            },
+            "required": ["intent", "action", "stat"],
+        }
+        help_branch: dict[str, object] = {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "intent": {"const": "help"},
+                "topic": {
+                    "type": "string",
+                    "enum": sorted(_HELP_TOPICS),
+                },
+            },
+            "required": ["intent", "topic"],
+        }
+        refuse_branch: dict[str, object] = {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "intent": {"const": "refuse"},
             },
             "required": ["intent"],
         }
 
+        return {
+            "oneOf": [
+                search_branch,
+                database_no_arg_branch,
+                database_item_branch,
+                database_stat_branch,
+                help_branch,
+                refuse_branch,
+            ]
+        }
+
     def _system_prompt(self) -> str:
         return (
+            "Return only JSON matching the supplied schema. "
             "Convert the user's request into one constrained JSON object. "
             "You are only an interpreter for a local Toram item database; never answer facts from memory and never write SQL. "
             "For item/stat searches return intent=search with 1-3 structured candidates. "
             "Each candidate has stats, optional item_filter, optional match=all|any, and optional sort_stat. "
             "A stat entry has name and optionally operator plus numeric value. "
-            "Use sort_stat only for highest/best ranking and make it one of the candidate's stats. "
+            "For highest/best/most ranking, put that stat in sort_stat; sort_stat means highest-first. "
+            "For requests like 'find TYPE with STAT', use TYPE as item_filter and STAT as a stat. "
             "If wording is ambiguous, return multiple candidates rather than guessing. "
             "For factual database metadata/count requests use intent=database_action. "
             "For search instructions use intent=help. For unsupported/general/build questions use intent=refuse."
@@ -179,6 +252,11 @@ class QwenFallbackService:
     @staticmethod
     def _normalize_key(value: str) -> str:
         return " ".join(value.casefold().split())
+
+    @staticmethod
+    def _failed(reason: str, payload: object | None = None) -> FallbackOutcome:
+        logger.debug("Qwen fallback rejected payload: %s; payload=%r", reason, payload)
+        return FallbackOutcome("failed", message=reason)
 
     def _search_candidate_from_payload(
         self,
@@ -255,21 +333,18 @@ class QwenFallbackService:
         if not isinstance(action, str) or action not in ALLOWED_DATABASE_ACTIONS:
             return None
 
-        no_arg_actions = {"list_stats", "list_item_types", "count_items_total"}
-        item_actions = {"count_items_by_type", "item_type_exists"}
-        stat_actions = {"count_items_with_stat", "stat_exists"}
-        if action in no_arg_actions:
+        if action in _NO_ARG_DATABASE_ACTIONS:
             if set(payload) != {"intent", "action"}:
                 return None
             request = DatabaseActionRequest(action)
-        elif action in item_actions:
+        elif action in _ITEM_DATABASE_ACTIONS:
             if set(payload) != {"intent", "action", "item_type"}:
                 return None
             item_type = payload.get("item_type")
             if not isinstance(item_type, str) or not item_type.strip():
                 return None
             request = DatabaseActionRequest(action, item_type=item_type.strip())
-        elif action in stat_actions:
+        elif action in _STAT_DATABASE_ACTIONS:
             if set(payload) != {"intent", "action", "stat"}:
                 return None
             stat = payload.get("stat")
@@ -304,33 +379,34 @@ class QwenFallbackService:
         except LLMUnavailableError as exc:
             return FallbackOutcome("unavailable", message=str(exc))
         except LLMResponseError as exc:
-            return FallbackOutcome("failed", message=str(exc))
+            return self._failed(str(exc))
 
+        logger.debug("Qwen fallback raw payload: %r", payload)
         if not isinstance(payload, dict) or "sql" in payload:
-            return FallbackOutcome("failed")
+            return self._failed("payload is not an allowed JSON object", payload)
         intent = payload.get("intent")
         if intent == "refuse":
             if set(payload) != {"intent"}:
-                return FallbackOutcome("failed")
+                return self._failed("refuse payload has unexpected fields", payload)
             return FallbackOutcome("refuse")
         if intent == "help":
             if set(payload) != {"intent", "topic"}:
-                return FallbackOutcome("failed")
+                return self._failed("help payload has unexpected fields", payload)
             topic = payload.get("topic")
             if isinstance(topic, str) and topic in _HELP_TOPICS:
                 return FallbackOutcome("help", help_topic=topic)
-            return FallbackOutcome("failed")
+            return self._failed("help topic is invalid", payload)
         if intent == "database_action":
             request = self._database_request_from_payload(payload)
             if request is None:
-                return FallbackOutcome("failed")
+                return self._failed("database action is invalid", payload)
             return FallbackOutcome("database_action", database_request=request)
         if intent == "search":
             if set(payload) != {"intent", "candidates"}:
-                return FallbackOutcome("failed")
+                return self._failed("search payload has unexpected fields", payload)
             candidates_obj = payload.get("candidates")
             if not isinstance(candidates_obj, list) or not 1 <= len(candidates_obj) <= 3:
-                return FallbackOutcome("failed")
+                return self._failed("missing or invalid search candidates", payload)
 
             valid: list[SearchIntentRequest] = []
             seen: set[SearchIntentRequest] = set()
@@ -341,7 +417,9 @@ class QwenFallbackService:
                 seen.add(request)
                 if self.validate_search_request(request):
                     valid.append(request)
+                else:
+                    logger.debug("Qwen search candidate failed repository validation: %r", request)
             if valid:
                 return FallbackOutcome("search_requests", search_requests=tuple(valid))
-            return FallbackOutcome("failed")
-        return FallbackOutcome("failed")
+            return self._failed("no search candidate passed validation", payload)
+        return self._failed("intent is missing or unsupported", payload)
