@@ -2160,6 +2160,17 @@ def _interactive_direct_upgrade_results(
         return ResultScreenOutcome("new_query", query=command)
 
 
+def _show_upgrade_component(
+    repository: ItemRepository,
+    selected: ItemSummary,
+    *,
+    output_fn: Callable[[str], None],
+) -> ResultScreenOutcome:
+    graph = repository.get_upgrade_component(selected.id)
+    output_fn(render_upgrade_terminal(graph, selected.id))
+    return ResultScreenOutcome("selected")
+
+
 def _interactive_upgrade_results(
     repository: ItemRepository,
     query: str,
@@ -2171,12 +2182,9 @@ def _interactive_upgrade_results(
     upgrade_items = [item for item in all_items if is_crysta_item_type(item.item_type)]
     exact = repository.exact_upgrade_name_matches(query)
     if len(exact) == 1:
-        selected = exact[0]
-        return _interactive_direct_upgrade_results(
+        return _show_upgrade_component(
             repository,
-            selected,
-            repository.get_upgrade_successors(selected.id),
-            input_fn=input_fn,
+            exact[0],
             output_fn=output_fn,
         )
     results = (
@@ -2217,11 +2225,9 @@ def _interactive_upgrade_results(
             assert parsed_input.selection is not None
             if 1 <= parsed_input.selection <= len(current):
                 selected = current[parsed_input.selection - 1].item
-                return _interactive_direct_upgrade_results(
+                return _show_upgrade_component(
                     repository,
                     selected,
-                    repository.get_upgrade_successors(selected.id),
-                    input_fn=input_fn,
                     output_fn=output_fn,
                 )
             output_fn(f"Choose a number from 1 to {len(current)}.")
@@ -2499,11 +2505,9 @@ def interactive_search(
             if selected is None:
                 output_fn("Selected crysta could not be found.")
                 continue
-            screen = _interactive_direct_upgrade_results(
+            screen = _show_upgrade_component(
                 repository,
                 selected,
-                repository.get_upgrade_successors(selected_id),
-                input_fn=input_fn,
                 output_fn=output_fn,
             )
             should_quit, new_query = handle_screen(screen)

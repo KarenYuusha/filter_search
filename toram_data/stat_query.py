@@ -84,6 +84,8 @@ _NATURAL_SEARCH_PATTERNS = (
     re.compile(r"^\s*i\s+want\s+(.+?)\s+with\s+(.+?)\s*$", re.IGNORECASE),
     re.compile(r"^\s*which\s+(.+?)\s+(?:has|have)\s+(.+?)\s*$", re.IGNORECASE),
     re.compile(r"^\s*(.+?)\s+that\s+(?:has|have)\s+(.+?)\s*$", re.IGNORECASE),
+    re.compile(r"^\s*(.+?)\s+has\s+(.+?)\s*$", re.IGNORECASE),
+    re.compile(r"^\s*(.+?)\s+have\s+(.+?)\s*$", re.IGNORECASE),
     re.compile(r"^\s*(.+?)\s+having\s+(.+?)\s*$", re.IGNORECASE),
 )
 
