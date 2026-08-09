@@ -45,8 +45,8 @@ Example:
 
 ```text
 Selected paths
-1. Don → Don Upgrade A → Don Upgrade C → Don Upgrade F
-2. Don → Don Alternative → Don Upgrade C → Don Upgrade F
+2. Don → Don Upgrade A → Don Upgrade C → Don Upgrade F
+1. Don → Don Alternative → Don Upgrade C → Don Upgrade F
 ```
 
 Requirements:
@@ -69,10 +69,10 @@ Example:
 ```text
 Full tree
 Don
-├── Don Upgrade A
+├── Don Alternative
 │   └── Don Upgrade C
 │       └── Don Upgrade F  ◀ selected
-└── Don Alternative
+└── Don Upgrade A
     └── Don Upgrade C  ↩ already shown
 ```
 
@@ -144,8 +144,8 @@ Selected paths
 Each path is one numbered line using arrows:
 
 ```text
-1. Don → Don Upgrade A → Don Upgrade C → Don Upgrade F
-2. Don → Don Alternative → Don Upgrade C → Don Upgrade F
+2. Don → Don Upgrade A → Don Upgrade C → Don Upgrade F
+1. Don → Don Alternative → Don Upgrade C → Don Upgrade F
 ```
 
 Do not place this field in a code block; normal proportional text makes the paths easier to read and wrap.
@@ -162,10 +162,10 @@ Render the tree in a fenced text code block so branch characters and indentation
 
 ```text
 Don
-├── Don Upgrade A
+├── Don Alternative
 │   └── Don Upgrade C
 │       └── Don Upgrade F  ◀ selected
-└── Don Alternative
+└── Don Upgrade A
     └── Don Upgrade C  ↩ already shown
 ```
 
@@ -183,15 +183,15 @@ Example:
 Upgrade Tree — Don Upgrade F
 
 Selected paths
-1. Don → Don Upgrade A → Don Upgrade C → Don Upgrade F
-2. Don → Don Alternative → Don Upgrade C → Don Upgrade F
+2. Don → Don Upgrade A → Don Upgrade C → Don Upgrade F
+1. Don → Don Alternative → Don Upgrade C → Don Upgrade F
 
 Full tree
 Don
-├── Don Upgrade A
+├── Don Alternative
 │   └── Don Upgrade C
 │       └── Don Upgrade F  ◀ selected
-└── Don Alternative
+└── Don Upgrade A
     └── Don Upgrade C  ↩ already shown
 ```
 

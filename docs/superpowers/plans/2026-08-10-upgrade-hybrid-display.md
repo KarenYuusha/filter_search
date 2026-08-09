@@ -47,18 +47,18 @@ display = core.build_upgrade_display(graph, selected_item_id=4)
 self.assertEqual(
     display.selected_paths,
     (
-        "1. Don → Don Upgrade A → Don Upgrade C → Don Upgrade F",
-        "2. Don → Don Alternative → Don Upgrade C → Don Upgrade F",
+        "2. Don → Don Upgrade A → Don Upgrade C → Don Upgrade F",
+        "1. Don → Don Alternative → Don Upgrade C → Don Upgrade F",
     ),
 )
 self.assertEqual(
     display.tree_lines,
     (
         "Don",
-        "├── Don Upgrade A",
+        "├── Don Alternative",
         "│   └── Don Upgrade C",
         "│       └── Don Upgrade F  ◀ selected",
-        "└── Don Alternative",
+        "└── Don Upgrade A",
         "    └── Don Upgrade C  ↩ already shown",
     ),
 )
@@ -315,8 +315,8 @@ Extend `tests/test_discord_bot.py` with an `UpgradeDetailPayload` fixture and as
 embed = discord_bot.build_upgrade_detail_embed(payload)
 self.assertEqual(embed.title, "Upgrade Tree — Don Upgrade F")
 fields = {field.name: field.value for field in embed.fields}
-self.assertIn("1. Don → Don Upgrade A → Don Upgrade C → Don Upgrade F", fields["Selected paths"])
-self.assertIn("2. Don → Don Alternative → Don Upgrade C → Don Upgrade F", fields["Selected paths"])
+self.assertIn("2. Don → Don Upgrade A → Don Upgrade C → Don Upgrade F", fields["Selected paths"])
+self.assertIn("1. Don → Don Alternative → Don Upgrade C → Don Upgrade F", fields["Selected paths"])
 self.assertTrue(fields["Full tree"].startswith("```text\n"))
 self.assertTrue(fields["Full tree"].endswith("\n```"))
 self.assertIn("Don Upgrade F  ◀ selected", fields["Full tree"])
