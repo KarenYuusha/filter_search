@@ -1,5 +1,4 @@
 import unittest
-from types import SimpleNamespace
 
 from toram_search.service import (
     ExpressionResultsPayload,
@@ -125,7 +124,7 @@ class SearchServiceTests(unittest.TestCase):
         service = SearchService(repository, llm_client=llm)
 
         outcome = service.handle_query(
-            "please locate some protective equipment that increases health",
+            "could you locate protective equipment that increases health",
             FailedQueryContext(max_entries=3),
         )
 
@@ -137,14 +136,7 @@ class SearchServiceTests(unittest.TestCase):
     def test_confirmed_qwen_request_is_validated_then_executed(self):
         repository = FakeRepository()
         service = SearchService(repository, llm_client=MustNotCallLLM())
-        request = SimpleNamespace(
-            stats=(SimpleNamespace(name="MaxHP", operator=None, value=None),),
-            item_filter="armor",
-            match="all",
-            sort_stat=None,
-        )
 
-        # Use the real SearchIntentRequest type through the fallback parser contract.
         from toram_search.fallback import SearchIntentRequest, SearchStatIntent
 
         request = SearchIntentRequest(
