@@ -12,10 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: design/upgrade-hybrid-display
+      - name: Prepare formatter patch helper
+        shell: bash
+        run: |
+          cp .github/scripts/apply_upgrade_hybrid_task1.py /tmp/apply_upgrade_hybrid_task1.py
+          git fetch origin design/upgrade-hybrid-display
+          git checkout -B design/upgrade-hybrid-display origin/design/upgrade-hybrid-display
       - name: Apply formatter implementation
-        run: python .github/scripts/apply_upgrade_hybrid_task1.py
+        run: python /tmp/apply_upgrade_hybrid_task1.py
       - name: Commit formatter implementation
         shell: bash
         run: |
