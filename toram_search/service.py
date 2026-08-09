@@ -305,6 +305,18 @@ class SearchService:
     def item_detail(self, item_id: int) -> ItemDetailPayload:
         return ItemDetailPayload(self.repository.get_item(item_id))
 
+    def continue_upgrade_selection(
+        self,
+        item_id: int,
+        item_name: str,
+    ) -> ServiceOutcome:
+        parsed = core.ParsedSearch(
+            intent="exact_upgrade",
+            raw_query=f"upgrade {item_name}",
+            item_id=item_id,
+        )
+        return ServiceOutcome("search", payload=self._materialize(parsed, {}))
+
     @staticmethod
     def _rank_upgrade_successors(items: list[core.ItemSummary]) -> tuple[core.RankedItem, ...]:
         unique: dict[int, core.ItemSummary] = {item.id: item for item in items}

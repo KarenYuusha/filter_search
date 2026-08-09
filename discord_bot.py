@@ -161,6 +161,20 @@ def extract_mentioned_query(content: str, bot_user_id: int) -> str:
     return " ".join(cleaned.split())
 
 
+def bot_example_prefix(guild, bot_user) -> str:
+    member = None
+    get_member = getattr(guild, "get_member", None) if guild is not None else None
+    if bot_user is not None and callable(get_member):
+        member = get_member(bot_user.id)
+    display_name = (
+        getattr(member, "display_name", None)
+        or getattr(bot_user, "display_name", None)
+        or getattr(bot_user, "name", None)
+        or "Bot"
+    )
+    return f"@{display_name}"
+
+
 def truncate_discord_text(text: str, limit: int) -> str:
     if len(text) <= limit:
         return text
@@ -234,6 +248,14 @@ def _result_item(payload: SearchPayload, index: int):
         if 0 <= index < len(payload.results):
             return payload.results[index].item
     return None
+
+
+def is_upgrade_suggestion_payload(payload: SearchPayload) -> bool:
+    return (
+        isinstance(payload, UpgradeResultsPayload)
+        and bool(payload.results)
+        and not all(result.match_kind == "upgrade" for result in payload.results)
+    )
 
 
 def _result_lines(payload: SearchPayload, index: int) -> list[str]:
@@ -446,7 +468,7 @@ def build_item_detail_embed(
     return embed
 
 
-def build_help_embed(bot_mention: str) -> discord.Embed:
+def build_help_embed(bot_example_prefix: str) -> discord.Embed:
     embed = discord.Embed(
         title="Toram Item Search",
         description=(
@@ -459,11 +481,12 @@ def build_help_embed(bot_mention: str) -> discord.Embed:
         "Examples",
         "\n".join(
             [
-                f"{bot_mention} hp armor",
-                f"{bot_mention} find armor with hp",
-                f"{bot_mention} hp > 5000 and cr bow",
-                f"{bot_mention} item Rapier",
-                f"{bot_mention} upgrade <crysta name>",
+                f"{bot_example_prefix} hp armor",
+                f"{bot_example_prefix} find armor with hp",
+                f"{bot_example_prefix} hp > 5000 and cr bow",
+                f"{bot_example_prefix} item Rapier",
+                f"{bot_example_prefix} upgrade <crysta name>",
+                f"{bot_example_prefix} what upgrades from Don",
             ]
         ),
     )
@@ -533,6 +556,20 @@ def run_item_detail_sync(
     repository = repository_factory(database_path.resolve())
     try:
         return ItemDetailPayload(repository.get_item(item_id))
+    finally:
+        repository.close()
+
+
+def run_upgrade_selection_sync(
+    database_path: Path,
+    item_id: int,
+    item_name: str,
+    *,
+    repository_factory=core.ItemRepository,
+) -> ServiceOutcome:
+    repository = repository_factory(database_path.resolve())
+    try:
+        return SearchService(repository).continue_upgrade_selection(item_id, item_name)
     finally:
         repository.close()
 
@@ -741,6 +778,36 @@ class SearchResultsView(SessionBoundView):
         item_id = item_id_from_payload(self.payload, result_index)
         if item_id is None:
             await interaction.response.send_message("Invalid item selection.", ephemeral=True)
+            return
+        if is_upgrade_suggestion_payload(self.payload):
+            item = _result_item(self.payload, result_index)
+            if item is None:
+                await interaction.response.send_message("Invalid item selection.", ephemeral=True)
+                return
+            await interaction.response.defer()
+            outcome = await asyncio.to_thread(
+                run_upgrade_selection_sync,
+                self.database_path,
+                item.id,
+                item.name,
+            )
+            if not self.sessions.is_current(self.key, self.generation):
+                return
+            session = self.sessions.get(self.key)
+            if session is None:
+                return
+            session.selected_index = result_index
+            session.page = 0
+            session.detail_payload = None
+            session.image_index = 0
+            await edit_service_outcome(
+                interaction,
+                outcome,
+                sessions=self.sessions,
+                key=self.key,
+                generation=self.generation,
+                database_path=self.database_path,
+            )
             return
         await interaction.response.defer()
         detail_payload = await asyncio.to_thread(
@@ -1188,7 +1255,7 @@ def _make_search_view(
 def build_service_outcome_message(
     outcome: ServiceOutcome,
     *,
-    bot_mention: str,
+    bot_example_prefix: str,
     sessions: DiscordSessionManager,
     key: SessionKey,
     generation: int,
@@ -1199,7 +1266,7 @@ def build_service_outcome_message(
     if outcome.kind == "help":
         if outcome.text:
             return _build_text_embed("Search help", outcome.text), None, None
-        return build_help_embed(bot_mention), None, None
+        return build_help_embed(bot_example_prefix), None, None
 
     if outcome.kind == "database":
         return _build_text_embed("Database", outcome.text or "No answer available."), None, None
@@ -1209,7 +1276,7 @@ def build_service_outcome_message(
             _build_text_embed(
                 "Unsupported request",
                 "I can search explicit item types and stats, but I can't evaluate tank/DPS/build roles yet. "
-                f"Try `{bot_mention} hp armor` or `{bot_mention} physical resistance xtal`.",
+                f"Try `{bot_example_prefix} hp armor` or `{bot_example_prefix} physical resistance xtal`.",
             ),
             None,
             None,
@@ -1230,9 +1297,9 @@ def build_service_outcome_message(
             _build_text_embed(
                 "I couldn't interpret that search",
                 "Try an explicit item/stat query, for example:\n"
-                f"• `{bot_mention} hp armor`\n"
-                f"• `{bot_mention} cr bow`\n"
-                f"• `{bot_mention} hp > 5000 and cr bow`",
+                f"• `{bot_example_prefix} hp armor`\n"
+                f"• `{bot_example_prefix} cr bow`\n"
+                f"• `{bot_example_prefix} hp > 5000 and cr bow`",
             ),
             None,
             None,
@@ -1317,10 +1384,10 @@ async def edit_service_outcome(
     generation: int,
     database_path: Path,
 ) -> None:
-    bot_id = interaction.client.user.id if interaction.client.user is not None else 0
+    prefix = bot_example_prefix(interaction.guild, interaction.client.user)
     embed, view, file = build_service_outcome_message(
         outcome,
-        bot_mention=f"<@{bot_id}>",
+        bot_example_prefix=prefix,
         sessions=sessions,
         key=key,
         generation=generation,
@@ -1332,10 +1399,11 @@ async def edit_service_outcome(
 async def process_tagged_query(
     message: discord.Message,
     *,
-    bot_user_id: int,
+    bot_user,
     config: DiscordBotConfig,
     sessions: DiscordSessionManager,
 ) -> None:
+    bot_user_id = bot_user.id
     query = extract_mentioned_query(message.content, bot_user_id)
     if not query:
         query = "help"
@@ -1357,7 +1425,7 @@ async def process_tagged_query(
         session.failed_context.clear()
     embed, view, file = build_service_outcome_message(
         outcome,
-        bot_mention=f"<@{bot_user_id}>",
+        bot_example_prefix=bot_example_prefix(message.guild, bot_user),
         sessions=sessions,
         key=key,
         generation=session.generation,
@@ -1402,7 +1470,7 @@ def create_client(config: DiscordBotConfig) -> discord.Client:
         try:
             await process_tagged_query(
                 message,
-                bot_user_id=client.user.id,
+                bot_user=client.user,
                 config=config,
                 sessions=sessions,
             )
