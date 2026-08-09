@@ -375,25 +375,21 @@ def build_search_results_embed(payload: SearchPayload, page: int) -> discord.Emb
 
 
 def build_upgrade_detail_embed(payload: UpgradeDetailPayload) -> discord.Embed:
-    graph = payload.graph
-    all_nodes = {**graph.missing_nodes, **graph.nodes}
-    selected = all_nodes.get(payload.selected_item_id)
-    title = f"Upgrade chain — {selected.name}" if selected is not None else "Upgrade chain"
-    lines: list[str] = []
-    for source_id, target_ids in graph.edges.items():
-        source = all_nodes.get(source_id)
-        if source is None:
-            continue
-        for target_id in target_ids:
-            target = all_nodes.get(target_id)
-            if target is not None:
-                lines.append(f"{source.name} → {target.name}")
-    if not lines and selected is not None:
-        lines.append(selected.name)
-    return discord.Embed(
-        title=truncate_discord_text(title, 256),
-        description=truncate_discord_text("\n".join(lines) or "No upgrade relationships found.", 4096),
+    display = core.build_upgrade_display(payload.graph, payload.selected_item_id)
+    embed = discord.Embed(
+        title=truncate_discord_text(f"Upgrade Tree — {display.selected_name}", 256)
     )
+    _safe_field(
+        embed,
+        "Selected paths",
+        "\n".join(display.selected_paths),
+    )
+    _safe_field(
+        embed,
+        "Full tree",
+        "```text\n" + "\n".join(display.tree_lines) + "\n```",
+    )
+    return embed
 
 
 def build_item_detail_embed(
