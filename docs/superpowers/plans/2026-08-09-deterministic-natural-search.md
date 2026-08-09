@@ -14,7 +14,7 @@
 - Do not add SQL generation or LLM factual authority.
 - Preserve existing ambiguity behavior and existing deterministic syntax.
 - Qwen remains fallback only when deterministic normalization cannot safely produce a supported search.
-- Keep PR #7 independent from this change.
+- Natural `highest` / `best` / `most` wording may reuse the existing highest-first ordering; do not add `lowest` / ascending semantics here.
 
 ---
 
@@ -34,6 +34,7 @@ Cover:
 ```text
 can you find armor with hp
 show me bow with cr
+which bow has the highest critical rate
 which bows have critical rate
 armor having hp
 ```
@@ -42,19 +43,7 @@ Assert the parsed expression keeps the original raw query, resolves the expected
 
 - [x] **Step 2: Add tests for routing boundaries**
 
-Assert:
-
-```text
-tell me something interesting about armor
-```
-
-still routes to fallback, while:
-
-```text
-find tank armor with hp
-```
-
-still follows the existing refusal path rather than being reduced to a plain Armor search.
+Assert unsupported conversational prose still routes to fallback, while `find tank armor with hp` follows the existing refusal path rather than being reduced to a plain Armor search.
 
 ---
 
@@ -90,31 +79,23 @@ Use the existing filter candidate machinery. A rewrite is produced only if the e
 
 A one-word plural may be singularized only when the singular form then resolves completely, e.g. `bows -> bow`.
 
-- [x] **Step 3: Rewrite into existing grammar**
+- [x] **Step 3: Normalize existing highest-first wording**
 
-Return:
+Inside a supported conversational shell, remove a leading `the highest`, `highest`, `best`, or `most` from the stat side. The existing stat search already sorts highest-first, so this only maps conversational wording onto current behavior. Leave `lowest` untouched.
 
-```python
-f"{stat_text} {item_phrase}"
-```
+- [x] **Step 4: Rewrite into existing grammar**
 
-Otherwise return the original text unchanged.
+Return `f"{stat_text} {item_phrase}"`; otherwise return the original text unchanged.
 
-- [x] **Step 4: Share normalization between detection and parsing**
+- [x] **Step 5: Share normalization between detection and parsing**
 
 Call the helper from both `looks_like_stat_expression()` and `parse_stat_expression()` so the query detected as deterministic is parsed using exactly the same normalized form.
 
-- [ ] **Step 5: Run focused verification**
+- [x] **Step 6: Run focused verification**
 
-Preferred command in a local checkout:
+A focused reconstructed harness covered supported wrappers, safe plural handling, highest-stat wording, refusal boundaries, and unchanged direct syntax.
 
-```bash
-uv run python -m unittest tests.test_direct_structured_intent -v
-```
-
-If the connector environment cannot run the repository, run a focused reconstructed harness and document the limitation; do not claim the full test module passed locally.
-
-- [ ] **Step 6: Run the full suite when available**
+- [ ] **Step 7: Run the full suite when available**
 
 ```bash
 uv run python -m unittest discover -s tests -v
@@ -131,13 +112,13 @@ Do not claim this passed unless the command was actually executed successfully.
 - Review: `tests/test_direct_structured_intent.py`
 - Review: design/plan docs
 
-- [ ] **Step 1: Verify direct syntax unchanged**
+- [x] **Step 1: Verify direct syntax unchanged**
 
-Confirm `hp armor`, `cr bow`, and existing boolean/comparison expressions still use the same parser semantics.
+Focused checks confirmed normalizer leaves `hp armor`, `cr bow`, comparisons, and existing boolean syntax untouched.
 
-- [ ] **Step 2: Verify build/refusal boundary**
+- [x] **Step 2: Verify build/refusal boundary**
 
-Confirm incomplete item-filter sides containing `tank`, `dps`, `build`, or `mage` are not normalized away.
+Focused checks confirmed incomplete item-filter sides such as `tank armor` are not normalized away.
 
 - [ ] **Step 3: Compare branch with `main`**
 
@@ -145,4 +126,4 @@ Confirm branch is not behind and only intended files changed.
 
 - [ ] **Step 4: Open a PR without merging**
 
-Document focused verification and any environment limitation. Do not merge without explicit user instruction.
+Document focused verification and the full-suite limitation. Do not merge without explicit user instruction.
