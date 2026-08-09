@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import os
 import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
 
 import search_items as core
 from discord_bot import (
@@ -13,11 +15,73 @@ from discord_bot import (
     build_item_detail_embed,
     extract_mentioned_query,
     is_allowed_message,
+    load_config,
+    load_project_environment,
     truncate_discord_text,
     valid_local_image_paths,
     visible_attachment_name,
 )
 from toram_search.service import ItemResultsPayload
+
+
+class DiscordConfigTests(unittest.TestCase):
+    def test_dotenv_supplies_token_and_guild_id(self):
+        with tempfile.TemporaryDirectory() as directory:
+            env_path = Path(directory) / ".env"
+            env_path.write_text(
+                "DISCORD_BOT_TOKEN=from-file\n"
+                "DISCORD_GUILD_ID=123456789\n",
+                encoding="utf-8",
+            )
+            with patch.dict(os.environ, {}, clear=True):
+                used_path = load_project_environment(env_path)
+                config = load_config()
+
+            self.assertEqual(used_path, env_path)
+            self.assertEqual(config.token, "from-file")
+            self.assertEqual(config.guild_id, 123456789)
+
+    def test_existing_environment_overrides_dotenv(self):
+        with tempfile.TemporaryDirectory() as directory:
+            env_path = Path(directory) / ".env"
+            env_path.write_text(
+                "DISCORD_BOT_TOKEN=from-file\n"
+                "DISCORD_GUILD_ID=111\n",
+                encoding="utf-8",
+            )
+            with patch.dict(
+                os.environ,
+                {
+                    "DISCORD_BOT_TOKEN": "from-shell",
+                    "DISCORD_GUILD_ID": "222",
+                },
+                clear=True,
+            ):
+                load_project_environment(env_path)
+                config = load_config()
+
+            self.assertEqual(config.token, "from-shell")
+            self.assertEqual(config.guild_id, 222)
+
+    def test_load_config_keeps_explicit_mapping_validation(self):
+        config = load_config(
+            {
+                "DISCORD_BOT_TOKEN": "explicit-token",
+                "DISCORD_GUILD_ID": "333",
+            }
+        )
+        self.assertEqual(config.token, "explicit-token")
+        self.assertEqual(config.guild_id, 333)
+
+    def test_env_example_has_only_safe_template_values(self):
+        text = (Path(__file__).resolve().parents[1] / ".env.example").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("DISCORD_BOT_TOKEN=", text)
+        self.assertIn("DISCORD_GUILD_ID=", text)
+        self.assertIn("OLLAMA_MODEL=qwen3.5:2b", text)
+        self.assertNotIn("from-file", text)
+        self.assertNotIn("from-shell", text)
 
 
 class DiscordBotGateTests(unittest.TestCase):
