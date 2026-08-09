@@ -62,6 +62,7 @@ class CliUpgradeTests(unittest.TestCase):
         self.assertIn("Don Upgrade A\n=============", rendered)
         self.assertIn("Type: Enhancer Crysta (Blue)", rendered)
 
+    # Natural wording must reach the same deterministic direct-upgrade screen.
     def test_natural_upgrade_query_uses_direct_successor_screen_without_qwen(self):
         repository = CliRepository()
         answers = iter(["what upgrades from Don?", "quit"])
