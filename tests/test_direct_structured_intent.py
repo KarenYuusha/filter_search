@@ -192,6 +192,18 @@ class DirectStructuredIntentTests(unittest.TestCase):
         self.assertEqual(clause.typed_stat, "cr")
         self.assertEqual(clause.stat_name, "Critical Rate")
 
+    def test_natural_highest_stat_uses_existing_highest_first_search(self):
+        parsed, resolved = self._resolve_natural_query(
+            "which bow has the highest critical rate"
+        )
+
+        self.assertEqual(parsed.filter.label, "Bow")
+        self.assertFalse(parsed.primary_sort_ascending)
+        self.assertEqual(
+            resolved.resolved_expression.groups[0].clauses[0].stat_name,
+            "Critical Rate",
+        )
+
     def test_which_plural_item_have_stat_is_parsed(self):
         parsed, resolved = self._resolve_natural_query("which bows have critical rate")
 
