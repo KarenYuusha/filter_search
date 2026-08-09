@@ -16,6 +16,11 @@ class ImageStoreError(RuntimeError):
     pass
 
 
+def slugify_path_component(value: str) -> str:
+    text = unicodedata.normalize("NFKC", value).casefold()
+    return re.sub(r"[^a-z0-9]+", "-", text).strip("-") or "unknown"
+
+
 def sanitize_filename(name: str) -> str:
     path = Path(name)
     stem = unicodedata.normalize("NFKC", path.stem).casefold()
@@ -68,15 +73,31 @@ class ManagedImageStore:
     def __init__(self, database_path: Path) -> None:
         self.database_path = Path(database_path).expanduser().resolve()
         self.database_root = self.database_path.parent
-        self.managed_root = self.database_root / "item_images"
+        self.data_root = (
+            self.database_root.parent
+            if self.database_root.name.casefold() == "database"
+            else self.database_root
+        )
+        self.managed_root = self.data_root / "appearance"
 
-    def stage(self, item_id: int, images: list[ImageDraft]) -> PreparedImageBatch:
+    def stage(
+        self,
+        item_id: int,
+        item_type: str,
+        item_name: str,
+        images: list[ImageDraft],
+    ) -> PreparedImageBatch:
         staging_parent = self.database_root / ".item-image-staging"
         staging_parent.mkdir(parents=True, exist_ok=True)
         staging_root = Path(tempfile.mkdtemp(prefix=f"item-{item_id}-", dir=staging_parent))
         prepared = list(images)
         transfers: list[tuple[Path, Path, int]] = []
         reserved: set[Path] = set()
+        item_directory = (
+            self.managed_root
+            / slugify_path_component(item_type)
+            / f"{item_id}-{slugify_path_component(item_name)}"
+        )
         try:
             for index, image in enumerate(images):
                 if image.selected_source_path is None:
@@ -91,7 +112,7 @@ class ManagedImageStore:
                     raise ImageStoreError(f"Image source is not readable: {source}") from exc
 
                 filename = f"{index:02d}-{sanitize_filename(source.name)}"
-                final = self.managed_root / str(item_id) / filename
+                final = item_directory / filename
                 counter = 2
                 while final.exists() or final in reserved:
                     final = final.with_name(f"{final.stem}-{counter}{final.suffix}")
@@ -101,10 +122,10 @@ class ManagedImageStore:
                 shutil.copy2(source, staged)
                 if file_sha256(source) != file_sha256(staged):
                     raise ImageStoreError(f"Image copy verification failed: {source}")
-                relative = final.relative_to(self.database_root).as_posix()
+                relative = final.relative_to(self.data_root).as_posix()
                 prepared[index] = replace(image, local_path=relative, selected_source_path=None)
                 transfers.append((staged, final, index))
-            return PreparedImageBatch(self.database_root, staging_root, transfers, prepared)
+            return PreparedImageBatch(self.data_root, staging_root, transfers, prepared)
         except Exception:
             shutil.rmtree(staging_root, ignore_errors=True)
             raise
@@ -114,7 +135,7 @@ class ManagedImageStore:
         if raw.is_absolute():
             candidate = raw.resolve()
         else:
-            candidate = (self.database_root / raw).resolve()
+            candidate = (self.data_root / raw).resolve()
         try:
             candidate.relative_to(self.managed_root.resolve())
         except ValueError:
@@ -127,7 +148,7 @@ class ManagedImageStore:
             raw = Path(value).expanduser()
             candidate = self._managed_candidate(value)
             if candidate is None:
-                failures.append(raw if raw.is_absolute() else self.database_root / raw)
+                failures.append(raw if raw.is_absolute() else self.data_root / raw)
                 continue
             try:
                 if candidate.is_file() or candidate.is_symlink():
@@ -147,25 +168,41 @@ class ManagedImageStore:
         return failures
 
     def delete_item_directory(self, item_id: int) -> list[Path]:
-        item_dir = (self.managed_root / str(item_id)).resolve()
-        if not item_dir.exists():
+        if not self.managed_root.exists():
             return []
-        try:
-            item_dir.relative_to(self.managed_root.resolve())
-        except ValueError:
-            return [item_dir]
+
         failures: list[Path] = []
-        for path in sorted(item_dir.rglob("*"), reverse=True):
+        pattern = f"{item_id}-*"
+        candidates = sorted(self.managed_root.glob(f"*/{pattern}"))
+        for raw_item_dir in candidates:
+            item_dir = raw_item_dir.resolve()
             try:
-                if path.is_file() or path.is_symlink():
-                    path.unlink()
-                elif path.is_dir():
-                    path.rmdir()
+                item_dir.relative_to(self.managed_root.resolve())
+            except ValueError:
+                failures.append(raw_item_dir)
+                continue
+
+            if not item_dir.exists():
+                continue
+            for path in sorted(item_dir.rglob("*"), reverse=True):
+                try:
+                    if path.is_file() or path.is_symlink():
+                        path.unlink()
+                    elif path.is_dir():
+                        path.rmdir()
+                except OSError:
+                    failures.append(path)
+            try:
+                item_dir.rmdir()
             except OSError:
-                failures.append(path)
-        try:
-            item_dir.rmdir()
-        except OSError:
-            if item_dir.exists():
-                failures.append(item_dir)
+                if item_dir.exists():
+                    failures.append(item_dir)
+                continue
+
+            parent = raw_item_dir.parent
+            if parent != self.managed_root:
+                try:
+                    parent.rmdir()
+                except OSError:
+                    pass
         return failures
