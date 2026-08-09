@@ -5,15 +5,19 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 
+import search_items as core
 from discord_bot import (
     DiscordSessionManager,
+    SearchResultsView,
     build_intents,
+    build_item_detail_embed,
     extract_mentioned_query,
     is_allowed_message,
     truncate_discord_text,
     valid_local_image_paths,
     visible_attachment_name,
 )
+from toram_search.service import ItemResultsPayload
 
 
 class DiscordBotGateTests(unittest.TestCase):
@@ -149,6 +153,71 @@ class DiscordFormattingTests(unittest.TestCase):
             )
 
             self.assertEqual(paths, (image.resolve(),))
+
+    def test_item_detail_hides_database_id_and_coryn_url(self):
+        detail = core.ItemDetail(
+            summary=core.ItemSummary(987654321, "Test Armor", "Armor"),
+            sell_price=None,
+            process_material=None,
+            process_amount=None,
+            badge=None,
+            note="Safe note",
+            page_url="https://example.invalid/coryn-item",
+            stats=[
+                {
+                    "stat_name": "MaxHP",
+                    "amount": 5000,
+                    "conditions_json": "[]",
+                    "condition_text": None,
+                    "needs_condition_review": False,
+                }
+            ],
+            sources=[],
+            images=[],
+            upgrade_predecessors=[],
+            upgrade_successors=[],
+        )
+
+        embed = build_item_detail_embed(detail)
+        visible = "\n".join(
+            [
+                embed.title or "",
+                embed.description or "",
+                *(field.name + "\n" + field.value for field in embed.fields),
+            ]
+        )
+
+        self.assertNotIn("987654321", visible)
+        self.assertNotIn(detail.page_url, visible)
+        self.assertIn("Test Armor", visible)
+        self.assertIn("MaxHP", visible)
+
+    def test_result_dropdown_values_are_indexes_not_item_ids(self):
+        payload = ItemResultsPayload(
+            "armor",
+            tuple(
+                core.RankedItem(
+                    core.ItemSummary(9000 + index, f"Armor {index}", "Armor"),
+                    90.0,
+                    "fuzzy",
+                )
+                for index in range(6)
+            ),
+        )
+        sessions = DiscordSessionManager()
+        key = (10, 30, 20)
+        session = sessions.start_query(key, "armor")
+        view = SearchResultsView(
+            sessions=sessions,
+            key=key,
+            generation=session.generation,
+            database_path=Path("coryn_data/database/items.sqlite"),
+            payload=payload,
+        )
+
+        self.assertIsNotNone(view.item_select)
+        self.assertEqual([option.value for option in view.item_select.options], ["0", "1", "2", "3", "4"])
+        self.assertNotIn("9000", [option.value for option in view.item_select.options])
 
 
 if __name__ == "__main__":
