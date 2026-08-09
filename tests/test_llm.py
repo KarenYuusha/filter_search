@@ -1,3 +1,4 @@
+import json
 import os
 import unittest
 from types import SimpleNamespace
@@ -86,7 +87,29 @@ class OllamaQwenClientTests(unittest.TestCase):
             ],
         )
 
-    def test_complete_forwards_explicit_json_schema(self):
+    def test_qwen35_uses_json_mode_and_grounds_schema_in_prompt(self):
+        schema = {
+            "type": "object",
+            "properties": {"intent": {"const": "search"}},
+            "required": ["intent"],
+        }
+        fake = FakeClient(
+            response=SimpleNamespace(
+                message=SimpleNamespace(content='{"intent":"search"}')
+            )
+        )
+        client = OllamaQwenClient(client=fake)
+
+        client.complete("system", "user", schema=schema)
+
+        call = fake.calls[0]
+        self.assertEqual(call["format"], "json")
+        system_message = call["messages"][0]["content"]
+        self.assertIn("Required JSON schema:", system_message)
+        self.assertIn(json.dumps(schema, separators=(",", ":")), system_message)
+        self.assertFalse(call["think"])
+
+    def test_non_qwen35_still_forwards_explicit_json_schema(self):
         schema = {
             "type": "object",
             "properties": {"intent": {"type": "string"}},
@@ -96,11 +119,12 @@ class OllamaQwenClientTests(unittest.TestCase):
                 message=SimpleNamespace(content='{"intent":"refuse"}')
             )
         )
-        client = OllamaQwenClient(client=fake)
+        client = OllamaQwenClient(model="llama3.2:3b", client=fake)
 
         client.complete("system", "user", schema=schema)
 
         self.assertEqual(fake.calls[0]["format"], schema)
+        self.assertEqual(fake.calls[0]["messages"][0]["content"], "system")
 
     def test_read_timeout_becomes_unavailable(self):
         fake = FakeClient(error=httpx.ReadTimeout("timed out"))
