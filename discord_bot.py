@@ -139,10 +139,17 @@ def build_intents() -> discord.Intents:
     return intents
 
 
-def is_allowed_message(message, *, bot_user_id: int, guild_ids: Iterable[int]) -> bool:
+def is_allowed_message(
+    message,
+    *,
+    bot_user_id: int,
+    guild_ids: Iterable[int] | None = None,
+    guild_id: int | None = None,
+) -> bool:
+    allowed_guild_ids = guild_ids if guild_ids is not None else (() if guild_id is None else (guild_id,))
     return (
         message.guild is not None
-        and message.guild.id in guild_ids
+        and message.guild.id in allowed_guild_ids
         and not getattr(message.author, "bot", False)
         and getattr(message, "webhook_id", None) is None
         and any(user.id == bot_user_id for user in getattr(message, "mentions", ()))
