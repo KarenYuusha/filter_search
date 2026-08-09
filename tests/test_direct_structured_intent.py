@@ -4,9 +4,11 @@ from decimal import Decimal
 from search_items import (
     ParsedSearch,
     _interactive_search_requests,
+    _try_natural_search_normalization,
     _try_simple_ranking_search,
     parse_structured_search_request,
     resolve_expression_interactively,
+    route_deterministically,
 )
 from toram_data.stat_query import ResolvedAndGroup, ResolvedClause, ResolvedStatExpression
 from toram_search.fallback import FallbackOutcome, SearchIntentRequest, SearchStatIntent
@@ -28,6 +30,16 @@ class FakeRepository:
 
     def exact_upgrade_name_matches(self, query):
         return []
+
+
+class NoHelpService:
+    def answer_direct(self, query):
+        return None
+
+
+class NoDatabaseService:
+    def match_direct(self, query):
+        return None
 
 
 class DirectStructuredIntentTests(unittest.TestCase):
@@ -149,6 +161,71 @@ class DirectStructuredIntentTests(unittest.TestCase):
         parsed = _try_simple_ranking_search("best bow cr", self.repository)
         self.assertIsNotNone(parsed)
         self.assertIn(parsed.intent, {"stat_search", "stat_choices", "stat_expression"})
+
+    def test_natural_armor_hp_is_normalized_without_qwen(self):
+        parsed = _try_natural_search_normalization(
+            "can you find armor with hp",
+            self.repository,
+        )
+
+        self.assertIsNotNone(parsed)
+        self.assertEqual(parsed.intent, "stat_search")
+        self.assertEqual(parsed.raw_query, "can you find armor with hp")
+        self.assertEqual(parsed.stat.stat_name, "MaxHP")
+        self.assertEqual(parsed.filter.label, "Armor")
+
+    def test_natural_bow_cr_is_normalized_without_qwen(self):
+        parsed = _try_natural_search_normalization(
+            "show me bow with cr",
+            self.repository,
+        )
+
+        self.assertIsNotNone(parsed)
+        self.assertEqual(parsed.intent, "stat_search")
+        self.assertEqual(parsed.stat.stat_name, "Critical Rate")
+        self.assertEqual(parsed.filter.label, "Bow")
+
+    def test_which_plural_item_have_stat_is_normalized(self):
+        parsed = _try_natural_search_normalization(
+            "which bows have critical rate",
+            self.repository,
+        )
+
+        self.assertIsNotNone(parsed)
+        self.assertEqual(parsed.stat.stat_name, "Critical Rate")
+        self.assertEqual(parsed.filter.label, "Bow")
+
+    def test_having_form_is_normalized(self):
+        parsed = _try_natural_search_normalization(
+            "armor having hp",
+            self.repository,
+        )
+
+        self.assertIsNotNone(parsed)
+        self.assertEqual(parsed.stat.stat_name, "MaxHP")
+        self.assertEqual(parsed.filter.label, "Armor")
+
+    def test_unsupported_conversation_is_not_rewritten(self):
+        self.assertIsNone(
+            _try_natural_search_normalization(
+                "tell me something interesting about armor",
+                self.repository,
+            )
+        )
+
+    def test_natural_query_routes_to_search_before_fallback(self):
+        route = route_deterministically(
+            "can you find armor with hp",
+            self.repository,
+            [],
+            NoHelpService(),
+            NoDatabaseService(),
+        )
+
+        self.assertEqual(route.kind, "search")
+        self.assertIsNotNone(route.parsed)
+        self.assertEqual(route.parsed.stat.stat_name, "MaxHP")
+        self.assertEqual(route.parsed.filter.label, "Armor")
 
     def test_single_confirmation_returns_typed_request(self):
         request = SearchIntentRequest(
