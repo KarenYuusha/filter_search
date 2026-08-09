@@ -68,7 +68,7 @@ class CliUpgradeTests(unittest.TestCase):
         )
 
     def test_fuzzy_selected_last_item_shows_complete_chain(self):
-        rendered = self._run("upgrade Don Upgrad B", "1")
+        rendered = self._run("upgrade Don Upgrad B", "2")
         self._assert_complete_chain(rendered, "Don Upgrade B")
 
 
