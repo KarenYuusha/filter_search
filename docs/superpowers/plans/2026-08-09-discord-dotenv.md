@@ -31,11 +31,11 @@
 - Produces: `load_project_environment(env_path: Path | None = None) -> Path`
 - Preserves: `load_config(environ: Mapping[str, str] = os.environ) -> DiscordBotConfig`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 Add tests proving a temporary `.env` supplies token/guild ID, existing `os.environ` wins, `load_config()` still accepts an explicit mapping, and `.env.example` contains only blank placeholders plus `OLLAMA_MODEL=qwen3.5:2b`.
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 Run:
 
@@ -45,7 +45,7 @@ python -m unittest tests.test_discord_bot.DiscordConfigTests -v
 
 Expected: failure because `load_project_environment` and `.env.example` do not exist yet.
 
-- [ ] **Step 3: Add dependency/template**
+- [x] **Step 3: Add dependency/template**
 
 Add:
 
@@ -61,7 +61,7 @@ DISCORD_GUILD_ID=
 OLLAMA_MODEL=qwen3.5:2b
 ```
 
-- [ ] **Step 4: Implement minimal loader**
+- [x] **Step 4: Implement minimal loader**
 
 Add:
 
@@ -79,7 +79,7 @@ def load_project_environment(env_path: Path | None = None) -> Path:
 
 Update `main()` to call `load_project_environment()` immediately before `load_config()`.
 
-- [ ] **Step 5: Update README**
+- [x] **Step 5: Update README**
 
 Document project-root `.env`, `.env.example`, environment precedence, and normal startup:
 
@@ -87,7 +87,7 @@ Document project-root `.env`, `.env.example`, environment precedence, and normal
 uv run python discord_bot.py
 ```
 
-- [ ] **Step 6: Verify GREEN and regressions**
+- [x] **Step 6: Verify GREEN and regressions**
 
 Run:
 
@@ -102,6 +102,6 @@ python -m unittest \
 
 Expected: compilation success and zero focused test failures.
 
-- [ ] **Step 7: Secret/scope review**
+- [x] **Step 7: Secret/scope review**
 
 Verify `.env` is absent from the diff, `.env.example` has no real values, `load_dotenv` uses `override=False`, and only startup/configuration/docs/tests changed.
