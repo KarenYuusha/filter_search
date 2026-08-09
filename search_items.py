@@ -1,10 +1,3 @@
-# /// script
-# requires-python = ">=3.10"
-# dependencies = [
-#   "rapidfuzz>=3.9,<4",
-# ]
-# ///
-
 from __future__ import annotations
 
 import argparse
