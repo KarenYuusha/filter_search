@@ -194,6 +194,7 @@ class UpgradeLookupTests(unittest.TestCase):
                 )
                 self.assertEqual(outcome.kind, "search")
                 self.assertIsInstance(outcome.payload, UpgradeResultsPayload)
+                self.assertEqual(outcome.payload.query, "Don")
                 self.assertEqual(
                     [result.item.name for result in outcome.payload.results],
                     ["Don Upgrade A", "Don Upgrade B"],
