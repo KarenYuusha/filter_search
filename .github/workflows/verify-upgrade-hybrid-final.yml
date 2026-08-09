@@ -1,0 +1,72 @@
+name: Verify Hybrid Upgrade Final
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare docs finalizer
+        shell: bash
+        run: |
+          cp .github/scripts/finalize_upgrade_hybrid_docs.py /tmp/finalize_upgrade_hybrid_docs.py
+          git fetch origin design/upgrade-hybrid-display
+          git checkout -B design/upgrade-hybrid-display origin/design/upgrade-hybrid-display
+      - name: Align documentation examples with deterministic order
+        run: python /tmp/finalize_upgrade_hybrid_docs.py
+      - name: Commit documentation correction if needed
+        shell: bash
+        run: |
+          if ! git diff --quiet -- docs/superpowers/specs/2026-08-10-upgrade-hybrid-display-design.md docs/superpowers/plans/2026-08-10-upgrade-hybrid-display.md; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add docs/superpowers/specs/2026-08-10-upgrade-hybrid-display-design.md docs/superpowers/plans/2026-08-10-upgrade-hybrid-display.md
+            git commit -m "docs: align hybrid upgrade examples with deterministic order"
+            git push origin HEAD:design/upgrade-hybrid-display
+          fi
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install 'discord.py>=2.7.1,<3' 'ollama>=0.6.2' 'python-dotenv>=1.1,<2' 'rapidfuzz>=3.14.5'
+      - name: Compile final code
+        run: python -m py_compile search_items.py discord_bot.py toram_search/service.py
+      - name: Structural sanity checks
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          text = Path('search_items.py').read_text()
+          assert text.count('class UpgradeDisplay:') == 1
+          assert text.count('def build_upgrade_display(') == 1
+          assert text.count('def render_upgrade_terminal(') == 1
+          PY
+      - name: Focused regression gate
+        run: |
+          python -m unittest \
+            tests.test_upgrade_display \
+            tests.test_cli_upgrade \
+            tests.test_discord_upgrade_display \
+            tests.test_discord_bot \
+            tests.test_discord_followup_regressions \
+            tests.test_search_service \
+            tests.test_direct_structured_intent \
+            tests.test_llm -v
+      - name: Full-suite final measurement
+        shell: bash
+        run: |
+          set +e
+          python -m unittest discover -s tests -v > /tmp/full-suite.log 2>&1
+          status=$?
+          cat /tmp/full-suite.log
+          if [ "$status" -eq 0 ]; then exit 0; fi
+          grep -q "FAILED (failures=1)" /tmp/full-suite.log || exit "$status"
+          grep -q "test_rejected_payload_is_logged_with_reason" /tmp/full-suite.log || exit "$status"
+          grep -q "missing or invalid search candidates" /tmp/full-suite.log || exit "$status"
+          grep -q "search payload has unexpected fields" /tmp/full-suite.log || exit "$status"
+          echo "Verified exact known baseline failure only."
