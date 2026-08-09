@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Iterable, Mapping, Sequence
 
 import discord
+from dotenv import load_dotenv
 
 import search_items as core
 from toram_search.fallback import SearchIntentRequest
@@ -34,6 +35,7 @@ from toram_search.session import FailedQueryContext
 logger = logging.getLogger(__name__)
 PAGE_SIZE = 5
 VIEW_TIMEOUT_SECONDS = 900
+PROJECT_ROOT = Path(__file__).resolve().parent
 
 SessionKey = tuple[int, int, int]
 
@@ -94,6 +96,12 @@ class DiscordSessionManager:
     def is_current(self, key: SessionKey, generation: int) -> bool:
         session = self._sessions.get(key)
         return session is not None and session.generation == generation
+
+
+def load_project_environment(env_path: Path | None = None) -> Path:
+    path = env_path if env_path is not None else PROJECT_ROOT / ".env"
+    load_dotenv(dotenv_path=path, override=False)
+    return path
 
 
 def load_config(environ: Mapping[str, str] = os.environ) -> DiscordBotConfig:
@@ -1376,6 +1384,7 @@ def create_client(config: DiscordBotConfig) -> discord.Client:
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
+    load_project_environment()
     config = load_config()
     client = create_client(config)
     client.run(config.token, log_handler=None)
