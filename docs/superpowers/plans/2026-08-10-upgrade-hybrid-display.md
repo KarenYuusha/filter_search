@@ -301,7 +301,8 @@ git commit -m "feat: show hybrid upgrade display in terminal"
 
 **Files:**
 - Modify: `discord_bot.py`
-- Modify: `tests/test_discord_bot.py`
+- Create: `tests/test_discord_upgrade_display.py`
+- Regression coverage: `tests/test_discord_bot.py`
 
 **Interfaces:**
 - Consumes: `core.build_upgrade_display(payload.graph, payload.selected_item_id)`.
@@ -309,7 +310,7 @@ git commit -m "feat: show hybrid upgrade display in terminal"
 
 - [ ] **Step 1: Write Discord RED tests**
 
-Extend `tests/test_discord_bot.py` with an `UpgradeDetailPayload` fixture and assert:
+Create `tests/test_discord_upgrade_display.py` with an `UpgradeDetailPayload` fixture and assert:
 
 ```python
 embed = discord_bot.build_upgrade_detail_embed(payload)
@@ -330,7 +331,7 @@ Also assert the embed description no longer uses the old primary flat-edge list 
 Run:
 
 ```bash
-python -m unittest tests.test_discord_bot -v
+python -m unittest tests.test_discord_upgrade_display -v
 ```
 
 Expected: upgrade-detail formatting assertions fail against the current flat edge list.
@@ -365,7 +366,7 @@ Do not add a `View`; existing `UpgradeDetailPayload` handling should continue re
 Run:
 
 ```bash
-python -m unittest tests.test_upgrade_display tests.test_discord_bot tests.test_cli_upgrade -v
+python -m unittest tests.test_upgrade_display tests.test_cli_upgrade tests.test_discord_upgrade_display tests.test_discord_bot -v
 ```
 
 Expected: all pass.
@@ -373,7 +374,7 @@ Expected: all pass.
 - [ ] **Step 5: Commit Task 3**
 
 ```bash
-git add discord_bot.py tests/test_discord_bot.py
+git add discord_bot.py tests/test_discord_upgrade_display.py
 git commit -m "feat: show hybrid upgrade display in Discord"
 ```
 
@@ -437,7 +438,7 @@ search_items.py
 discord_bot.py
 tests/test_upgrade_display.py
 tests/test_cli_upgrade.py
-tests/test_discord_bot.py
+tests/test_discord_upgrade_display.py
 ```
 
 No `.env`, token, guild ID, query-semantics change, temporary workflow, or unrelated fallback code should be present.
