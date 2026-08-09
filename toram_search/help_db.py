@@ -61,8 +61,20 @@ class HelpService:
         return None
 
     def answer_direct(self, text: str) -> str | None:
-        q = " ".join(text.strip().casefold().split())
-        if q in {"help", "how to search", "how do i search", "search help", "search syntax"}:
+        q = " ".join(text.strip().casefold().strip("?.!").split())
+        if q in {
+            "help",
+            "help me",
+            "how to use",
+            "how to use it",
+            "how do i use it",
+            "how do i use this",
+            "how to search",
+            "how do i search",
+            "search help",
+            "search syntax",
+            "usage",
+        }:
             return self._SYNTAX
         if q in {"examples", "search examples", "give me search examples"}:
             return self._EXAMPLES
