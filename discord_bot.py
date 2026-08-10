@@ -437,8 +437,12 @@ def build_item_detail_embed(
     for source in detail.sources:
         source_name = str(source.get("source_name") or "Unknown")
         details: list[str] = []
-        if source.get("level") is not None:
-            details.append(f"Lv {source['level']}")
+        level = source.get("level")
+        if level is not None:
+            level_text = _format_number(level)
+            level_pattern = rf"\blv\.?\s*{re.escape(level_text)}(?:\b|(?=\)))"
+            if re.search(level_pattern, source_name, flags=re.IGNORECASE) is None:
+                details.append(f"Lv {level_text}")
         if source.get("map"):
             details.append(str(source["map"]))
         if source.get("dye"):
