@@ -50,6 +50,11 @@ jobs:
               matches = repo.exact_name_matches('Altadar')
               assert matches, 'Altadar not found in checked-in database'
               detail = repo.get_item(matches[0].id)
+              print('=== ALTADAR RAW STATS ===')
+              for stat in detail.stats:
+                  print(repr(stat))
+                  print('equipment=', core._equipment_condition_names(stat))
+                  print('display=', core.format_condition_display(stat))
               terminal = core.render_item(detail)
               embed = build_item_detail_embed(detail)
               stats = next(field.value for field in embed.fields if field.name == 'Stats')
