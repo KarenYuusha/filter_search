@@ -1,251 +1,453 @@
-# High-Confidence Failed-Query Correction Design
+# Hybrid Query Interpretation and Safe Reconstruction Design
 
 Date: 2026-08-10
 Status: Approved design, pending user review
 
 ## Goal
 
-When the normal deterministic parser cannot handle a query and the Qwen fallback also fails to produce a valid interpretation, try one final deterministic correction pass. If every meaningful part of the failed query can be resolved unambiguously using existing aliases and item-filter definitions, return one corrected example query. Otherwise keep the existing generic examples.
+Users should be able to search naturally without memorizing a special query syntax, while simple searches remain fast and all database behavior remains deterministic and validated.
 
-This correction is guidance only. It must never execute automatically.
+The system should treat the existing compact syntax as an internal/fast-path language, not as the language users are expected to learn.
 
-Example:
+The core rule is:
 
-- Input: `xtall cr weapon`
-- Existing deterministic knowledge: `xtall -> xtal`, `cr -> Critical Rate`, and `weapon + xtal -> Weapon Crysta + Red Enhancer`
-- Suggested query: `cr wp xtal`
+**LLM interprets meaning. Python validates. The database answers.**
 
-Ambiguous example:
+Qwen must never directly answer item facts from memory, choose database rows, or write arbitrary SQL.
 
-- Input: `crit xtal weapon`
-- `crit` can mean Critical Rate or Critical Damage
-- Result: no single correction; show the existing generic help instead
+## Long-Term Architecture
 
-## Constraints
+Use four stages in order:
 
-- Do not make a second LLM call.
-- Do not use fuzzy semantic guessing for stats or filters.
-- Reuse the existing stat aliases, item-word aliases, and item-filter catalog.
-- Only return a suggestion if all meaningful input is consumed by one unambiguous interpretation.
-- Unknown or ambiguous meaningful tokens make the correction fail closed.
-- Keep build concepts such as tank/DPS out of scope.
-- Do not change successful deterministic searches or valid Qwen interpretations.
+1. existing deterministic parser;
+2. deterministic reconstruction of known entities in flexible order;
+3. one constrained Qwen interpretation call when deterministic understanding is not confident;
+4. deterministic validation, clarification, or safe guidance.
 
-## Architecture
+Conceptually:
 
-### 1. Deterministic correction helper
+```text
+User query
+   |
+   v
+Normalization
+   |
+   v
+Existing deterministic parser
+   | success
+   +------------------------------> validate/materialize -> database
+   |
+   v
+Deterministic reconstruction
+   | high confidence
+   +------------------------------> validate/materialize -> database
+   |
+   v
+Qwen constrained interpreter
+   |
+   v
+Strict deterministic validator
+   | valid                    | ambiguous             | invalid
+   v                          v                       v
+database                  ask user             safe suggestion/help
+```
 
-Add a small frontend-neutral correction component under the search layer. Its public responsibility is equivalent to:
+This preserves the speed advantage of deterministic parsing without requiring the deterministic grammar to understand every possible English sentence.
 
-`try_suggest_query(raw_query, repository) -> str | None`
+## Design Principles
 
-The helper should use parser-owned normalization data rather than maintaining a second alias list. Existing sources of truth include:
+### 1. Users do not need to learn syntax
 
-- `ITEM_WORD_ALIASES`
-- `STAT_ALIASES`
-- ambiguous stat groups such as `crit`
-- the existing item-filter candidates such as `wp xtal` / `weapon xtal`
+All of these should be capable of expressing the same search intent over time:
 
-The implementation may expose a narrowly-scoped public helper from `toram_data.stat_query` if needed so the search-layer correction component does not copy private filter definitions.
+- `cr wp xtal`
+- `weapon xtal cr`
+- `xtall cr weapon`
+- `show me weapon crysta with critical rate`
+- `what weapon xtals give crit rate?`
+- `I need cr on weapon xtal`
 
-### 2. Strict recognition model
+They should compile into the same validated internal representation.
 
-The first implementation should support the common simple-search shape:
+The compact syntax remains useful for power users and as a deterministic intermediate form, but documentation and error handling should not imply that memorizing it is required.
 
-- exactly one resolvable stat
-- exactly one resolvable item filter
-- optional harmless search filler words
-- arbitrary order of the recognized stat and filter tokens
+### 2. Keep the exact parser as the fastest path
 
-The correction pass should not initially reconstruct comparison expressions, AND/OR expressions, rankings, or multiple stats. Those remain generic-fallback cases unless the normal parser or Qwen already handles them.
-
-This narrow scope keeps the confidence rule understandable and minimizes false suggestions.
-
-### 3. Token normalization
-
-Normalize case, whitespace, punctuation, and existing explicit word aliases first. For example `xtall` becomes `xtal` because that typo is already an intentional alias.
-
-Stat recognition is strict:
-
-- canonical stat name -> accepted
-- exact stat alias such as `cr` -> accepted
-- ambiguous alias such as `crit` -> rejected for single-suggestion correction
-- fuzzy stat similarity -> rejected
-- unknown stat-like token -> rejected
-
-Item-filter recognition is also strict. The helper should match against the existing filter catalog, but it may treat the filter phrase as an unordered token group solely for reconstruction. This allows `xtal weapon` to resolve to the same filter as `weapon xtal` while still requiring an exact set of known filter tokens.
-
-If more than one filter candidate matches the same remaining token set, correction fails rather than choosing one.
-
-### 4. Meaningful-token consumption
-
-A suggestion is high-confidence only when every meaningful token is accounted for by:
-
-- the resolved stat phrase,
-- the resolved item-filter phrase, or
-- a small explicit set of harmless search filler words already used by natural-query grammar, such as `find`, `show`, `me`, `with`, `has`, `have`, `give`, `gives`, `which`, and articles where appropriate.
-
-The filler set must stay conservative. It must not absorb arbitrary unknown words.
+Queries already understood by the existing deterministic parser should continue to bypass Qwen entirely.
 
 Examples:
 
-- `xtall cr weapon` -> all meaningful tokens resolve -> suggest `cr wp xtal`
-- `weapon xtall cr` -> all meaningful tokens resolve -> suggest `cr wp xtal`
-- `find xtall cr weapon` -> `find` is harmless filler -> suggest `cr wp xtal`
-- `xtall blah weapon` -> `blah` is unresolved -> no suggestion
-- `crit xtal weapon` -> stat is ambiguous -> no suggestion
+- `cr bow`
+- `hp armor`
+- `hp > 5000 armor`
 
-### 5. Canonical suggestion rendering
+Do not route every query through Qwen merely because natural language support exists.
 
-Return one stable, parseable query string rather than echoing the user's token order.
+### 3. Add deterministic reconstruction before Qwen
 
-For the initial version:
+Introduce a frontend-neutral deterministic reconstruction component that recognizes known search entities even when their order differs from the compact grammar.
 
-- prefer the exact stat alias the user supplied when it is already a valid unambiguous alias (`cr`, `cd`, `hp`, etc.)
-- otherwise use a canonical parser-supported stat phrase
-- render the matched item filter using a preferred parser-supported compact phrase
+Its responsibility is approximately:
 
-For the target example the stable output is:
+`try_reconstruct_search(raw_query, repository) -> ReconstructionResult`
 
-`cr wp xtal`
+A reconstruction result should distinguish at least:
 
-The helper returns the query without the Discord mention prefix. Frontends add their own prefix when displaying it.
+- `success`: one fully validated, executable interpretation;
+- `ambiguous`: known terms were found but deterministic clarification is required;
+- `no_match`: not enough information is understood safely;
+- `unsafe`: unknown/conflicting meaningful tokens prevent reconstruction.
 
-## Service Data Flow
+The implementation should reuse parser-owned sources of truth rather than copying aliases or item filters into a second catalog.
 
-The current flow is:
+Existing sources include:
 
-1. `SearchService.handle_query` runs deterministic routing.
-2. If needed, it records the failed input in `FailedQueryContext`.
-3. Qwen fallback interprets the query.
-4. A valid structured interpretation returns `confirm_search`; otherwise the service eventually returns `failed`.
+- `ITEM_WORD_ALIASES`;
+- `STAT_ALIASES`;
+- ambiguous stat groups such as `crit`;
+- existing item-filter candidates such as `wp xtal` / `weapon xtal`;
+- repository stat and item-type catalogs.
 
-The new flow changes only the final failure branch:
+For the first version, reconstruction should focus on a common simple-search shape:
 
-1. Run deterministic routing as today.
-2. Run Qwen fallback as today.
-3. If Qwen succeeds, preserve current behavior.
-4. If Qwen returns `failed`, call the deterministic correction helper with the original query.
-5. If a high-confidence correction is produced:
-   - store it with `context.set_latest_suggestion(...)`;
-   - return `ServiceOutcome(kind="failed", suggested_query=<query>)`.
-6. If no correction is produced, return the ordinary failed outcome with no suggestion.
+- exactly one resolvable stat;
+- exactly one resolvable item filter;
+- optional conservative filler words;
+- arbitrary order of recognized stat/filter tokens.
 
-Add an explicit optional `suggested_query` field to `ServiceOutcome` instead of overloading `text`. This keeps frontend rendering separate from service semantics and allows future non-Discord clients to use the same correction.
+Do not initially add comparison, AND/OR, ranking, or multi-stat reconstruction unless the existing parser already accepts the reconstructed canonical query. Those capabilities can be added incrementally behind tests as real failed-query examples appear.
 
-The correction pass should run for Qwen `failed`, not for `refuse`. `refuse` represents an understood but unsupported request. For `unavailable`, keep the existing unavailable response because the failure is infrastructure-related rather than an invalid interpretation.
+### 4. High-confidence reconstruction may execute directly
 
-## Failed-Query Context
-
-`FailedQueryContext` already stores `suggested_query` on the latest failed attempt. Reuse that mechanism.
-
-The important ordering is:
-
-- the current failed query is recorded before Qwen is called;
-- Qwen sees only suggestions from previous attempts;
-- if Qwen fails and the deterministic correction succeeds, store the new suggestion afterward;
-- if the user retries and still fails, the next Qwen call can see the previous correction in history.
-
-No new session state is required.
-
-## Discord Presentation
-
-When `ServiceOutcome.kind == "failed"` and `suggested_query` is present, replace the generic three examples with a query-specific correction.
+If every meaningful part of the user query is consumed by one unambiguous interpretation and the reconstructed request passes deterministic validation, execute it without Qwen.
 
 Example:
 
-Title:
+- input: `xtall cr weapon`;
+- `xtall -> xtal` through the existing explicit word alias;
+- `cr -> Critical Rate` through an existing unambiguous stat alias;
+- `weapon + xtal -> Weapon Crysta + Red Enhancer` through the existing item-filter catalog;
+- all meaningful input is consumed;
+- the reconstructed request is re-parsed/re-validated;
+- execute the search directly.
 
-`I couldn't interpret that search`
+This means the target example should normally stop involving Qwen after this feature is implemented.
 
-Description:
+### 5. Ambiguity remains deterministic
 
-`Did you mean: @Bot cr wp xtal`
+Qwen must not override known database/parser ambiguity.
 
-Do not auto-run it and do not add a Search button in the first version. The user explicitly retries the suggested query, which keeps correction behavior safe and obvious.
+Example:
 
-When `suggested_query` is absent, preserve the existing generic response exactly:
+`crit weapon xtal`
 
-- `@bot hp armor`
-- `@bot cr bow`
-- `@bot hp > 5000 and cr bow`
+If `crit` is intentionally ambiguous between Critical Rate and Critical Damage, the system should ask the existing deterministic clarification question rather than trusting Qwen to choose one meaning.
 
-## Error Handling and Safety Rules
+Whenever Qwen emits a stat/filter term, pass it through the same deterministic resolution rules used by ordinary parsing.
 
-Correction must fail closed. Return no suggestion when any of these is true:
+### 6. Qwen is a constrained intent + slot interpreter, not the executor
 
-- an unresolved meaningful token remains;
-- the stat resolves ambiguously;
-- multiple item filters match;
-- more than one stat is detected in this initial simple-search version;
-- the query contains comparison or boolean-expression structure that the correction helper does not explicitly support;
-- reconstructing the candidate does not parse back into the expected simple stat + item-filter search.
+When deterministic parsing and reconstruction cannot confidently understand the query, call Qwen once.
 
-As a final validation step, the generated suggestion should be fed through the deterministic parser. Only expose it if the parser accepts it as the intended stat search with the expected stat and filter. This makes the system prove that the example it shows is actually valid.
+Qwen should classify the request and emit constrained structured data such as:
+
+```json
+{
+  "intent": "search",
+  "candidates": [
+    {
+      "item_filter": "weapon xtal",
+      "stats": [
+        {"name": "Critical Rate"}
+      ],
+      "match": "all",
+      "sort_stat": "Critical Rate"
+    }
+  ]
+}
+```
+
+Supported high-level intents remain narrow:
+
+- item/stat search;
+- allowed database metadata/count action;
+- help;
+- unsupported/refuse.
+
+Qwen must not return prose answers for database facts and must not invent unsupported build concepts.
+
+### 7. Strict validation after Qwen
+
+A Qwen interpretation is only a proposal.
+
+Python must verify, as applicable:
+
+- intent is allowed;
+- payload schema is exact;
+- stat names/aliases resolve through the repository/parser;
+- item filters are supported;
+- operators and numeric values are valid;
+- requested sort stat belongs to the request;
+- ambiguous parser terms trigger clarification instead of silent selection;
+- unsupported concepts are refused;
+- the final request can be materialized through the deterministic search engine.
+
+Only after this validation should the database be searched.
+
+## Normalization and Reconstruction Rules
+
+### Explicit normalization only
+
+Normalize case, whitespace, punctuation, and existing intentional word aliases first.
+
+Example:
+
+`xtall` may become `xtal` because `xtall` is already an explicit alias.
+
+Do not use unconstrained fuzzy semantic guessing in the executable reconstruction path.
+
+### Stat recognition
+
+For automatic deterministic reconstruction:
+
+- canonical stat name -> accepted;
+- exact unambiguous stat alias such as `cr` -> accepted;
+- ambiguous alias such as `crit` -> clarification, not guessing;
+- fuzzy stat similarity -> not auto-executed;
+- unknown stat-like token -> reconstruction fails closed.
+
+### Item-filter recognition
+
+Use the existing filter catalog.
+
+For reconstruction only, a known multi-token filter may be recognized as an unordered token group when doing so yields one exact filter interpretation.
+
+Example:
+
+- `weapon xtal` and `xtal weapon` may resolve to the same existing filter.
+
+If multiple filter candidates match the same consumed token set, do not choose one automatically.
+
+### Meaningful-token consumption
+
+Automatic reconstruction is high-confidence only when every meaningful token is accounted for by:
+
+- a resolved stat phrase;
+- a resolved item-filter phrase;
+- syntax/operator tokens explicitly supported by that reconstruction mode; or
+- a conservative set of harmless natural-language filler words.
+
+A small filler vocabulary may include words already present in supported natural grammar, for example `find`, `show`, `me`, `with`, `has`, `have`, `give`, `gives`, `which`, and articles where appropriate.
+
+The filler set must not absorb arbitrary unknown words.
+
+Examples:
+
+- `xtall cr weapon` -> direct deterministic search;
+- `weapon xtall cr` -> direct deterministic search;
+- `find xtall cr weapon` -> direct deterministic search if all tokens are consumed;
+- `xtall blah weapon` -> no deterministic reconstruction because `blah` is unresolved;
+- `crit xtal weapon` -> deterministic clarification because `crit` is ambiguous.
+
+## Service Data Flow
+
+Update `SearchService.handle_query` conceptually as follows:
+
+1. Run existing `route_deterministically`.
+2. If it returns search/help/database/refuse, preserve current behavior.
+3. Before recording a failure or invoking Qwen, run deterministic reconstruction.
+4. If reconstruction returns one validated search:
+   - materialize and return it as an ordinary `search` outcome;
+   - do not call Qwen;
+   - do not add a failed-query history entry.
+5. If reconstruction identifies deterministic ambiguity:
+   - return the existing clarification payload;
+   - do not call Qwen merely to resolve that known ambiguity.
+6. Otherwise record the failed input as today and call Qwen exactly once.
+7. Validate the Qwen payload deterministically.
+8. If valid, keep the existing confirmation/search flow.
+9. If `refuse`, preserve the unsupported-request flow.
+10. If `unavailable`, preserve the infrastructure-unavailable flow.
+11. If Qwen interpretation is invalid/failed, try to produce safe query-specific guidance as described below; otherwise use generic help.
+
+## Post-Qwen Failure Guidance
+
+The original requirement remains useful: when a query truly reaches Qwen and Qwen still cannot produce a valid interpretation, prefer a query-specific example over generic syntax examples when it can be generated safely.
+
+However, this is now a **guidance path**, not the main way to repair simple reordered queries. Cases such as `xtall cr weapon` should already have been handled by deterministic reconstruction before Qwen.
+
+Create a helper approximately equivalent to:
+
+`try_suggest_query(raw_query, repository) -> str | None`
+
+It should reuse the same normalization/entity-recognition primitives as deterministic reconstruction, but it may return guidance in cases that are safe to explain yet not eligible for automatic execution under the current reconstruction feature set.
+
+A suggestion may be shown only when:
+
+- it resolves to exactly one parser-supported canonical query;
+- all meaningful user tokens are accounted for;
+- no ambiguous stat/filter choice is hidden;
+- the generated query re-parses successfully through the deterministic parser;
+- the parsed result matches the entities recognized from the original input.
+
+If these conditions are not met, return no specific suggestion.
+
+Do not make a second Qwen call to generate corrections.
+
+## Failed-Query Context
+
+Continue using `FailedQueryContext`.
+
+Ordering should be:
+
+- deterministic parser/reconstruction successes do not enter failed history;
+- a query is recorded when it actually needs the Qwen fallback;
+- Qwen sees prior failed inputs and prior safe suggestions;
+- if Qwen fails and deterministic guidance produces a suggestion, save it with `context.set_latest_suggestion(...)`;
+- a later Qwen call may use that previous suggestion as context.
+
+No new session store is required.
+
+## Discord Presentation
+
+### Successful reconstruction
+
+A high-confidence reconstructed query behaves like any other successful search. Do not display a correction warning merely because the user used different word order or an explicit known typo alias.
+
+### Failed Qwen with safe suggestion
+
+When `ServiceOutcome.kind == "failed"` contains a safe `suggested_query`, show a query-specific message such as:
+
+`Did you mean: @Bot <suggested query>`
+
+Do not execute that suggestion automatically from the failure response.
+
+### Failed Qwen without safe suggestion
+
+Preserve the existing generic examples.
+
+This keeps error handling useful without pretending the user must memorize those examples as the required syntax.
+
+## Why Qwen Is Not the Sole Router
+
+Routing every query through Qwen would simplify the apparent control flow but has undesirable properties for this project:
+
+- common searches become slower;
+- availability of Ollama becomes a dependency for syntax the program already knows;
+- deterministic aliases and ambiguity rules become easier for Qwen to accidentally override;
+- more LLM calls increase variability and make failures harder to reproduce;
+- the database still requires deterministic validation afterward.
+
+The preferred split is therefore:
+
+- deterministic code for fast exact/high-confidence cases;
+- Qwen for semantic interpretation of genuinely natural or unusual wording;
+- deterministic code again for validation and execution.
+
+## Extensibility
+
+Do not grow one giant natural-language regex grammar.
+
+When new user-language cases appear, classify them into one of three categories:
+
+1. **Known entities in a new order or with an explicit alias** -> extend deterministic reconstruction.
+2. **A genuinely new natural-language phrasing with the same supported semantics** -> rely on or improve the Qwen structured interpreter, adding regression examples rather than many phrase-specific regexes.
+3. **A genuinely new search capability** -> first extend the internal structured search model and deterministic executor/validator, then teach both deterministic reconstruction and Qwen about that capability.
+
+This keeps language understanding separate from search capability.
+
+Future features such as build-oriented queries should not be enabled merely by adding Qwen prompt wording. They require a deliberate new deterministic capability/model first.
+
+## Error Handling Rules
+
+The system fails closed when:
+
+- unresolved meaningful tokens remain in executable reconstruction;
+- a stat/filter is ambiguous;
+- multiple deterministic reconstructions are equally valid;
+- Qwen payload validation fails;
+- a generated suggestion cannot be re-parsed into the intended search;
+- the query asks for unsupported concepts.
+
+Never silently drop unknown meaningful words to force a match.
 
 ## Testing
 
-### Correction helper unit tests
+### Deterministic reconstruction tests
 
 Positive cases:
 
-- `xtall cr weapon` -> `cr wp xtal`
-- `weapon xtall cr` -> `cr wp xtal`
-- `find xtall cr weapon` -> `cr wp xtal`
-- another existing exact stat alias plus a crysta filter
+- `xtall cr weapon` -> successful search without Qwen;
+- `weapon xtall cr` -> same search without Qwen;
+- `find xtall cr weapon` -> same search without Qwen;
+- standard exact queries remain unchanged;
+- returned reconstructed requests pass the real deterministic parser/materializer.
 
-Negative cases:
+Negative/clarification cases:
 
-- `crit xtal weapon` -> `None` because `crit` is ambiguous
-- `xtall blah weapon` -> `None` because `blah` is unresolved
-- query with two recognized stats -> `None` in v1
-- comparison/AND/OR query -> `None` in v1
-- a case where filter reconstruction would match more than one candidate -> `None`
-
-Each positive test should also verify that the returned query parses successfully through the real deterministic parser.
+- `crit xtal weapon` -> existing Critical Rate / Critical Damage clarification without Qwen choosing one;
+- `xtall blah weapon` -> reconstruction refuses to consume `blah`;
+- conflicting or multiple filter matches -> no automatic reconstruction;
+- unsupported complex expressions are not partially reconstructed.
 
 ### SearchService tests
 
-Use a fake Qwen client that returns a rejected/invalid interpretation and verify:
+Verify:
 
-- Qwen is called once only;
-- `xtall cr weapon` returns `ServiceOutcome("failed")` with `suggested_query == "cr wp xtal"`;
-- the latest failed-context entry stores the same suggestion;
-- an ambiguous query returns failed with no suggestion;
-- valid Qwen search requests are unchanged and do not invoke correction;
-- `refuse` and `unavailable` behavior remains unchanged.
+- a high-confidence reconstructed query does not call Qwen at all;
+- a normal deterministic query still does not call Qwen;
+- a genuinely natural unresolved query calls Qwen once;
+- valid Qwen structured output is validated and preserved;
+- ambiguous deterministic terms are clarified rather than delegated to Qwen;
+- `refuse` and `unavailable` behavior remains unchanged;
+- failed Qwen interpretation may attach a safe suggestion;
+- failed Qwen interpretation with no safe suggestion falls back to generic help;
+- failed-query context is only recorded when the query actually reaches fallback.
+
+### Qwen contract tests
+
+Verify that Qwen is constrained to the allowed schema and cannot:
+
+- return SQL;
+- return arbitrary database facts in prose;
+- introduce unsupported intent types;
+- use invalid operators/values;
+- silently bypass stat/filter validation.
 
 ### Discord tests
 
 Verify:
 
-- failed outcome with suggestion renders `Did you mean: @Bot cr wp xtal`;
-- failed outcome without suggestion retains the current generic examples;
-- no automatic execution or confirmation controls are added.
+- pre-Qwen reconstruction renders ordinary search results;
+- failed outcome with a safe suggestion renders the specific `Did you mean` query;
+- failed outcome without a suggestion retains generic examples;
+- no automatic execution is attached to a post-failure suggestion.
 
-## Non-Goals
+## Non-Goals for the Initial Implementation
 
-This feature does not attempt to:
+The initial implementation does not attempt to:
 
-- make Qwen more capable;
-- retry Qwen;
+- make Qwen the only router;
+- route every search through an LLM;
+- add a second LLM correction call;
 - infer tank/DPS/build concepts;
-- correct arbitrary spelling using fuzzy similarity;
-- generate several possible corrected queries;
-- execute a correction automatically;
-- handle multi-stat, comparison, ranking, or boolean-expression correction in the initial version.
-
-Those can be considered later only if real failed-query data shows a need.
+- use broad fuzzy semantic matching for automatic execution;
+- implement every English construction in regex;
+- add new search semantics such as build scoring merely through prompting.
 
 ## Acceptance Criteria
 
-The design is complete when all of the following are true in implementation:
+The design is complete in implementation when all of the following are true:
 
-1. `xtall cr weapon` reaches Qwen only if normal deterministic routing failed.
-2. If Qwen fails, the deterministic correction pass suggests exactly `cr wp xtal` without another LLM call.
-3. `crit xtal weapon` never guesses Critical Rate or Critical Damage.
-4. Unknown meaningful tokens prevent a specific correction.
-5. Every emitted suggestion is re-validated by the deterministic parser before display.
-6. The suggestion is saved in the existing failed-query context.
-7. Discord shows the specific suggestion when available and the existing generic examples otherwise.
-8. Successful deterministic and Qwen-assisted search behavior is unchanged.
+1. Users are not required to use canonical token order for simple known stat + item-filter searches.
+2. `xtall cr weapon` executes as the intended Critical Rate weapon-crysta search without calling Qwen.
+3. `crit xtal weapon` never silently chooses Critical Rate or Critical Damage.
+4. Unknown meaningful tokens prevent automatic deterministic reconstruction.
+5. Simple existing deterministic searches remain on the fast path.
+6. Natural queries not understood deterministically receive at most one Qwen interpretation call.
+7. Every Qwen search proposal passes strict deterministic validation before database execution.
+8. Qwen cannot directly answer item facts from memory or execute arbitrary SQL.
+9. Safe failed-query suggestions are parser-validated before display and never auto-executed from the failure message.
+10. Failed-query history is recorded only for inputs that actually enter fallback.
+11. Existing help/database/refuse behavior remains constrained to the supported capabilities.
+12. The architecture can add future search capabilities by extending the structured model/executor first, then language interpretation, rather than by growing an unbounded regex grammar.
