@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from collections import Counter
 from dataclasses import dataclass
+from itertools import combinations, product
 from typing import Iterable, Literal
 
 from toram_data.aliases import (
@@ -67,15 +68,28 @@ def _is_counter_subset(required: Counter[str], available: Counter[str]) -> bool:
     return all(available[token] >= count for token, count in required.items())
 
 
-def _remove_token_counts(tokens: list[str], counts: Counter[str]) -> list[str]:
-    remaining = counts.copy()
-    output: list[str] = []
-    for token in tokens:
-        if remaining[token] > 0:
-            remaining[token] -= 1
-        else:
-            output.append(token)
-    return output
+def _removal_options(
+    tokens: list[str],
+    counts: Counter[str],
+) -> tuple[tuple[str, ...], ...]:
+    position_groups: list[tuple[tuple[int, ...], ...]] = []
+    for token, count in sorted(counts.items()):
+        positions = [index for index, value in enumerate(tokens) if value == token]
+        if len(positions) < count:
+            return ()
+        position_groups.append(tuple(combinations(positions, count)))
+
+    options: set[tuple[str, ...]] = set()
+    for selected_groups in product(*position_groups):
+        removed = {
+            index
+            for selected_group in selected_groups
+            for index in selected_group
+        }
+        options.add(
+            tuple(value for index, value in enumerate(tokens) if index not in removed)
+        )
+    return tuple(sorted(options))
 
 
 def _preferred_filter_phrase(
@@ -137,28 +151,44 @@ def _recognize(
     if len(semantic_keys) != 1:
         return ReconstructionResult("unsafe")
 
-    matched, matched_counter = min(
-        largest,
-        key=lambda pair: (len(pair[0].phrase), pair[0].phrase.casefold()),
-    )
-    remaining = _remove_token_counts(tokens, matched_counter)
-    stat_tokens = [token for token in remaining if token not in _FILLERS]
-    if not stat_tokens:
+    valid: list[tuple[ItemFilterPhrase, str, StatTermResolution]] = []
+    for row, matched_counter in largest:
+        for remaining in _removal_options(tokens, matched_counter):
+            stat_tokens = [token for token in remaining if token not in _FILLERS]
+            if not stat_tokens:
+                continue
+            stat_text = " ".join(stat_tokens)
+            resolution = resolve_stat_term(
+                stat_text,
+                available_stats,
+                allow_fuzzy=False,
+            )
+            if resolution.status in {"exact", "alias", "ambiguous"}:
+                valid.append((row, stat_text, resolution))
+
+    if not valid:
+        matched = min(
+            (row for row, _counter in largest),
+            key=lambda row: (len(row.phrase), row.phrase.casefold()),
+        )
         return ReconstructionResult("unsafe", filter_phrase=matched)
 
-    stat_text = " ".join(stat_tokens)
-    resolution = resolve_stat_term(
-        stat_text,
-        available_stats,
-        allow_fuzzy=False,
-    )
-    if resolution.status not in {"exact", "alias", "ambiguous"}:
-        return ReconstructionResult(
-            "unsafe",
-            stat_resolution=resolution,
-            filter_phrase=matched,
-        )
+    semantic_stat_keys = {
+        (resolution.status == "ambiguous", resolution.candidates)
+        for _row, _stat_text, resolution in valid
+    }
+    if len(semantic_stat_keys) != 1:
+        return ReconstructionResult("unsafe")
 
+    matched, stat_text, resolution = min(
+        valid,
+        key=lambda option: (
+            len(option[1].split()),
+            len(option[1]),
+            option[1].casefold(),
+            option[0].phrase.casefold(),
+        ),
+    )
     normalized_stat = normalize_stat_text(stat_text)
     if resolution.status in {"alias", "ambiguous"}:
         rendered_stat = normalized_stat
