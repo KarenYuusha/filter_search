@@ -1,0 +1,146 @@
+name: Final hybrid query verifier
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: verify/hybrid-query-final
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip rapidfuzz discord.py python-dotenv ollama
+      - name: Verify exact real-service behavior without Qwen
+        run: |
+          python - <<'PY'
+          import search_items as core
+          from toram_search.service import (
+              ExpressionResultsPayload,
+              SearchService,
+              StatClarificationPayload,
+          )
+          from toram_search.session import FailedQueryContext
+
+          class MustNotCallLLM:
+              def complete(self, *args, **kwargs):
+                  raise AssertionError('Qwen must not be called for deterministic reconstruction')
+
+          repository = core.ItemRepository(core.DEFAULT_DATABASE)
+          try:
+              service = SearchService(repository, llm_client=MustNotCallLLM())
+
+              context = FailedQueryContext(max_entries=3)
+              outcome = service.handle_query('xtall cr weapon', context)
+              assert outcome.kind == 'search', outcome
+              assert isinstance(outcome.payload, ExpressionResultsPayload), type(outcome.payload)
+              assert context.snapshot() == (), context.snapshot()
+              parsed = outcome.payload.parsed
+              assert parsed.filter is not None
+              assert parsed.filter.label == 'Weapon Crysta + Red Enhancer', parsed.filter
+              assert parsed.filter.item_types == ('Weapon Crysta', 'Enhancer Crysta (Red)'), parsed.filter.item_types
+              assert parsed.resolved_expression is not None
+              assert parsed.resolved_expression.groups[0].clauses[0].stat_name == 'Critical Rate'
+
+              ambiguous = service.handle_query(
+                  'crit xtal weapon',
+                  FailedQueryContext(max_entries=3),
+              )
+              assert ambiguous.kind == 'search'
+              assert isinstance(ambiguous.payload, StatClarificationPayload), type(ambiguous.payload)
+              assert ambiguous.payload.clarification.candidates == (
+                  'Critical Rate',
+                  'Critical Damage',
+              )
+          finally:
+              repository.close()
+          PY
+      - name: Verify failed-Qwen suggestion remains guidance only
+        run: |
+          python - <<'PY'
+          import search_items as core
+          from toram_search.service import SearchService
+          from toram_search.session import FailedQueryContext
+
+          class InvalidLLM:
+              def __init__(self):
+                  self.calls = 0
+              def complete(self, *args, **kwargs):
+                  self.calls += 1
+                  return {'intent': 'search', 'candidates': []}
+
+          repository = core.ItemRepository(core.DEFAULT_DATABASE)
+          try:
+              llm = InvalidLLM()
+              service = SearchService(repository, llm_client=llm)
+              context = FailedQueryContext(max_entries=3)
+              outcome = service.handle_query('highest xtall cr weapon', context)
+              assert outcome.kind == 'failed', outcome
+              assert outcome.suggested_query == 'cr wp xtal', outcome.suggested_query
+              assert llm.calls == 1, llm.calls
+              assert context.snapshot()[-1].suggested_query == 'cr wp xtal'
+          finally:
+              repository.close()
+          PY
+      - name: Focused regression gate
+        run: |
+          python -m unittest \
+            tests.test_query_reconstruction \
+            tests.test_search_service \
+            tests.test_direct_structured_intent \
+            tests.test_natural_give_ranking \
+            tests.test_discord_bot -v
+      - name: Compile modified Python files
+        run: |
+          python -m py_compile \
+            toram_data/stat_query.py \
+            toram_search/reconstruction.py \
+            toram_search/service.py \
+            discord_bot.py \
+            tests/test_query_reconstruction.py \
+            tests/test_search_service.py \
+            tests/test_discord_bot.py
+      - name: Full suite against known main baseline
+        shell: bash
+        run: |
+          set +e
+          python -m unittest discover -s tests -v > /tmp/full-suite.txt 2>&1
+          status=$?
+          set -e
+          cat /tmp/full-suite.txt
+          if [ "$status" -eq 0 ]; then
+            exit 0
+          fi
+          grep -q 'test_rejected_payload_is_logged_with_reason' /tmp/full-suite.txt
+          grep -q 'FAILED (failures=1)' /tmp/full-suite.txt
+      - name: Verify final feature diff scope
+        shell: bash
+        run: |
+          git fetch origin main feature/hybrid-query-interpretation
+          mapfile -t files < <(git diff --name-only origin/main...origin/feature/hybrid-query-interpretation | sort)
+          printf '%s\n' "${files[@]}"
+          expected=(
+            discord_bot.py
+            tests/test_discord_bot.py
+            tests/test_query_reconstruction.py
+            tests/test_search_service.py
+            toram_data/stat_query.py
+            toram_search/reconstruction.py
+            toram_search/service.py
+          )
+          if [ "${#files[@]}" -ne "${#expected[@]}" ]; then
+            echo 'unexpected feature diff file count'
+            exit 1
+          fi
+          for i in "${!expected[@]}"; do
+            if [ "${files[$i]}" != "${expected[$i]}" ]; then
+              echo "unexpected diff entry: ${files[$i]} != ${expected[$i]}"
+              exit 1
+            fi
+          done
