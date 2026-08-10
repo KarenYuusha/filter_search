@@ -2279,6 +2279,9 @@ def _interactive_item_results(
     if not results:
         output_fn("No suggestions found. Enter a more specific name.")
         return ResultScreenOutcome("new")
+    if len(results) == 1:
+        output_fn(render_item(repository.get_item(results[0].item.id)))
+        return ResultScreenOutcome("selected")
     page = 0
     while True:
         current = page_results(results, page=page)
@@ -2416,6 +2419,12 @@ def _interactive_upgrade_results(
     if not results:
         output_fn("No crysta suggestions found. Enter a more specific crysta name.")
         return ResultScreenOutcome("new")
+    if len(results) == 1:
+        return _show_upgrade_component(
+            repository,
+            results[0].item,
+            output_fn=output_fn,
+        )
     page = 0
     while True:
         current = page_results(results, page=page)
@@ -2478,6 +2487,9 @@ def interactive_expression_results(
             active_filter.item_types if active_filter else None,
             primary_sort_ascending=parsed.primary_sort_ascending,
         )
+        if len(results) == 1:
+            output_fn(render_item(repository.get_item(results[0].item.id)))
+            return ResultScreenOutcome("selected")
         max_page = max((len(results) - 1) // PAGE_SIZE, 0)
         page = min(page, max_page)
         current = page_expression_results(results, page)
@@ -2547,6 +2559,9 @@ def interactive_stat_results(
             parsed.stat.stat_name,
             active_filter.item_types if active_filter else None,
         )
+        if len(results) == 1:
+            output_fn(render_item(repository.get_item(results[0].item.id)))
+            return ResultScreenOutcome("selected")
         max_page = max((len(results) - 1) // PAGE_SIZE, 0)
         page = min(page, max_page)
         current = page_stat_results(results, page=page)
