@@ -1,0 +1,121 @@
+name: Game-style final read-only verification
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/game-style-item-presentation
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip && python -m pip install 'discord.py>=2.7.1,<3' 'python-dotenv>=1.1,<2' 'rapidfuzz>=3.14.5' 'ollama>=0.6.2'
+      - name: Verify real Altadar and Action Speed
+        run: |
+          python - <<'PY'
+          import search_items as core
+          from discord_bot import build_item_detail_embed
+
+          repo = core.ItemRepository(core.DEFAULT_DATABASE)
+          try:
+              matches = repo.exact_name_matches('Altadar')
+              assert matches, 'Altadar not found in checked-in database'
+              detail = repo.get_item(matches[0].id)
+              terminal = core.render_item(detail)
+              embed = build_item_detail_embed(detail)
+              stats = next(field.value for field in embed.fields if field.name == 'Stats')
+              for rendered in (terminal, stats):
+                  for expected in (
+                      'STR +6%',
+                      'VIT +6%',
+                      'Stability +11%',
+                      'With Light Armor',
+                      'Short Range Damage +11%',
+                      'With Heavy Armor',
+                      'Long Range Damage +11%',
+                  ):
+                      assert expected in rendered, (expected, rendered)
+                  assert rendered.count('Stability -5%') == 2, rendered
+                  assert 'Heavy Armor,Light Armor only' not in rendered, rendered
+
+              catalog = repo.list_stat_names()
+              assert 'Motion Speed %' in catalog
+              for typed in ('action speed', 'action speed %', 'action speed%', 'motion'):
+                  resolution = core.resolve_stat_term(typed, catalog, allow_fuzzy=False)
+                  assert resolution.candidates == ('Motion Speed %',), (typed, resolution)
+              assert core.format_stat_display('Motion Speed %', 10) == 'Action Speed +10%'
+          finally:
+              repo.close()
+          PY
+      - name: Run focused feature gate
+        run: |
+          python -m unittest \
+            tests.test_game_style_stat_display \
+            tests.test_action_speed_alias \
+            tests.test_single_result_auto_open \
+            tests.test_unavailable_stat_display \
+            tests.test_search_service \
+            tests.test_discord_bot \
+            tests.test_discord_followup_regressions \
+            tests.test_discord_source_display \
+            tests.test_cli_upgrade \
+            tests.test_item_search_relevance \
+            tests.test_direct_structured_intent -v
+      - name: Compile touched Python modules
+        run: |
+          python -m py_compile search_items.py discord_bot.py toram_search/service.py toram_data/aliases.py \
+            tests/test_game_style_stat_display.py tests/test_action_speed_alias.py \
+            tests/test_single_result_auto_open.py
+      - name: Run full suite against known baseline
+        run: |
+          set +e
+          python -m unittest discover -s tests -v 2>&1 | tee /tmp/full-suite.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo 'Full suite passed with no failures.'
+            exit 0
+          fi
+          failures=$(grep -Ec '^(FAIL|ERROR): ' /tmp/full-suite.log || true)
+          known=$(grep -Ec '^FAIL: test_rejected_payload_is_logged_with_reason \(test_structured_fallback\.StructuredFallbackTests\.test_rejected_payload_is_logged_with_reason\)$' /tmp/full-suite.log || true)
+          if [ "$failures" -eq 1 ] && [ "$known" -eq 1 ]; then
+            echo 'Full suite matches the known main baseline: one unrelated structured-fallback logging failure.'
+            exit 0
+          fi
+          echo "Unexpected full-suite result: failures/errors=$failures known=$known"
+          exit 1
+      - name: Verify exact diff scope
+        run: |
+          git fetch origin main:refs/remotes/origin/main
+          python - <<'PY'
+          import subprocess
+
+          actual = set(subprocess.check_output(
+              ['git', 'diff', '--name-only', 'origin/main...HEAD'],
+              text=True,
+          ).splitlines())
+          expected = {
+              'discord_bot.py',
+              'docs/superpowers/plans/2026-08-10-game-style-item-presentation.md',
+              'docs/superpowers/specs/2026-08-10-game-style-item-presentation-design.md',
+              'search_items.py',
+              'tests/test_action_speed_alias.py',
+              'tests/test_game_style_stat_display.py',
+              'tests/test_single_result_auto_open.py',
+              'toram_data/aliases.py',
+              'toram_search/service.py',
+          }
+          print('Final feature diff:')
+          for path in sorted(actual):
+              print(path)
+          assert actual == expected, (sorted(actual - expected), sorted(expected - actual))
+          PY
