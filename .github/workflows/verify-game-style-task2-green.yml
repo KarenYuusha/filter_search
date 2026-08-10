@@ -1,0 +1,57 @@
+name: Verify Game Style Task 2 GREEN
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check out feature branch
+        run: |
+          git fetch origin feature/game-style-item-presentation
+          git checkout -B feature/game-style-item-presentation origin/feature/game-style-item-presentation
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply Task 2 production changes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('search_items.py')
+          text = path.read_text(encoding='utf-8')
+
+          old = '''def _condition_label(row: StatRow | dict[str, Any]) -> str | None:\n    if isinstance(row, StatRow):\n        condition_text = row.condition_text\n        conditions_json = row.conditions_json\n        needs_review = row.needs_condition_review\n    else:\n        condition_text = row.get("condition_text")\n        conditions_json = row.get("conditions_json")\n        needs_review = bool(row.get("needs_condition_review"))\n    if condition_text:\n        label = str(condition_text)\n    else:\n        conditions = _parse_conditions(conditions_json)\n        label = ", ".join(conditions) if conditions else ""\n    if needs_review:\n        label = (label + " [needs review]").strip()\n    return label or None\n'''
+          new = '''_EQUIPMENT_CONDITION_NAMES = {\n    "1 handed sword": "1-Handed Sword",\n    "2 handed sword": "2-Handed Sword",\n    "bow": "Bow",\n    "bowgun": "Bowgun",\n    "katana": "Katana",\n    "staff": "Staff",\n    "magic device": "Magic Device",\n    "knuckles": "Knuckles",\n    "halberd": "Halberd",\n    "arrow": "Arrow",\n    "dagger": "Dagger",\n    "shield": "Shield",\n    "light armor": "Light Armor",\n    "heavy armor": "Heavy Armor",\n}\n\n\ndef _condition_fields(row: StatRow | dict[str, Any]) -> tuple[str | None, str, bool]:\n    if isinstance(row, StatRow):\n        return row.condition_text, row.conditions_json, row.needs_condition_review\n    return (\n        row.get("condition_text"),\n        str(row.get("conditions_json") or "[]"),\n        bool(row.get("needs_condition_review")),\n    )\n\n\ndef _raw_condition_label(row: StatRow | dict[str, Any]) -> str | None:\n    condition_text, conditions_json, _needs_review = _condition_fields(row)\n    if condition_text:\n        return str(condition_text)\n    conditions = _parse_conditions(conditions_json)\n    return ", ".join(conditions) if conditions else None\n\n\ndef _equipment_condition_names(row: StatRow | dict[str, Any]) -> tuple[str, ...]:\n    condition_text, conditions_json, _needs_review = _condition_fields(row)\n    parts = _parse_conditions(conditions_json)\n    if not parts and condition_text:\n        cleaned = re.sub(r"\\s+only\\s*$", "", str(condition_text), flags=re.IGNORECASE)\n        parts = [part.strip() for part in cleaned.split(",") if part.strip()]\n    if not parts:\n        return ()\n\n    visible: list[str] = []\n    for part in parts:\n        normalized = normalize_name(\n            re.sub(r"\\s+only\\s*$", "", part, flags=re.IGNORECASE)\n        )\n        display = _EQUIPMENT_CONDITION_NAMES.get(normalized)\n        if display is None:\n            return ()\n        if display not in visible:\n            visible.append(display)\n    return tuple(visible)\n\n\ndef format_condition_display(row: StatRow | dict[str, Any]) -> str | None:\n    names = _equipment_condition_names(row)\n    raw = _raw_condition_label(row)\n    _condition_text, _conditions_json, needs_review = _condition_fields(row)\n    label = "With " + " / ".join(names) if names else (raw or "")\n    if needs_review:\n        label = (label + " [needs review]").strip()\n    return label or None\n\n\ndef _condition_label(row: StatRow | dict[str, Any]) -> str | None:\n    return format_condition_display(row)\n\n\n@dataclass(frozen=True)\nclass StatDisplayGroup:\n    heading: str | None\n    lines: tuple[str, ...]\n\n\ndef build_item_stat_groups(\n    stats: Iterable[dict[str, Any]],\n) -> tuple[StatDisplayGroup, ...]:\n    unconditional: list[str] = []\n    order: list[str] = []\n    grouped: dict[str, list[str]] = {}\n\n    for stat in stats:\n        line = format_stat_display(\n            stat.get("stat_name") or "Unknown stat",\n            stat.get("amount"),\n        )\n        _condition_text, _conditions_json, needs_review = _condition_fields(stat)\n        equipment_names = _equipment_condition_names(stat)\n        raw_condition = _raw_condition_label(stat)\n\n        if needs_review:\n            line += " [needs review]"\n\n        if equipment_names:\n            headings = tuple(f"With {name}" for name in equipment_names)\n        elif raw_condition:\n            headings = (raw_condition,)\n        else:\n            unconditional.append(line)\n            continue\n\n        for heading in headings:\n            if heading not in grouped:\n                grouped[heading] = []\n                order.append(heading)\n            grouped[heading].append(line)\n\n    output: list[StatDisplayGroup] = []\n    if unconditional:\n        output.append(StatDisplayGroup(None, tuple(unconditional)))\n    output.extend(\n        StatDisplayGroup(heading, tuple(grouped[heading]))\n        for heading in order\n    )\n    return tuple(output)\n'''
+          if text.count(old) != 1:
+              raise SystemExit(f'expected one condition helper block, found {text.count(old)}')
+          text = text.replace(old, new, 1)
+
+          old = '''    lines.extend(["", "Stats:"])\n    if not detail.stats:\n        lines.append("- None")\n    else:\n        for stat in detail.stats:\n            suffix = _condition_label(stat)\n            rendered = "- " + format_stat_display(\n                stat.get("stat_name") or "Unknown stat",\n                stat.get("amount"),\n            )\n            if suffix:\n                rendered += f" [{suffix}]"\n            lines.append(rendered)\n'''
+          new = '''    lines.extend(["", "Stats:"])\n    groups = build_item_stat_groups(detail.stats)\n    if not groups:\n        lines.append("- None")\n    else:\n        for group_index, group in enumerate(groups):\n            if group.heading is not None:\n                if group_index > 0:\n                    lines.append("")\n                lines.append(f"{group.heading}:")\n            lines.extend(f"- {line}" for line in group.lines)\n'''
+          if text.count(old) != 1:
+              raise SystemExit(f'expected one item stat render block, found {text.count(old)}')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+      - name: Install focused dependencies
+        run: python -m pip install 'rapidfuzz>=3.14.5' 'ollama>=0.6.2' 'discord.py>=2.7.1,<3' 'python-dotenv>=1.1,<2'
+      - name: Compile
+        run: python -m py_compile search_items.py
+      - name: Run focused regressions
+        run: |
+          python -m unittest \
+            tests.test_game_style_stat_display \
+            tests.test_action_speed_alias \
+            tests.test_unavailable_stat_display -v
+      - name: Commit Task 2 production changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add search_items.py
+          git commit -m "feat: group item stats by equipment condition"
+          git push origin HEAD:feature/game-style-item-presentation
