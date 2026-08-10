@@ -5,6 +5,7 @@ from typing import Literal, Mapping
 
 import search_items as core
 from toram_search.fallback import SearchIntentRequest
+from toram_search.reconstruction import try_reconstruct_simple_search
 from toram_search.session import FailedQueryContext
 
 
@@ -232,6 +233,25 @@ class SearchService:
             )
         if route.kind == "refuse":
             return ServiceOutcome("refuse")
+
+        reconstruction = try_reconstruct_simple_search(
+            query,
+            available_stats=self.repository.list_stat_names(),
+            available_item_types=self.repository.list_item_types(),
+        )
+        if reconstruction.kind in {"success", "ambiguous"} and reconstruction.canonical_query:
+            reconstructed_route = core.route_deterministically(
+                reconstruction.canonical_query,
+                self.repository,
+                self.all_items,
+                self.help_service,
+                self.database_service,
+            )
+            if reconstructed_route.kind == "search" and reconstructed_route.parsed is not None:
+                return ServiceOutcome(
+                    "search",
+                    payload=self._materialize(reconstructed_route.parsed, {}),
+                )
 
         if route.record_failure:
             context.record_failure(query)
