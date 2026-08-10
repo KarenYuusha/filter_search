@@ -1107,10 +1107,29 @@ def format_stat_value(stat_name: object, amount: object, *, signed: bool = True)
     return _format_number(amount, signed=signed)
 
 
+_STAT_DISPLAY_ALIASES = {
+    "motion speed %": "Action Speed",
+}
+
+
+def format_stat_name(stat_name: object) -> tuple[str, str]:
+    raw_name = str(stat_name or "Unknown stat")
+    normalized = normalize_stat_text(raw_name)
+    has_trailing_percent = normalized.endswith(" %") and raw_name.rstrip().endswith("%")
+    visible_name = raw_name.rstrip()
+    value_suffix = "%" if has_trailing_percent else ""
+    if has_trailing_percent:
+        visible_name = visible_name[:-1].rstrip()
+    visible_name = _STAT_DISPLAY_ALIASES.get(normalized, visible_name)
+    return visible_name, value_suffix
+
+
 def format_stat_display(stat_name: object, amount: object) -> str:
-    name = str(stat_name or "Unknown stat")
-    value = format_stat_value(name, amount, signed=True)
-    return name if not value else f"{name} {value}"
+    visible_name, value_suffix = format_stat_name(stat_name)
+    value = format_stat_value(stat_name, amount, signed=True)
+    if not value:
+        return visible_name
+    return f"{visible_name} {value}{value_suffix}"
 
 
 def _parse_conditions(raw: Any) -> list[str]:
