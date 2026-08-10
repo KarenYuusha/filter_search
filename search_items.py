@@ -1406,19 +1406,21 @@ def render_stat_results(
         "",
     ]
     for index, result in enumerate(current, start=1):
+        primary_line = format_stat_display(stat_name, result.primary.amount)
+        condition = format_condition_display(result.primary)
+        if condition:
+            primary_line += f" [{condition}]"
         lines.append(
             f"{index}. {result.item.name} — {result.item.item_type} — "
-            + format_stat_display(stat_name, result.primary.amount)
+            + primary_line
         )
-        condition = _condition_label(result.primary)
-        if condition:
-            lines.append(f"   Condition: {condition}")
         for alternative in result.alternatives:
-            alternative_value = format_stat_value(stat_name, alternative.amount, signed=True)
-            alternative_line = f"   Also: {alternative_value or stat_name}"
-            alternative_condition = _condition_label(alternative)
+            alternative_line = "   Also: " + format_stat_display(
+                stat_name, alternative.amount
+            )
+            alternative_condition = format_condition_display(alternative)
             if alternative_condition:
-                alternative_line += f" — {alternative_condition}"
+                alternative_line += f" [{alternative_condition}]"
             lines.append(alternative_line)
     if not results:
         lines.append("No matching items found.")
