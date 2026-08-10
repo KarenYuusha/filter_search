@@ -4,9 +4,9 @@
 
 **Goal:** Let users search with flexible natural wording without memorizing compact syntax, while keeping simple known queries off the LLM path and validating every LLM proposal before database execution.
 
-**Architecture:** Preserve `route_deterministically` as the first fast path. Add a small deterministic reconstruction module that recognizes one known stat plus one known item filter in flexible order and compiles that intent back into a canonical query that must pass the existing router. Only unresolved cases call Qwen once; valid Qwen search output remains confirmation-gated, and failed Qwen output may attach a parser-validated suggestion for Discord to display.
+**Architecture:** Keep `route_deterministically` as the first fast path. Add one strict deterministic reconstruction module that recognizes a single known stat plus a single known item filter in flexible order, then compiles that interpretation back into a canonical query which must pass the existing router. Only unresolved cases call Qwen once; successful Qwen search interpretations remain confirmation-gated, while failed Qwen interpretations may return one parser-validated suggestion.
 
-**Tech Stack:** Python 3, `unittest`, existing `toram_data` parser/alias modules, `toram_search.SearchService`, constrained Ollama/Qwen fallback, Discord.py.
+**Tech Stack:** Python 3, `unittest`, existing `toram_data` alias/parser code, `toram_search.SearchService`, constrained Ollama/Qwen fallback, Discord.py.
 
 ## Global Constraints
 
@@ -17,31 +17,31 @@
 - Make at most one Qwen interpretation call per user query.
 - Qwen interprets meaning; Python validates; the database answers.
 - Qwen must never write arbitrary SQL, directly choose database rows, or answer item facts from memory.
-- Automatic deterministic reconstruction may use only exact canonical stats, exact unambiguous aliases, intentional item-word aliases, and exact known item-filter phrases; no fuzzy semantic execution.
+- Automatic reconstruction may use only exact canonical stats, exact unambiguous aliases, intentional item-word aliases, and exact known item-filter phrases; no fuzzy semantic execution.
 - Explicit parser ambiguity such as `crit` must remain a clarification, not a guessed stat.
 - Unknown meaningful tokens must never be silently discarded to force a match.
-- The first reconstruction version supports one stat + one item filter + conservative filler words only.
-- Comparison, Boolean, multi-stat, and ranking reconstruction are out of the automatic v1 path unless the existing deterministic parser already handled the original query.
+- Automatic v1 reconstruction supports one stat + one item filter + conservative filler words only.
+- Comparison, Boolean, multi-stat, and ranking reconstruction are not added to the automatic v1 path.
 - Post-Qwen suggestions are guidance only and must never auto-execute.
 - Every generated canonical query or suggestion must pass the existing deterministic router before use.
 - `refuse` and `unavailable` behavior remains unchanged.
-- Keep build concepts such as tank/DPS/build out of scope.
-- Current `main` already contains PR #67 (`ecf04bbd235a6706fd75cbd9f93ed490693b54fa`); create the implementation branch from the latest `main`, not from the documentation branch.
-- The suite has historically contained one unrelated structured-fallback logging assertion failure; refresh the baseline from `main` at execution time and require this feature branch to be no worse than that baseline.
+- Keep tank/DPS/build concepts out of scope.
+- Current `main` contains merged PR #67 at commit `ecf04bbd235a6706fd75cbd9f93ed490693b54fa`; create the implementation branch from the latest `main`, not from this documentation branch.
+- Refresh the full-suite baseline from clean `main` before final verification. The feature branch must introduce zero new failures relative to that baseline.
 
-## File Structure
+## File Map
 
-- Modify `toram_data/stat_query.py` — expose the parser-owned item-filter phrase catalog without duplicating filter definitions.
-- Create `toram_search/reconstruction.py` — normalize tokens, perform strict one-stat/one-filter reconstruction, and generate safe high-confidence suggestions.
-- Modify `toram_search/service.py` — insert reconstruction before failed-query recording/Qwen and attach safe suggestions only after Qwen failure.
-- Modify `discord_bot.py` — render a query-specific `Did you mean` message when `ServiceOutcome.suggested_query` exists.
-- Create `tests/test_query_reconstruction.py` — focused unit tests for reconstruction/suggestion semantics.
-- Modify `tests/test_search_service.py` — orchestration, call-count, history, ambiguity, and fallback tests.
-- Modify `tests/test_discord_bot.py` — rendering tests for specific suggestions vs existing generic examples.
+- Modify `toram_data/stat_query.py` — expose the existing item-filter phrase catalog without duplicating filter definitions.
+- Create `toram_search/reconstruction.py` — strict flexible-order reconstruction and safe suggestion generation.
+- Modify `toram_search/service.py` — pre-Qwen reconstruction, failed-query suggestion attachment, and one-call orchestration.
+- Modify `discord_bot.py` — render specific suggestions when available.
+- Create `tests/test_query_reconstruction.py` — reconstruction unit tests.
+- Modify `tests/test_search_service.py` — service routing, Qwen-call-count, history, and ambiguity tests.
+- Modify `tests/test_discord_bot.py` — Discord rendering tests.
 
 ---
 
-### Task 1: Expose Parser-Owned Filter Phrases and Build Strict Reconstruction
+### Task 1: Build the Strict Reconstruction Component
 
 **Files:**
 - Modify: `toram_data/stat_query.py`
@@ -54,11 +54,11 @@
 - Produces: `ReconstructionResult(kind, canonical_query, stat_resolution, filter_phrase)`
 - Produces: `try_reconstruct_simple_search(raw_query: str, *, available_stats: Iterable[str], available_item_types: set[str]) -> ReconstructionResult`
 - Produces: `try_suggest_query(raw_query: str, *, available_stats: Iterable[str], available_item_types: set[str]) -> str | None`
-- Depends on: `ITEM_WORD_ALIASES`, `STAT_ALIASES`, `resolve_stat_term(..., allow_fuzzy=False)`, `preferred_stat_alias`, and the existing `_filter_candidates()` definitions.
+- Depends on: `ITEM_WORD_ALIASES`, `resolve_stat_term(..., allow_fuzzy=False)`, `preferred_stat_alias`, and the existing `_filter_candidates()` definitions.
 
-- [ ] **Step 1: Write failing reconstruction tests**
+- [ ] **Step 1: Write failing unit tests**
 
-Create `tests/test_query_reconstruction.py` with the real alias/filter vocabulary but no database dependency:
+Create `tests/test_query_reconstruction.py`:
 
 ```python
 import unittest
@@ -98,7 +98,7 @@ class QueryReconstructionTests(unittest.TestCase):
             ("Weapon Crysta", "Enhancer Crysta (Red)"),
         )
 
-    def test_reconstruction_is_order_independent_for_known_tokens(self):
+    def test_order_independent_known_tokens(self):
         self.assertEqual(
             self.reconstruct("weapon xtall cr").canonical_query,
             "cr wp xtal",
@@ -124,18 +124,20 @@ class QueryReconstructionTests(unittest.TestCase):
         self.assertEqual(result.kind, "unsafe")
         self.assertIsNone(result.canonical_query)
 
-    def test_multi_stat_reconstruction_is_not_automatic(self):
+    def test_multiple_stats_are_not_auto_reconstructed(self):
         result = self.reconstruct("cr cd weapon xtal")
         self.assertEqual(result.kind, "unsafe")
         self.assertIsNone(result.canonical_query)
 
-    def test_comparison_and_boolean_syntax_is_not_reconstructed(self):
+    def test_comparison_and_boolean_are_not_auto_reconstructed(self):
         self.assertNotEqual(self.reconstruct("cr > 10 weapon xtal").kind, "success")
         self.assertNotEqual(self.reconstruct("cr and cd weapon xtal").kind, "success")
 
-    def test_highest_word_is_guidance_only_in_v1(self):
-        result = self.reconstruct("highest xtall cr weapon")
-        self.assertNotEqual(result.kind, "success")
+    def test_highest_is_suggestion_only_in_v1(self):
+        self.assertNotEqual(
+            self.reconstruct("highest xtall cr weapon").kind,
+            "success",
+        )
         self.assertEqual(
             try_suggest_query(
                 "highest xtall cr weapon",
@@ -159,7 +161,7 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Run the tests and observe RED**
+- [ ] **Step 2: Run the new tests and verify RED**
 
 Run:
 
@@ -167,11 +169,11 @@ Run:
 python -m unittest tests.test_query_reconstruction -v
 ```
 
-Expected: FAIL because `toram_search.reconstruction` and the public filter-phrase interface do not exist yet.
+Expected: FAIL because `toram_search.reconstruction` does not exist.
 
-- [ ] **Step 3: Expose the existing filter catalog without copying it**
+- [ ] **Step 3: Expose the parser-owned filter phrase catalog**
 
-In `toram_data/stat_query.py`, add a public representation directly above `_filter_candidates()` and build it from the existing private source of truth:
+In `toram_data/stat_query.py`, add this public dataclass near `ItemTypeFilter`:
 
 ```python
 @dataclass(frozen=True)
@@ -179,8 +181,11 @@ class ItemFilterPhrase:
     phrase: str
     label: str
     item_types: tuple[str, ...]
+```
 
+Add this function after `_filter_candidates()` so it reuses the existing source of truth:
 
+```python
 def list_item_filter_phrases(
     available_item_types: set[str],
 ) -> tuple[ItemFilterPhrase, ...]:
@@ -198,11 +203,11 @@ def list_item_filter_phrases(
     return tuple(output)
 ```
 
-Do not move or duplicate the existing `combinations` dictionary. The new function must call `_filter_candidates()` so future alias/filter changes automatically affect reconstruction.
+Do not duplicate the current `combinations` dictionary. Future filter aliases must continue to have one source of truth.
 
-- [ ] **Step 4: Implement strict reconstruction in a new module**
+- [ ] **Step 4: Create the reconstruction result types and constants**
 
-Create `toram_search/reconstruction.py`. Keep it independent of `search_items.py` to avoid circular imports:
+Create `toram_search/reconstruction.py`:
 
 ```python
 from __future__ import annotations
@@ -214,7 +219,6 @@ from typing import Iterable, Literal
 
 from toram_data.aliases import (
     ITEM_WORD_ALIASES,
-    STAT_ALIASES,
     StatTermResolution,
     normalize_stat_text,
     preferred_stat_alias,
@@ -241,12 +245,16 @@ class ReconstructionResult:
     filter_phrase: ItemFilterPhrase | None = None
 ```
 
-Implement private helpers with these rules:
+- [ ] **Step 5: Implement exact token normalization and filter matching**
+
+Use explicit aliases only:
 
 ```python
 def _normalized_tokens(raw_query: str) -> list[str]:
-    tokens = normalize_stat_text(raw_query).split()
-    return [ITEM_WORD_ALIASES.get(token, token) for token in tokens]
+    return [
+        ITEM_WORD_ALIASES.get(token, token)
+        for token in normalize_stat_text(raw_query).split()
+    ]
 
 
 def _semantic_filter_key(row: ItemFilterPhrase) -> tuple[str, tuple[str, ...]]:
@@ -265,9 +273,27 @@ def _preferred_filter_phrase(
     return min(same_filter, key=lambda value: (len(value.split()), len(value), value))
 ```
 
-When matching filters, compare token **multisets** (`Counter`) so `xtal weapon` can match the existing `weapon xtal` phrase. Keep only candidates with the largest number of matched filter tokens. If those largest candidates map to more than one semantic filter key, return `unsafe` instead of guessing. Remove only the matched filter-token counts from the original token sequence, preserving the remaining token order.
+For filter recognition:
 
-After filter removal, remove only `_FILLER_WORDS`. The remaining tokens must form exactly one stat phrase. Resolve that phrase using:
+1. Build `Counter(input_tokens)`.
+2. A filter phrase is eligible only when `Counter(phrase.split())` is a subset of the input counter.
+3. Keep only eligible phrases with the maximum number of phrase tokens.
+4. Group those maximum-length matches by `(label, item_types)`.
+5. If more than one semantic group remains, return `unsafe`.
+6. Remove only the selected phrase's token counts from the input sequence, preserving the order of all remaining tokens.
+
+This makes `xtal weapon` match the existing `weapon xtal` filter while preventing a shorter `weapon` filter from winning when `weapon xtal` is present.
+
+- [ ] **Step 6: Implement simple reconstruction**
+
+`try_reconstruct_simple_search` must:
+
+1. Return `unsafe` immediately when `_COMPLEX_RE` matches the raw query.
+2. Return `unsafe` when any `_HIGH_RANK_WORDS` appears; ranking is not automatic v1 reconstruction.
+3. Resolve exactly one semantic item filter using Step 5.
+4. Remove `_FILLER_WORDS` only after filter-token removal.
+5. Join all remaining tokens into one stat phrase.
+6. Call:
 
 ```python
 resolution = resolve_stat_term(
@@ -277,7 +303,7 @@ resolution = resolve_stat_term(
 )
 ```
 
-Render the stat portion as follows:
+7. Render the stat token with:
 
 ```python
 normalized_stat = normalize_stat_text(stat_text)
@@ -287,13 +313,25 @@ else:
     rendered_stat = preferred_stat_alias(resolution.candidates[0]) or normalized_stat
 ```
 
-Return `success` only for `exact` or `alias`; return `ambiguous` only for `ambiguous`; return `unsafe` for unknown/fuzzy/multiple-stat leftovers. Return `no_match` when no supported item filter can be identified.
+8. Render the preferred filter phrase using `_preferred_filter_phrase`.
+9. Return `success` only for `exact`/`alias` resolution.
+10. Return `ambiguous` only for `ambiguous` resolution.
+11. Return `unsafe` for `unknown`, `fuzzy`, empty stat text, or leftover text that does not resolve as one stat.
+12. Return `no_match` when no item filter is recognized.
 
-`try_reconstruct_simple_search` must reject `_COMPLEX_RE` and any `_HIGH_RANK_WORDS` before automatic reconstruction.
+The canonical query is:
 
-`try_suggest_query` may additionally consume exactly one high-rank word (`highest`, `best`, or `most`) because ordinary stat results are already highest-first. It must still reject comparison/Boolean syntax, ambiguous stats, unknown tokens, and multiple stats.
+```python
+canonical_query = f"{rendered_stat} {preferred_filter}"
+```
 
-- [ ] **Step 5: Run reconstruction tests and the existing parser tests**
+- [ ] **Step 7: Implement safe suggestion generation**
+
+`try_suggest_query` uses the same recognition primitives but may consume exactly one word from `_HIGH_RANK_WORDS`. It still rejects comparisons, Boolean expressions, ambiguous stats, unknown tokens, and multi-stat input.
+
+For `highest xtall cr weapon`, return `cr wp xtal`. This is semantically safe because ordinary stat-result ordering is already highest-first.
+
+- [ ] **Step 8: Run reconstruction and parser regressions**
 
 Run:
 
@@ -304,9 +342,9 @@ python -m unittest \
   tests.test_natural_give_ranking -v
 ```
 
-Expected: PASS. Existing deterministic grammar behavior must be unchanged.
+Expected: PASS.
 
-- [ ] **Step 6: Commit Task 1**
+- [ ] **Step 9: Commit Task 1**
 
 ```bash
 git add toram_data/stat_query.py toram_search/reconstruction.py tests/test_query_reconstruction.py
@@ -315,20 +353,20 @@ git commit -m "feat: add deterministic query reconstruction"
 
 ---
 
-### Task 2: Insert Reconstruction Before Failed History and Qwen
+### Task 2: Route High-Confidence Reconstruction Before Qwen
 
 **Files:**
 - Modify: `toram_search/service.py`
 - Modify: `tests/test_search_service.py`
 
 **Interfaces:**
-- Consumes: `try_reconstruct_simple_search(...) -> ReconstructionResult` from Task 1.
-- Produces: `SearchService.handle_query` behavior where reconstructed searches are routed through `core.route_deterministically` and materialized through the existing `_materialize` path.
-- Invariant: successful/ambiguous reconstruction must not call Qwen and must not add a `FailedQueryContext` entry.
+- Consumes: `try_reconstruct_simple_search(...)` from Task 1.
+- Produces: reconstructed queries re-enter `core.route_deterministically` and the existing `_materialize` path.
+- Invariant: successful or ambiguous reconstruction does not call Qwen and does not create failed-query history.
 
-- [ ] **Step 1: Add failing service tests for reordered tokens and ambiguity**
+- [ ] **Step 1: Expand the service fake repository for weapon crysta filters**
 
-Extend `FakeRepository.item_types` in `tests/test_search_service.py` so it contains the real combined filter types:
+In `FakeRepository.__init__`:
 
 ```python
 self.item_types = {
@@ -339,7 +377,9 @@ self.item_types = {
 }
 ```
 
-Add these tests:
+- [ ] **Step 2: Add failing pre-Qwen routing tests**
+
+Add to `SearchServiceTests`:
 
 ```python
 def test_reconstructed_weapon_xtal_query_never_calls_qwen_or_records_failure(self):
@@ -375,7 +415,7 @@ def test_reconstructed_crit_returns_existing_clarification_without_qwen(self):
     self.assertEqual(repository.expression_calls, [])
 ```
 
-- [ ] **Step 2: Run the two new tests and observe RED**
+- [ ] **Step 3: Run both tests and verify RED**
 
 Run:
 
@@ -385,17 +425,17 @@ python -m unittest \
   tests.test_search_service.SearchServiceTests.test_reconstructed_crit_returns_existing_clarification_without_qwen -v
 ```
 
-Expected: FAIL because `SearchService.handle_query` currently records the failed query and invokes fallback immediately after `route_deterministically` misses.
+Expected: FAIL because `handle_query` currently reaches fallback after the first deterministic route misses.
 
-- [ ] **Step 3: Integrate reconstruction in `SearchService.handle_query`**
+- [ ] **Step 4: Insert reconstruction before failed-query recording**
 
-Import:
+In `toram_search/service.py`, import:
 
 ```python
 from toram_search.reconstruction import try_reconstruct_simple_search
 ```
 
-Immediately before the existing `if route.record_failure: context.record_failure(query)` block, add a reconstruction attempt:
+Immediately before the current `if route.record_failure:` block, add:
 
 ```python
 reconstruction = try_reconstruct_simple_search(
@@ -418,9 +458,9 @@ if reconstruction.kind in {"success", "ambiguous"} and reconstruction.canonical_
         )
 ```
 
-Do **not** call a new executor from reconstruction. If the canonical query cannot re-enter the existing deterministic search path, fall through to the current failure/Qwen flow.
+Do not add a separate reconstruction executor. If the canonical query cannot pass the existing router, fall through to the existing failed-history/Qwen path.
 
-- [ ] **Step 4: Re-run service tests**
+- [ ] **Step 5: Run all service tests**
 
 Run:
 
@@ -428,32 +468,32 @@ Run:
 python -m unittest tests.test_search_service -v
 ```
 
-Expected: PASS. In particular, existing `test_qwen_search_requires_confirmation_before_execution` must remain green, proving genuinely unresolved language still reaches Qwen and does not execute immediately.
+Expected: PASS. Existing natural deterministic tests still bypass Qwen; existing unresolved natural wording still returns `confirm_search` and does not execute before confirmation.
 
-- [ ] **Step 5: Commit Task 2**
+- [ ] **Step 6: Commit Task 2**
 
 ```bash
 git add toram_search/service.py tests/test_search_service.py
-git commit -m "feat: route high confidence reconstruction before qwen"
+git commit -m "feat: route reconstructed queries before qwen"
 ```
 
 ---
 
-### Task 3: Attach Safe Suggestions Only After Qwen Failure
+### Task 3: Add One-Call Failed-Query Suggestions
 
 **Files:**
 - Modify: `toram_search/service.py`
 - Modify: `tests/test_search_service.py`
 
 **Interfaces:**
-- Consumes: `try_suggest_query(...) -> str | None` from Task 1.
+- Consumes: `try_suggest_query(...)` from Task 1.
 - Produces: `ServiceOutcome.suggested_query: str | None`.
-- Invariant: suggestion generation runs only after fallback returns `failed`; it does not run for `refuse` or `unavailable`.
-- Invariant: Qwen is still called at most once.
+- Invariant: suggestions are attempted only after fallback kind `failed`.
+- Invariant: `refuse`, `unavailable`, valid Qwen searches, help, and database actions retain current behavior.
 
-- [ ] **Step 1: Make the fake LLM observable and write failing tests**
+- [ ] **Step 1: Make `FakeLLM` count calls**
 
-Change `FakeLLM` in `tests/test_search_service.py` to count calls without changing its existing behavior:
+Replace it with:
 
 ```python
 class FakeLLM:
@@ -466,10 +506,12 @@ class FakeLLM:
         return self.payload
 ```
 
+- [ ] **Step 2: Add failing suggestion and one-call tests**
+
 Add:
 
 ```python
-def test_failed_qwen_can_attach_parser_validated_specific_suggestion(self):
+def test_failed_qwen_attaches_safe_specific_suggestion_once(self):
     repository = FakeRepository()
     llm = FakeLLM({"intent": "search", "candidates": []})
     service = SearchService(repository, llm_client=llm)
@@ -484,7 +526,7 @@ def test_failed_qwen_can_attach_parser_validated_specific_suggestion(self):
     self.assertEqual(repository.expression_calls, [])
 
 
-def test_failed_qwen_does_not_guess_ambiguous_crit_suggestion(self):
+def test_failed_qwen_does_not_guess_ambiguous_crit(self):
     repository = FakeRepository()
     llm = FakeLLM({"intent": "search", "candidates": []})
     service = SearchService(repository, llm_client=llm)
@@ -499,7 +541,7 @@ def test_failed_qwen_does_not_guess_ambiguous_crit_suggestion(self):
     self.assertEqual(llm.calls, 1)
 
 
-def test_qwen_success_still_uses_confirmation_and_no_post_failure_suggestion(self):
+def test_successful_qwen_interpretation_is_still_confirmation_gated(self):
     repository = FakeRepository()
     llm = FakeLLM({
         "intent": "search",
@@ -520,7 +562,7 @@ def test_qwen_success_still_uses_confirmation_and_no_post_failure_suggestion(sel
     self.assertEqual(repository.expression_calls, [])
 ```
 
-- [ ] **Step 2: Run the new tests and observe RED**
+- [ ] **Step 3: Run service tests and verify RED**
 
 Run:
 
@@ -528,11 +570,11 @@ Run:
 python -m unittest tests.test_search_service -v
 ```
 
-Expected: FAIL because `ServiceOutcome` has no `suggested_query` and the final failed branch does not call deterministic guidance.
+Expected: FAIL because `ServiceOutcome` has no suggestion field and failed fallback does not run the deterministic suggestion helper.
 
-- [ ] **Step 3: Add `suggested_query` to the frontend-neutral service outcome**
+- [ ] **Step 4: Extend `ServiceOutcome`**
 
-Update the dataclass in `toram_search/service.py`:
+Append one optional field:
 
 ```python
 @dataclass(frozen=True)
@@ -544,13 +586,20 @@ class ServiceOutcome:
     suggested_query: str | None = None
 ```
 
-This field is intentionally separate from `text`; other frontends may want to render it differently.
+Appending the field preserves all existing positional construction.
 
-- [ ] **Step 4: Add post-Qwen guidance with deterministic re-validation**
+- [ ] **Step 5: Add parser-validated suggestion handling only to the final failed branch**
 
-Import `try_suggest_query` beside the reconstruction import. Preserve all existing `search_requests`, `database_action`, `help`, `refuse`, and `unavailable` branches.
+Import:
 
-Only in the final fallback-failed path:
+```python
+from toram_search.reconstruction import (
+    try_reconstruct_simple_search,
+    try_suggest_query,
+)
+```
+
+After all existing successful/refuse/unavailable fallback branches and immediately before the final `ServiceOutcome("failed")`, add:
 
 ```python
 suggestion = try_suggest_query(
@@ -572,13 +621,27 @@ if suggestion is not None:
 return ServiceOutcome("failed")
 ```
 
-Do not call `_materialize` here; a suggestion is validation/guidance, not a search execution. `route_deterministically` must prove the suggested string is accepted by the existing parser before it is exposed.
+Do not call `_materialize` in this path. The suggestion is guidance, not an automatic database search.
 
-- [ ] **Step 5: Add explicit regressions for unavailable/refuse**
+- [ ] **Step 6: Add `refuse` and `unavailable` preservation assertions using existing fallback test fakes**
 
-Use fake clients/payloads already supported by the fallback tests and assert `suggested_query is None` for `unavailable` and `refuse`. If `LLMUnavailableError` is easier to trigger through the existing fake patterns in `tests/test_structured_fallback.py`, add the service assertion there rather than inventing a new exception fake.
+Where `tests/test_search_service.py` already constructs or can cheaply construct these outcomes, assert:
 
-- [ ] **Step 6: Run service and fallback contract tests**
+```python
+self.assertEqual(outcome.kind, "refuse")
+self.assertIsNone(outcome.suggested_query)
+```
+
+and:
+
+```python
+self.assertEqual(outcome.kind, "unavailable")
+self.assertIsNone(outcome.suggested_query)
+```
+
+Reuse the repository and LLM exception/payload patterns already used by `tests/test_structured_fallback.py`; do not create a second fallback implementation for testing.
+
+- [ ] **Step 7: Run service plus fallback-contract tests**
 
 Run:
 
@@ -588,20 +651,18 @@ python -m unittest \
   tests.test_structured_fallback -v
 ```
 
-Expected: all feature-related tests PASS. If the historical logging-message assertion still fails on current `main`, confirm the exact same single failure occurs on a clean `main` baseline; do not change unrelated logging in this task.
+Expected: no new failures relative to clean `main`. Qwen is called once on unresolved success and unresolved failure paths; valid search proposals remain confirmation-gated.
 
-- [ ] **Step 7: Commit Task 3**
+- [ ] **Step 8: Commit Task 3**
 
 ```bash
-git add toram_search/service.py tests/test_search_service.py tests/test_structured_fallback.py
+git add toram_search/service.py tests/test_search_service.py
 git commit -m "feat: add safe failed query suggestions"
 ```
 
-If `tests/test_structured_fallback.py` required no edit, omit it from `git add`.
-
 ---
 
-### Task 4: Render Query-Specific Suggestions in Discord
+### Task 4: Render Specific Suggestions in Discord
 
 **Files:**
 - Modify: `discord_bot.py`
@@ -609,12 +670,12 @@ If `tests/test_structured_fallback.py` required no edit, omit it from `git add`.
 
 **Interfaces:**
 - Consumes: `ServiceOutcome.suggested_query` from Task 3.
-- Produces: failed Discord embed with `Did you mean: @Bot <query>` when present.
-- Preserves: existing three generic examples when no suggestion exists.
+- Produces: `Did you mean: @Bot <query>` on failed outcomes with a suggestion.
+- Preserves: current three generic examples when no suggestion exists.
 
-- [ ] **Step 1: Write failing Discord rendering tests**
+- [ ] **Step 1: Add failing Discord rendering tests**
 
-Update imports in `tests/test_discord_bot.py`:
+Update the service import in `tests/test_discord_bot.py`:
 
 ```python
 from toram_search.service import (
@@ -624,7 +685,7 @@ from toram_search.service import (
 )
 ```
 
-Add to `DiscordFormattingTests`:
+Add:
 
 ```python
 def test_failed_outcome_with_specific_suggestion_replaces_generic_examples(self):
@@ -670,7 +731,7 @@ def test_failed_outcome_without_suggestion_keeps_generic_examples(self):
     self.assertIsNone(file)
 ```
 
-- [ ] **Step 2: Run the two tests and observe RED**
+- [ ] **Step 2: Run the two new tests and verify RED**
 
 Run:
 
@@ -680,11 +741,11 @@ python -m unittest \
   tests.test_discord_bot.DiscordFormattingTests.test_failed_outcome_without_suggestion_keeps_generic_examples -v
 ```
 
-Expected: first test FAIL because the current failed branch always renders generic examples.
+Expected: the specific-suggestion test FAILS because the current failed branch always renders generic examples.
 
 - [ ] **Step 3: Update only the `failed` rendering branch**
 
-In `build_service_outcome_message`, replace the current `if outcome.kind == "failed":` body with:
+In `build_service_outcome_message`:
 
 ```python
 if outcome.kind == "failed":
@@ -707,7 +768,7 @@ if outcome.kind == "failed":
     )
 ```
 
-Do not add a Search button or automatically call `confirm_search_request`; the user explicitly retries a post-failure suggestion.
+Do not add a Search button and do not auto-run the suggestion.
 
 - [ ] **Step 4: Run all Discord tests**
 
@@ -728,98 +789,31 @@ git commit -m "feat: show specific failed query suggestions"
 
 ---
 
-### Task 5: Verify Qwen Remains a Constrained Interpreter, Not an Executor
+### Task 5: Real-Database and Full Regression Verification
 
 **Files:**
-- Modify only if a missing regression is discovered: `tests/test_search_service.py`
-- Modify only if a missing contract regression is discovered: `tests/test_structured_fallback.py`
+- No production edits expected.
+- Verify: `toram_data/stat_query.py`, `toram_search/reconstruction.py`, `toram_search/service.py`, `discord_bot.py`, and related tests.
 
 **Interfaces:**
-- Confirms the existing contract rather than adding a new execution path.
-- Qwen search proposals must still return `confirm_search` before database execution.
-- Confirmed requests must still pass `parse_structured_search_request` and `_materialize`.
+- Proves the original problematic query succeeds through the real checked-in database without Qwen.
+- Proves `crit` ambiguity remains deterministic.
+- Proves unresolved natural language still calls Qwen once and remains confirmation-gated.
+- Proves the branch is no worse than clean `main` on the full suite.
 
-- [ ] **Step 1: Run the existing Qwen confirmation/validation regressions**
+- [ ] **Step 1: Refresh the clean-main baseline before judging the feature branch**
 
-Run:
-
-```bash
-python -m unittest \
-  tests.test_search_service.SearchServiceTests.test_qwen_search_requires_confirmation_before_execution \
-  tests.test_search_service.SearchServiceTests.test_confirmed_qwen_request_is_validated_then_executed \
-  tests.test_structured_fallback -v
-```
-
-Expected: the two service tests PASS. Structured fallback should match the refreshed `main` baseline exactly.
-
-- [ ] **Step 2: Add a regression only if current coverage does not prove one-call behavior**
-
-If Task 3's `FakeLLM.calls` assertions already cover both Qwen success and failure, no code change is needed. Otherwise add:
-
-```python
-def test_unresolved_natural_query_calls_qwen_once(self):
-    repository = FakeRepository()
-    llm = FakeLLM({
-        "intent": "search",
-        "candidates": [
-            {"item_filter": "armor", "stats": [{"name": "MaxHP"}]}
-        ],
-    })
-    service = SearchService(repository, llm_client=llm)
-
-    outcome = service.handle_query(
-        "could you locate protective equipment that increases health",
-        FailedQueryContext(max_entries=3),
-    )
-
-    self.assertEqual(outcome.kind, "confirm_search")
-    self.assertEqual(llm.calls, 1)
-    self.assertEqual(repository.expression_calls, [])
-```
-
-- [ ] **Step 3: Run the focused hybrid interpretation gate**
-
-Run:
+In a clean worktree or temporary branch at current `main`, run:
 
 ```bash
-python -m unittest \
-  tests.test_query_reconstruction \
-  tests.test_direct_structured_intent \
-  tests.test_natural_give_ranking \
-  tests.test_search_service \
-  tests.test_discord_bot \
-  tests.test_structured_fallback -v
+python -m unittest discover -s tests -v
 ```
 
-Expected: no new failures relative to current `main`.
+Record the exact failing test names, if any. Do not modify `main` to make the feature branch look green.
 
-- [ ] **Step 4: Commit any test-only additions from this task**
+- [ ] **Step 2: Compile every modified Python file**
 
-If Step 2 added coverage:
-
-```bash
-git add tests/test_search_service.py tests/test_structured_fallback.py
-git commit -m "test: lock hybrid qwen routing contract"
-```
-
-If no file changed, do not create an empty commit.
-
----
-
-### Task 6: Real-Database Verification and Full Regression Gate
-
-**Files:**
-- No production files expected.
-- Verify: `toram_data/stat_query.py`, `toram_search/reconstruction.py`, `toram_search/service.py`, `discord_bot.py`, and their tests.
-
-**Interfaces:**
-- Proves the target query works with the checked-in Toram database and no Qwen call.
-- Proves ambiguous `crit` still returns deterministic clarification.
-- Proves the branch does not worsen the full-suite baseline.
-
-- [ ] **Step 1: Compile all modified Python files**
-
-Run:
+On the feature branch, run:
 
 ```bash
 python -m py_compile \
@@ -834,7 +828,7 @@ python -m py_compile \
 
 Expected: exit code 0.
 
-- [ ] **Step 2: Verify `xtall cr weapon` through the real service without Qwen**
+- [ ] **Step 3: Verify `xtall cr weapon` with the real service and a forbidden LLM**
 
 Run:
 
@@ -867,9 +861,9 @@ print("real reconstruction OK")
 PY
 ```
 
-Expected: prints `real reconstruction OK` and never calls Qwen.
+Expected: prints `real reconstruction OK`.
 
-- [ ] **Step 3: Verify real ambiguous reconstruction does not guess**
+- [ ] **Step 4: Verify real `crit` ambiguity without Qwen**
 
 Run:
 
@@ -902,7 +896,23 @@ PY
 
 Expected: prints `real ambiguity guard OK`.
 
-- [ ] **Step 4: Run the full test suite**
+- [ ] **Step 5: Run the focused hybrid gate**
+
+Run:
+
+```bash
+python -m unittest \
+  tests.test_query_reconstruction \
+  tests.test_direct_structured_intent \
+  tests.test_natural_give_ranking \
+  tests.test_search_service \
+  tests.test_discord_bot \
+  tests.test_structured_fallback -v
+```
+
+Expected: zero new failures relative to the clean-main baseline. The `SearchService` tests must explicitly show one Qwen call for unresolved natural success and unresolved Qwen failure, and zero Qwen calls for `xtall cr weapon` and `crit xtal weapon`.
+
+- [ ] **Step 6: Run the full feature-branch suite**
 
 Run:
 
@@ -910,9 +920,9 @@ Run:
 python -m unittest discover -s tests -v
 ```
 
-Expected: the feature branch must have no failures beyond the refreshed clean-`main` baseline. If `main` still has only `test_structured_fallback.StructuredFallbackTests.test_rejected_payload_is_logged_with_reason`, the feature branch may have that same one unrelated failure and no others. If clean `main` is fully green by execution time, this branch must also be fully green.
+Expected: the failing-test set must be identical to or smaller than the clean-main baseline from Step 1. Any additional failure blocks completion.
 
-- [ ] **Step 5: Review the final diff for scope**
+- [ ] **Step 7: Review final diff scope**
 
 Run:
 
@@ -925,21 +935,11 @@ git diff main...HEAD -- \
   discord_bot.py \
   tests/test_query_reconstruction.py \
   tests/test_search_service.py \
-  tests/test_discord_bot.py \
-  tests/test_structured_fallback.py
+  tests/test_discord_bot.py
 ```
 
-Expected: only reconstruction, service orchestration, Discord failure rendering, and directly related tests are changed. No database files, parser data, unrelated UI, or build-role logic should be modified.
+Expected: only reconstruction, service orchestration, Discord failed-query rendering, and their direct tests are changed. No database files, unrelated UI, or build-role logic should change.
 
-- [ ] **Step 6: Final commit only if verification produced legitimate tracked changes**
+- [ ] **Step 8: Request code review before integration**
 
-Do not create a verification-only empty commit. If a small test correction was required, commit only that correction with a specific message such as:
-
-```bash
-git add <changed-test-file>
-git commit -m "test: cover hybrid interpretation regression"
-```
-
-- [ ] **Step 7: Request code review before integration**
-
-Use `superpowers:requesting-code-review` against the final implementation branch. Do not merge to `main` without explicit user approval.
+Invoke `superpowers:requesting-code-review` against the final implementation branch. Do not merge to `main` without explicit user approval.
