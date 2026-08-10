@@ -1,0 +1,97 @@
+name: Natural give highest final verification
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/natural-give-highest-stat
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test dependencies
+        run: python -m pip install 'discord.py>=2.7.1,<3' 'python-dotenv>=1.1,<2' 'rapidfuzz>=3.14.5' 'ollama>=0.6.2'
+      - name: Verify exact real-service query without Qwen
+        run: |
+          python - <<'PY'
+          import search_items as core
+          from toram_search.service import SearchService, StatClarificationPayload
+          from toram_search.session import FailedQueryContext
+
+          class MustNotCallLLM:
+              def complete(self, *args, **kwargs):
+                  raise AssertionError('deterministic query must not call Qwen')
+
+          repo = core.ItemRepository(core.DEFAULT_DATABASE)
+          try:
+              service = SearchService(repo, llm_client=MustNotCallLLM())
+              outcome = service.handle_query(
+                  'which armor give highest crit',
+                  FailedQueryContext(max_entries=3),
+              )
+              assert outcome.kind == 'search', outcome
+              assert isinstance(outcome.payload, StatClarificationPayload), type(outcome.payload)
+              clarification = outcome.payload.clarification
+              assert clarification.typed_stat == 'crit', clarification
+              assert clarification.candidates == ('Critical Rate', 'Critical Damage'), clarification
+              assert outcome.payload.parsed.filter is not None
+              assert outcome.payload.parsed.filter.label == 'Armor'
+              assert outcome.payload.parsed.primary_sort_ascending is False
+          finally:
+              repo.close()
+          PY
+      - name: Run focused regression gate
+        run: |
+          python -m unittest \
+            tests.test_natural_give_ranking \
+            tests.test_direct_structured_intent \
+            tests.test_search_service \
+            tests.test_discord_bot \
+            tests.test_discord_followup_regressions -v
+      - name: Compile modified Python files
+        run: python -m py_compile toram_data/stat_query.py tests/test_natural_give_ranking.py
+      - name: Run full suite against known baseline
+        run: |
+          set +e
+          python -m unittest discover -s tests -v 2>&1 | tee /tmp/full-suite.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo 'Full suite passed with no failures.'
+            exit 0
+          fi
+          failures=$(grep -Ec '^(FAIL|ERROR): ' /tmp/full-suite.log || true)
+          known=$(grep -Ec '^FAIL: test_rejected_payload_is_logged_with_reason \(test_structured_fallback\.StructuredFallbackTests\.test_rejected_payload_is_logged_with_reason\)$' /tmp/full-suite.log || true)
+          if [ "$failures" -eq 1 ] && [ "$known" -eq 1 ]; then
+            echo 'Full suite matches the known main baseline.'
+            exit 0
+          fi
+          echo "Unexpected full-suite result: failures/errors=$failures known=$known"
+          exit 1
+      - name: Verify exact final diff scope
+        run: |
+          git fetch origin main:refs/remotes/origin/main
+          python - <<'PY'
+          import subprocess
+
+          actual = set(subprocess.check_output(
+              ['git', 'diff', '--name-only', 'origin/main...HEAD'],
+              text=True,
+          ).splitlines())
+          expected = {
+              'tests/test_natural_give_ranking.py',
+              'toram_data/stat_query.py',
+          }
+          print('Final fix diff:')
+          for path in sorted(actual):
+              print(path)
+          assert actual == expected, (sorted(actual - expected), sorted(expected - actual))
+          PY
