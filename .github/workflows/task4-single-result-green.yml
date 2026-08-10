@@ -29,92 +29,43 @@ jobs:
           path = Path("toram_search/service.py")
           text = path.read_text(encoding="utf-8")
 
-          replacements = [
+          changes = (
               (
-                  '''            results = (
-                      [core.RankedItem(item=item, score=100.0, match_kind="exact") for item in exact]
-                      if len(exact) > 1
-                      else core.rank_items(query, self.all_items)
-                  )
-                  return ItemResultsPayload(query, tuple(results))
-          ''',
-                  '''            results = (
-                      [core.RankedItem(item=item, score=100.0, match_kind="exact") for item in exact]
-                      if len(exact) > 1
-                      else core.rank_items(query, self.all_items)
-                  )
-                  if len(results) == 1:
-                      return ItemDetailPayload(self.repository.get_item(results[0].item.id))
-                  return ItemResultsPayload(query, tuple(results))
-          ''',
-                  "return ItemDetailPayload(self.repository.get_item(results[0].item.id))",
+                  "            return ItemResultsPayload(query, tuple(results))\n",
+                  "            if len(results) == 1:\n"
+                  "                return ItemDetailPayload(self.repository.get_item(results[0].item.id))\n"
+                  "            return ItemResultsPayload(query, tuple(results))\n",
               ),
               (
-                  '''            results = (
-                      [core.RankedItem(item=item, score=100.0, match_kind="exact") for item in exact]
-                      if len(exact) > 1
-                      else core.rank_items(query, upgrade_items)
-                  )
-                  return UpgradeResultsPayload(query, tuple(results))
-          ''',
-                  '''            results = (
-                      [core.RankedItem(item=item, score=100.0, match_kind="exact") for item in exact]
-                      if len(exact) > 1
-                      else core.rank_items(query, upgrade_items)
-                  )
-                  if len(results) == 1:
-                      selected_id = results[0].item.id
-                      return UpgradeDetailPayload(
-                          graph=self.repository.get_upgrade_component(selected_id),
-                          selected_item_id=selected_id,
-                      )
-                  return UpgradeResultsPayload(query, tuple(results))
-          ''',
-                  "selected_id = results[0].item.id",
+                  "            return UpgradeResultsPayload(query, tuple(results))\n",
+                  "            if len(results) == 1:\n"
+                  "                selected_id = results[0].item.id\n"
+                  "                return UpgradeDetailPayload(\n"
+                  "                    graph=self.repository.get_upgrade_component(selected_id),\n"
+                  "                    selected_item_id=selected_id,\n"
+                  "                )\n"
+                  "            return UpgradeResultsPayload(query, tuple(results))\n",
               ),
               (
-                  '''            results = self.repository.search_by_stat(
-                      parsed.stat.stat_name,
-                      parsed.filter.item_types if parsed.filter else None,
-                  )
-                  return StatResultsPayload(parsed, tuple(results))
-          ''',
-                  '''            results = self.repository.search_by_stat(
-                      parsed.stat.stat_name,
-                      parsed.filter.item_types if parsed.filter else None,
-                  )
-                  if len(results) == 1:
-                      return ItemDetailPayload(self.repository.get_item(results[0].item.id))
-                  return StatResultsPayload(parsed, tuple(results))
-          ''',
-                  "return StatResultsPayload(parsed, tuple(results))",
+                  "            return StatResultsPayload(parsed, tuple(results))\n",
+                  "            if len(results) == 1:\n"
+                  "                return ItemDetailPayload(self.repository.get_item(results[0].item.id))\n"
+                  "            return StatResultsPayload(parsed, tuple(results))\n",
               ),
               (
-                  '''            results = self.repository.search_by_expression(
-                      resolved.resolved_expression,
-                      resolved.filter.item_types if resolved.filter else None,
-                      primary_sort_ascending=resolved.primary_sort_ascending,
-                  )
-                  return ExpressionResultsPayload(resolved, tuple(results))
-          ''',
-                  '''            results = self.repository.search_by_expression(
-                      resolved.resolved_expression,
-                      resolved.filter.item_types if resolved.filter else None,
-                      primary_sort_ascending=resolved.primary_sort_ascending,
-                  )
-                  if len(results) == 1:
-                      return ItemDetailPayload(self.repository.get_item(results[0].item.id))
-                  return ExpressionResultsPayload(resolved, tuple(results))
-          ''',
-                  "return ExpressionResultsPayload(resolved, tuple(results))",
+                  "            return ExpressionResultsPayload(resolved, tuple(results))\n",
+                  "            if len(results) == 1:\n"
+                  "                return ItemDetailPayload(self.repository.get_item(results[0].item.id))\n"
+                  "            return ExpressionResultsPayload(resolved, tuple(results))\n",
               ),
-          ]
+          )
 
-          for old, new, fallback_marker in replacements:
-              if old in text:
-                  text = text.replace(old, new, 1)
-              elif new not in text and fallback_marker not in text:
-                  raise SystemExit("expected service materialization block not found")
+          for old, new in changes:
+              if new in text:
+                  continue
+              if text.count(old) != 1:
+                  raise SystemExit(f"expected exactly one target, found {text.count(old)}: {old.strip()}")
+              text = text.replace(old, new, 1)
 
           path.write_text(text, encoding="utf-8")
           PY
@@ -125,7 +76,7 @@ jobs:
             tests.test_search_service \
             tests.test_discord_followup_regressions \
             tests.test_discord_bot -v
-      - name: Synchronize, reapply if needed, reverify, and commit
+      - name: Synchronize, reverify, and commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
