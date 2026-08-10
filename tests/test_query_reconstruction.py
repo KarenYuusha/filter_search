@@ -46,6 +46,12 @@ class QueryReconstructionTests(unittest.TestCase):
     def test_known_filler_is_allowed(self):
         self.assertEqual(self.reconstruct("find xtall cr weapon").canonical_query, "cr wp xtal")
 
+    def test_oversized_input_fails_closed(self):
+        query = " ".join(["show"] * 30 + ["cr", "weapon", "xtal"])
+        result = self.reconstruct(query)
+        self.assertEqual(result.kind, "unsafe")
+        self.assertIsNone(result.canonical_query)
+
     def test_crit_is_ambiguous(self):
         result = self.reconstruct("crit xtal weapon")
         self.assertEqual(result.kind, "ambiguous")
