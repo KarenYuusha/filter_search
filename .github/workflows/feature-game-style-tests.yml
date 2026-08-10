@@ -235,7 +235,7 @@ jobs:
           path.write_text(text, encoding='utf-8')
           PY
       - name: Verify Task 2 GREEN
-        run: python -m unittest tests.test_game_style_stat_display tests.test_action_speed_alias tests.test_unavailable_stat_display -v
+        run: python -m unittest tests.test_game_style_stat_display.GameStyleStatFormattingTests tests.test_game_style_stat_display.GameStyleConditionTests tests.test_action_speed_alias tests.test_unavailable_stat_display -v
       - name: Commit Task 2 when changed
         run: |
           if git diff --quiet -- search_items.py; then
