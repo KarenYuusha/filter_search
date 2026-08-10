@@ -5,7 +5,10 @@ from typing import Literal, Mapping
 
 import search_items as core
 from toram_search.fallback import SearchIntentRequest
-from toram_search.reconstruction import try_reconstruct_simple_search
+from toram_search.reconstruction import (
+    try_reconstruct_simple_search,
+    try_suggest_query,
+)
 from toram_search.session import FailedQueryContext
 
 
@@ -98,6 +101,7 @@ class ServiceOutcome:
     payload: SearchPayload | None = None
     text: str | None = None
     search_requests: tuple[SearchIntentRequest, ...] = ()
+    suggested_query: str | None = None
 
 
 def resolve_expression_noninteractively(
@@ -276,6 +280,22 @@ class SearchService:
             return ServiceOutcome("refuse")
         if fallback.kind == "unavailable":
             return ServiceOutcome("unavailable")
+        suggestion = try_suggest_query(
+            query,
+            available_stats=self.repository.list_stat_names(),
+            available_item_types=self.repository.list_item_types(),
+        )
+        if suggestion is not None:
+            suggestion_route = core.route_deterministically(
+                suggestion,
+                self.repository,
+                self.all_items,
+                self.help_service,
+                self.database_service,
+            )
+            if suggestion_route.kind == "search" and suggestion_route.parsed is not None:
+                context.set_latest_suggestion(suggestion)
+                return ServiceOutcome("failed", suggested_query=suggestion)
         return ServiceOutcome("failed")
 
     def confirm_search_request(
