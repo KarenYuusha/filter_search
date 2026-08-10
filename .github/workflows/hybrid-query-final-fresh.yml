@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 4267fcfac600c1d575fc4d01262e595af694871d
+          ref: 48afd8e559f2ca87eb30f18e7c1f28cfcc2db746
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -63,18 +63,9 @@ jobs:
               assert expression is not None
               assert expression.groups[0].clauses[0].stat_name == 'Critical Rate'
               assert outcome.payload.parsed.filter is not None
-              actual_type_keys = tuple(
-                  normalize_name(item_type)
-                  for item_type in outcome.payload.parsed.filter.item_types
-              )
-              expected_type_keys = tuple(
-                  normalize_name(item_type)
-                  for item_type in ('Weapon Crysta', 'Enhancer Crysta (Red)')
-              )
-              assert actual_type_keys == expected_type_keys, (
-                  outcome.payload.parsed.filter.item_types,
-                  expected_type_keys,
-              )
+              actual_type_keys = tuple(normalize_name(item_type) for item_type in outcome.payload.parsed.filter.item_types)
+              expected_type_keys = tuple(normalize_name(item_type) for item_type in ('Weapon Crysta', 'Enhancer Crysta (Red)'))
+              assert actual_type_keys == expected_type_keys
 
               context = FailedQueryContext(max_entries=3)
               ambiguous = service.handle_query('crit xtal weapon', context)
