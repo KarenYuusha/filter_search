@@ -1084,6 +1084,35 @@ def _format_number(value: Any, *, signed: bool = False) -> str:
     return text
 
 
+_UNAVAILABLE_PRESENCE_STATS = frozenset({
+    "flinch unavailable",
+    "stun unavailable",
+    "tumble unavailable",
+})
+
+
+def _is_unavailable_presence_value(stat_name: object, amount: object) -> bool:
+    name = normalize_stat_text(str(stat_name or ""))
+    if name not in _UNAVAILABLE_PRESENCE_STATS:
+        return False
+    try:
+        return float(amount) == 1.0
+    except (TypeError, ValueError):
+        return False
+
+
+def format_stat_value(stat_name: object, amount: object, *, signed: bool = True) -> str:
+    if _is_unavailable_presence_value(stat_name, amount):
+        return ""
+    return _format_number(amount, signed=signed)
+
+
+def format_stat_display(stat_name: object, amount: object) -> str:
+    name = str(stat_name or "Unknown stat")
+    value = format_stat_value(name, amount, signed=True)
+    return name if not value else f"{name} {value}"
+
+
 def _parse_conditions(raw: Any) -> list[str]:
     if not isinstance(raw, str):
         return []
@@ -1137,7 +1166,10 @@ def render_item(detail: ItemDetail) -> str:
     else:
         for stat in detail.stats:
             suffix = _condition_label(stat)
-            rendered = f"- {stat.get('stat_name') or 'Unknown stat'} {_format_number(stat.get('amount'), signed=True)}"
+            rendered = "- " + format_stat_display(
+                stat.get("stat_name") or "Unknown stat",
+                stat.get("amount"),
+            )
             if suffix:
                 rendered += f" [{suffix}]"
             lines.append(rendered)
@@ -1257,13 +1289,14 @@ def render_stat_results(
     for index, result in enumerate(current, start=1):
         lines.append(
             f"{index}. {result.item.name} — {result.item.item_type} — "
-            f"{stat_name} {_format_number(result.primary.amount, signed=True)}"
+            + format_stat_display(stat_name, result.primary.amount)
         )
         condition = _condition_label(result.primary)
         if condition:
             lines.append(f"   Condition: {condition}")
         for alternative in result.alternatives:
-            alternative_line = f"   Also: {_format_number(alternative.amount, signed=True)}"
+            alternative_value = format_stat_value(stat_name, alternative.amount, signed=True)
+            alternative_line = f"   Also: {alternative_value or stat_name}"
             alternative_condition = _condition_label(alternative)
             if alternative_condition:
                 alternative_line += f" — {alternative_condition}"
@@ -1302,7 +1335,7 @@ def render_expression_results(
         for match in result.matches:
             for row_index, row in enumerate(match.rows):
                 prefix = "   " if row_index == 0 else "   Also: "
-                rendered = f"{match.clause.stat_name} {_format_number(row.amount, signed=True)}"
+                rendered = format_stat_display(match.clause.stat_name, row.amount)
                 condition = _condition_label(row)
                 if condition:
                     rendered += f" [{condition}]"
