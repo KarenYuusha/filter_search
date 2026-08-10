@@ -18,6 +18,7 @@ from toram_data.stat_query import ItemFilterPhrase, list_item_filter_phrases
 
 ReconstructionKind = Literal["success", "ambiguous", "no_match", "unsafe"]
 
+_MAX_RECONSTRUCTION_TOKENS = 24
 _FILLERS = frozenset(
     {
         "a",
@@ -115,6 +116,9 @@ def _recognize(
         return ReconstructionResult("unsafe")
 
     tokens = _tokens(raw_query)
+    if len(tokens) > _MAX_RECONSTRUCTION_TOKENS:
+        return ReconstructionResult("unsafe")
+
     rank_count = sum(token in _RANK_WORDS for token in tokens)
     if allow_one_rank_word:
         if rank_count > 1:
