@@ -11,11 +11,11 @@ from toram_search.service import (
     ItemDetailPayload,
     ItemResultsPayload,
     SearchService,
+    ServiceOutcome,
     StatResultsPayload,
     UpgradeDetailPayload,
     UpgradeResultsPayload,
 )
-from toram_search.session import FailedQueryContext
 
 
 class MustNotCallLLM:
@@ -106,23 +106,30 @@ class ServiceSingleResultAutoOpenTests(unittest.TestCase):
     def setUp(self):
         self.repository = AutoOpenRepository()
         self.service = SearchService(self.repository, llm_client=MustNotCallLLM())
-        self.context = FailedQueryContext(max_entries=3)
+
+    @staticmethod
+    def stat_search() -> core.ParsedSearch:
+        return core.ParsedSearch(
+            intent="stat_search",
+            raw_query="hp armor",
+            stat=core.StatResolution("MaxHP", "hp", 100.0, False),
+        )
 
     def test_one_stat_result_opens_item_detail(self):
         self.repository.stat_results = [
             core.RankedStatItem(self.repository.other, row("MaxHP", 5000), ())
         ]
-        outcome = self.service.handle_query("find armor with hp", self.context)
-        self.assertIsInstance(outcome.payload, ItemDetailPayload)
-        self.assertEqual(outcome.payload.detail.summary.id, self.repository.other.id)
+        payload = self.service._materialize(self.stat_search(), {})
+        self.assertIsInstance(payload, ItemDetailPayload)
+        self.assertEqual(payload.detail.summary.id, self.repository.other.id)
 
     def test_two_stat_results_keep_results_payload(self):
         self.repository.stat_results = [
             core.RankedStatItem(self.repository.other, row("MaxHP", 5000), ()),
             core.RankedStatItem(self.repository.mage_a, row("MaxHP", 4000), ()),
         ]
-        outcome = self.service.handle_query("find armor with hp", self.context)
-        self.assertIsInstance(outcome.payload, StatResultsPayload)
+        payload = self.service._materialize(self.stat_search(), {})
+        self.assertIsInstance(payload, StatResultsPayload)
 
     def test_one_expression_result_opens_item_detail(self):
         clause = core.ResolvedClause(
@@ -221,18 +228,19 @@ class ServiceSingleResultAutoOpenTests(unittest.TestCase):
         self.assertEqual(len(payload.results), 2)
 
     def test_zero_stat_results_remain_results_payload(self):
-        outcome = self.service.handle_query("find armor with hp", self.context)
-        self.assertIsInstance(outcome.payload, StatResultsPayload)
-        self.assertEqual(outcome.payload.results, ())
+        payload = self.service._materialize(self.stat_search(), {})
+        self.assertIsInstance(payload, StatResultsPayload)
+        self.assertEqual(payload.results, ())
 
     def test_unique_stat_outcome_builds_detail_without_item_selector(self):
         self.repository.stat_results = [
             core.RankedStatItem(self.repository.other, row("MaxHP", 5000), ())
         ]
-        outcome = self.service.handle_query("find armor with hp", self.context)
+        payload = self.service._materialize(self.stat_search(), {})
+        outcome = ServiceOutcome("search", payload=payload)
         sessions = DiscordSessionManager()
         key = (1, 2, 3)
-        session = sessions.start_query(key, "find armor with hp")
+        session = sessions.start_query(key, "hp armor")
         embed, view, _file = build_service_outcome_message(
             outcome,
             bot_example_prefix="@Bot",
