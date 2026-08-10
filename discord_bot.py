@@ -275,14 +275,14 @@ def _result_lines(payload: SearchPayload, index: int) -> list[str]:
         result = payload.results[index]
         parsed = payload.parsed
         stat_name = parsed.stat.stat_name if parsed.stat else result.primary.stat_name
-        lines = [
-            f"**{result.item.name}** — {result.item.item_type}",
-            core.format_stat_display(stat_name, result.primary.amount),
-        ]
-        condition = _condition_label(result.primary)
+        primary = core.format_stat_display(stat_name, result.primary.amount)
+        condition = core.format_condition_display(result.primary)
         if condition:
-            lines.append(f"Condition: {condition}")
-        return lines
+            primary += f" [{condition}]"
+        return [
+            f"**{result.item.name}** — {result.item.item_type}",
+            primary,
+        ]
 
     if isinstance(payload, ExpressionResultsPayload):
         result = payload.results[index]
@@ -294,7 +294,7 @@ def _result_lines(payload: SearchPayload, index: int) -> list[str]:
                     match.clause.stat_name,
                     row.amount,
                 )
-                condition = _condition_label(row)
+                condition = core.format_condition_display(row)
                 if condition:
                     text += f" [{condition}]"
                 lines.append(text)
@@ -422,15 +422,12 @@ def build_item_detail_embed(
         _safe_field(embed, "Info", "\n".join(overview))
 
     stat_lines: list[str] = []
-    for stat in detail.stats:
-        line = core.format_stat_display(
-            stat.get("stat_name") or "Unknown stat",
-            stat.get("amount"),
-        )
-        condition = _condition_label(stat)
-        if condition:
-            line += f" [{condition}]"
-        stat_lines.append(line)
+    for group in core.build_item_stat_groups(detail.stats):
+        if group.heading is not None:
+            if stat_lines:
+                stat_lines.append("")
+            stat_lines.append(f"**{group.heading}**")
+        stat_lines.extend(group.lines)
     _safe_field(embed, "Stats", "\n".join(stat_lines) if stat_lines else "None")
 
     source_lines: list[str] = []

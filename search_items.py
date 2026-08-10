@@ -1107,10 +1107,29 @@ def format_stat_value(stat_name: object, amount: object, *, signed: bool = True)
     return _format_number(amount, signed=signed)
 
 
+_STAT_DISPLAY_ALIASES = {
+    "motion speed %": "Action Speed",
+}
+
+
+def format_stat_name(stat_name: object) -> tuple[str, str]:
+    raw_name = str(stat_name or "Unknown stat")
+    normalized = normalize_stat_text(raw_name)
+    has_trailing_percent = normalized.endswith(" %") and raw_name.rstrip().endswith("%")
+    visible_name = raw_name.rstrip()
+    value_suffix = "%" if has_trailing_percent else ""
+    if has_trailing_percent:
+        visible_name = visible_name[:-1].rstrip()
+    visible_name = _STAT_DISPLAY_ALIASES.get(normalized, visible_name)
+    return visible_name, value_suffix
+
+
 def format_stat_display(stat_name: object, amount: object) -> str:
-    name = str(stat_name or "Unknown stat")
-    value = format_stat_value(name, amount, signed=True)
-    return name if not value else f"{name} {value}"
+    visible_name, value_suffix = format_stat_name(stat_name)
+    value = format_stat_value(stat_name, amount, signed=True)
+    if not value:
+        return visible_name
+    return f"{visible_name} {value}{value_suffix}"
 
 
 def _parse_conditions(raw: Any) -> list[str]:
@@ -1123,23 +1142,135 @@ def _parse_conditions(raw: Any) -> list[str]:
     return [str(item) for item in value] if isinstance(value, list) else []
 
 
-def _condition_label(row: StatRow | dict[str, Any]) -> str | None:
+_EQUIPMENT_CONDITION_NAMES = {
+    "1 handed sword": "1-Handed Sword",
+    "one handed sword": "1-Handed Sword",
+    "2 handed sword": "2-Handed Sword",
+    "two handed sword": "2-Handed Sword",
+    "bow": "Bow",
+    "bowgun": "Bowgun",
+    "katana": "Katana",
+    "staff": "Staff",
+    "magic device": "Magic Device",
+    "knuckles": "Knuckles",
+    "halberd": "Halberd",
+    "arrow": "Arrow",
+    "dagger": "Dagger",
+    "shield": "Shield",
+    "light armor": "Light Armor",
+    "heavy armor": "Heavy Armor",
+    "additional gear": "Additional Gear",
+    "additional": "Additional Gear",
+    "armor": "Armor",
+    "dual swords": "Dual Swords",
+    "knuckle": "Knuckles",
+    "ninjutsu scroll": "Ninjutsu Scroll",
+    "special gear": "Special Gear",
+    "special": "Special Gear",
+}
+
+
+def _condition_fields(row: StatRow | dict[str, Any]) -> tuple[str | None, str, bool]:
     if isinstance(row, StatRow):
-        condition_text = row.condition_text
-        conditions_json = row.conditions_json
-        needs_review = row.needs_condition_review
-    else:
-        condition_text = row.get("condition_text")
-        conditions_json = row.get("conditions_json")
-        needs_review = bool(row.get("needs_condition_review"))
+        return row.condition_text, row.conditions_json, row.needs_condition_review
+    return (
+        row.get("condition_text"),
+        str(row.get("conditions_json") or "[]"),
+        bool(row.get("needs_condition_review")),
+    )
+
+
+def _raw_condition_label(row: StatRow | dict[str, Any]) -> str | None:
+    condition_text, conditions_json, _needs_review = _condition_fields(row)
     if condition_text:
-        label = str(condition_text)
-    else:
-        conditions = _parse_conditions(conditions_json)
-        label = ", ".join(conditions) if conditions else ""
+        return str(condition_text)
+    conditions = _parse_conditions(conditions_json)
+    return ", ".join(conditions) if conditions else None
+
+
+def _equipment_condition_names(row: StatRow | dict[str, Any]) -> tuple[str, ...]:
+    condition_text, conditions_json, _needs_review = _condition_fields(row)
+    parts = _parse_conditions(conditions_json)
+    if not parts and condition_text:
+        cleaned = re.sub(r"\s+only\s*$", "", str(condition_text), flags=re.IGNORECASE)
+        parts = [part.strip() for part in cleaned.split(",") if part.strip()]
+    if not parts:
+        return ()
+
+    visible: list[str] = []
+    for part in parts:
+        normalized = normalize_name(
+            re.sub(r"\s+only\s*$", "", part, flags=re.IGNORECASE)
+        ).replace("_", " ")
+        display = _EQUIPMENT_CONDITION_NAMES.get(normalized)
+        if display is None:
+            return ()
+        if display not in visible:
+            visible.append(display)
+    return tuple(visible)
+
+
+def format_condition_display(row: StatRow | dict[str, Any]) -> str | None:
+    names = _equipment_condition_names(row)
+    raw = _raw_condition_label(row)
+    _condition_text, _conditions_json, needs_review = _condition_fields(row)
+    label = "With " + " / ".join(names) if names else (raw or "")
     if needs_review:
         label = (label + " [needs review]").strip()
     return label or None
+
+
+def _condition_label(row: StatRow | dict[str, Any]) -> str | None:
+    return format_condition_display(row)
+
+
+@dataclass(frozen=True)
+class StatDisplayGroup:
+    heading: str | None
+    lines: tuple[str, ...]
+
+
+def build_item_stat_groups(
+    stats: Iterable[dict[str, Any]],
+) -> tuple[StatDisplayGroup, ...]:
+    unconditional: list[str] = []
+    order: list[str] = []
+    grouped: dict[str, list[str]] = {}
+
+    for stat in stats:
+        line = format_stat_display(
+            stat.get("stat_name") or "Unknown stat",
+            stat.get("amount"),
+        )
+        _condition_text, _conditions_json, needs_review = _condition_fields(stat)
+        equipment_names = _equipment_condition_names(stat)
+        raw_condition = _raw_condition_label(stat)
+
+        if needs_review:
+            line += " [needs review]"
+
+        if equipment_names:
+            headings = tuple(f"With {name}" for name in equipment_names)
+        elif raw_condition:
+            headings = (raw_condition,)
+        else:
+            unconditional.append(line)
+            continue
+
+        for heading in headings:
+            if heading not in grouped:
+                grouped[heading] = []
+                order.append(heading)
+            grouped[heading].append(line)
+
+    output: list[StatDisplayGroup] = []
+    if unconditional:
+        output.append(StatDisplayGroup(None, tuple(unconditional)))
+    output.extend(
+        StatDisplayGroup(heading, tuple(grouped[heading]))
+        for heading in order
+    )
+    return tuple(output)
 
 
 def render_item(detail: ItemDetail) -> str:
@@ -1161,18 +1292,16 @@ def render_item(detail: ItemDetail) -> str:
         lines.extend(["", "Notes:", str(detail.note)])
 
     lines.extend(["", "Stats:"])
-    if not detail.stats:
+    groups = build_item_stat_groups(detail.stats)
+    if not groups:
         lines.append("- None")
     else:
-        for stat in detail.stats:
-            suffix = _condition_label(stat)
-            rendered = "- " + format_stat_display(
-                stat.get("stat_name") or "Unknown stat",
-                stat.get("amount"),
-            )
-            if suffix:
-                rendered += f" [{suffix}]"
-            lines.append(rendered)
+        for group_index, group in enumerate(groups):
+            if group.heading is not None:
+                if group_index > 0:
+                    lines.append("")
+                lines.append(f"{group.heading}:")
+            lines.extend(f"- {line}" for line in group.lines)
 
     if detail.upgrade_predecessors or detail.upgrade_successors:
         lines.extend(["", "Upgrade:"])
@@ -1287,19 +1416,21 @@ def render_stat_results(
         "",
     ]
     for index, result in enumerate(current, start=1):
+        primary_line = format_stat_display(stat_name, result.primary.amount)
+        condition = format_condition_display(result.primary)
+        if condition:
+            primary_line += f" [{condition}]"
         lines.append(
             f"{index}. {result.item.name} — {result.item.item_type} — "
-            + format_stat_display(stat_name, result.primary.amount)
+            + primary_line
         )
-        condition = _condition_label(result.primary)
-        if condition:
-            lines.append(f"   Condition: {condition}")
         for alternative in result.alternatives:
-            alternative_value = format_stat_value(stat_name, alternative.amount, signed=True)
-            alternative_line = f"   Also: {alternative_value or stat_name}"
-            alternative_condition = _condition_label(alternative)
+            alternative_line = "   Also: " + format_stat_display(
+                stat_name, alternative.amount
+            )
+            alternative_condition = format_condition_display(alternative)
             if alternative_condition:
-                alternative_line += f" — {alternative_condition}"
+                alternative_line += f" [{alternative_condition}]"
             lines.append(alternative_line)
     if not results:
         lines.append("No matching items found.")
@@ -1336,7 +1467,7 @@ def render_expression_results(
             for row_index, row in enumerate(match.rows):
                 prefix = "   " if row_index == 0 else "   Also: "
                 rendered = format_stat_display(match.clause.stat_name, row.amount)
-                condition = _condition_label(row)
+                condition = format_condition_display(row)
                 if condition:
                     rendered += f" [{condition}]"
                 lines.append(prefix + rendered)
@@ -2158,6 +2289,9 @@ def _interactive_item_results(
     if not results:
         output_fn("No suggestions found. Enter a more specific name.")
         return ResultScreenOutcome("new")
+    if len(results) == 1:
+        output_fn(render_item(repository.get_item(results[0].item.id)))
+        return ResultScreenOutcome("selected")
     page = 0
     while True:
         current = page_results(results, page=page)
@@ -2295,6 +2429,12 @@ def _interactive_upgrade_results(
     if not results:
         output_fn("No crysta suggestions found. Enter a more specific crysta name.")
         return ResultScreenOutcome("new")
+    if len(results) == 1:
+        return _show_upgrade_component(
+            repository,
+            results[0].item,
+            output_fn=output_fn,
+        )
     page = 0
     while True:
         current = page_results(results, page=page)
@@ -2357,6 +2497,9 @@ def interactive_expression_results(
             active_filter.item_types if active_filter else None,
             primary_sort_ascending=parsed.primary_sort_ascending,
         )
+        if len(results) == 1:
+            output_fn(render_item(repository.get_item(results[0].item.id)))
+            return ResultScreenOutcome("selected")
         max_page = max((len(results) - 1) // PAGE_SIZE, 0)
         page = min(page, max_page)
         current = page_expression_results(results, page)
@@ -2426,6 +2569,9 @@ def interactive_stat_results(
             parsed.stat.stat_name,
             active_filter.item_types if active_filter else None,
         )
+        if len(results) == 1:
+            output_fn(render_item(repository.get_item(results[0].item.id)))
+            return ResultScreenOutcome("selected")
         max_page = max((len(results) - 1) // PAGE_SIZE, 0)
         page = min(page, max_page)
         current = page_stat_results(results, page=page)
