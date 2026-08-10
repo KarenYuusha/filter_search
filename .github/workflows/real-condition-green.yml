@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - verify/game-style-real-condition-green
+  pull_request:
 
 permissions:
   contents: write
