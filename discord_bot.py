@@ -277,7 +277,7 @@ def _result_lines(payload: SearchPayload, index: int) -> list[str]:
         stat_name = parsed.stat.stat_name if parsed.stat else result.primary.stat_name
         lines = [
             f"**{result.item.name}** — {result.item.item_type}",
-            f"{stat_name} {_format_number(result.primary.amount, signed=True)}",
+            core.format_stat_display(stat_name, result.primary.amount),
         ]
         condition = _condition_label(result.primary)
         if condition:
@@ -290,9 +290,9 @@ def _result_lines(payload: SearchPayload, index: int) -> list[str]:
         for match in result.matches:
             for row_index, row in enumerate(match.rows):
                 prefix = "" if row_index == 0 else "Also: "
-                text = (
-                    f"{prefix}{match.clause.stat_name} "
-                    f"{_format_number(row.amount, signed=True)}"
+                text = prefix + core.format_stat_display(
+                    match.clause.stat_name,
+                    row.amount,
                 )
                 condition = _condition_label(row)
                 if condition:
@@ -423,9 +423,9 @@ def build_item_detail_embed(
 
     stat_lines: list[str] = []
     for stat in detail.stats:
-        line = (
-            f"{stat.get('stat_name') or 'Unknown stat'} "
-            f"{_format_number(stat.get('amount'), signed=True)}"
+        line = core.format_stat_display(
+            stat.get("stat_name") or "Unknown stat",
+            stat.get("amount"),
         )
         condition = _condition_label(stat)
         if condition:
