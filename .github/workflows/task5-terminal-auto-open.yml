@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  task5-red:
+  task5-green:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,5 +21,89 @@ jobs:
           python-version: '3.12'
       - name: Install test dependencies
         run: python -m pip install --upgrade pip && python -m pip install 'discord.py>=2.7.1,<3' 'python-dotenv>=1.1,<2' 'rapidfuzz>=3.14.5' 'ollama>=0.6.2'
-      - name: Verify Task 5 RED
-        run: python -m unittest tests.test_single_result_auto_open.CliSingleResultAutoOpenTests -v
+      - name: Implement terminal sole-result short-circuits
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("search_items.py")
+          text = path.read_text(encoding="utf-8")
+
+          def function_span(source: str, name: str) -> tuple[int, int]:
+              start = source.index(f"def {name}(")
+              next_def = source.find("\ndef ", start + 1)
+              return start, len(source) if next_def < 0 else next_def + 1
+
+          def patch_function(source: str, name: str, marker: str, insertion: str) -> str:
+              start, end = function_span(source, name)
+              segment = source[start:end]
+              if insertion.strip() in segment:
+                  return source
+              if segment.count(marker) != 1:
+                  raise SystemExit(
+                      f"expected one marker in {name}, found {segment.count(marker)}"
+                  )
+              segment = segment.replace(marker, insertion + marker, 1)
+              return source[:start] + segment + source[end:]
+
+          text = patch_function(
+              text,
+              "_interactive_item_results",
+              "    page = 0\n",
+              "    if len(results) == 1:\n"
+              "        output_fn(render_item(repository.get_item(results[0].item.id)))\n"
+              "        return ResultScreenOutcome(\"selected\")\n",
+          )
+          text = patch_function(
+              text,
+              "_interactive_upgrade_results",
+              "    page = 0\n",
+              "    if len(results) == 1:\n"
+              "        return _show_upgrade_component(\n"
+              "            repository,\n"
+              "            results[0].item,\n"
+              "            output_fn=output_fn,\n"
+              "        )\n",
+          )
+          text = patch_function(
+              text,
+              "interactive_expression_results",
+              "        max_page = max((len(results) - 1) // PAGE_SIZE, 0)\n",
+              "        if len(results) == 1:\n"
+              "            output_fn(render_item(repository.get_item(results[0].item.id)))\n"
+              "            return ResultScreenOutcome(\"selected\")\n",
+          )
+          text = patch_function(
+              text,
+              "interactive_stat_results",
+              "        max_page = max((len(results) - 1) // PAGE_SIZE, 0)\n",
+              "        if len(results) == 1:\n"
+              "            output_fn(render_item(repository.get_item(results[0].item.id)))\n"
+              "            return ResultScreenOutcome(\"selected\")\n",
+          )
+
+          path.write_text(text, encoding="utf-8")
+          PY
+      - name: Verify Task 5 GREEN
+        run: |
+          python -m unittest \
+            tests.test_single_result_auto_open \
+            tests.test_cli_upgrade \
+            tests.test_search_service -v
+      - name: Synchronize, reverify, and commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add search_items.py
+          if git diff --cached --quiet; then
+            echo "Task 5 already applied"
+            exit 0
+          fi
+          git commit -m "feat: auto-open sole terminal search result"
+          git fetch origin feature/game-style-item-presentation
+          git rebase origin/feature/game-style-item-presentation
+          python -m unittest \
+            tests.test_single_result_auto_open \
+            tests.test_cli_upgrade \
+            tests.test_search_service -v
+          git push origin HEAD:feature/game-style-item-presentation
