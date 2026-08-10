@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import unittest
+from decimal import Decimal
 
 import search_items as core
 from discord_bot import build_item_detail_embed, build_search_results_embed
-from toram_search.service import StatResultsPayload
+from toram_search.service import ExpressionResultsPayload, StatResultsPayload
 
 
 def make_stat_row(stat_name: str, amount: float) -> core.StatRow:
@@ -83,6 +84,35 @@ class UnavailableStatDisplayTests(unittest.TestCase):
         embed = build_search_results_embed(StatResultsPayload(parsed, (result,)), 0)
         self.assertIn("Stun Unavailable", embed.description or "")
         self.assertNotIn("Stun Unavailable +1", embed.description or "")
+
+    def test_terminal_and_discord_expression_results_hide_true_unavailable_amount(self):
+        clause = core.ResolvedClause(
+            typed_stat="tumble unavailable",
+            stat_name="Tumble Unavailable",
+            operator="=",
+            value=Decimal("1"),
+        )
+        expression = core.ResolvedStatExpression((core.ResolvedAndGroup((clause,)),))
+        row = make_stat_row("Tumble Unavailable", 1)
+        match = core.ClauseMatch(0, clause, (row,))
+        result = core.RankedExpressionItem(
+            item=core.ItemSummary(3, "Expression Item", "Armor"),
+            matches=(match,),
+            primary_amount=1,
+        )
+
+        terminal = core.render_expression_results(expression, None, [result], 0)
+        self.assertIn("Tumble Unavailable", terminal)
+        self.assertNotIn("Tumble Unavailable +1", terminal)
+
+        parsed = core.ParsedSearch(
+            intent="stat_expression",
+            raw_query="tumble unavailable = 1",
+            resolved_expression=expression,
+        )
+        embed = build_search_results_embed(ExpressionResultsPayload(parsed, (result,)), 0)
+        self.assertIn("Tumble Unavailable", embed.description or "")
+        self.assertNotIn("Tumble Unavailable +1", embed.description or "")
 
     def test_unavailable_zero_remains_visible_instead_of_becoming_a_true_flag(self):
         terminal = core.render_item(make_detail(("Tumble Unavailable", 0)))
