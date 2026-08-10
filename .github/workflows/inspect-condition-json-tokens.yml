@@ -27,55 +27,41 @@ jobs:
           path = Path('tests/test_game_style_stat_display.py')
           text = path.read_text(encoding='utf-8')
           marker = '    def test_verified_real_equipment_vocabulary_is_explicitly_mapped(self):\n'
-          test = '''    def test_real_internal_equipment_tokens_use_game_style_names(self):
-              cases = (
-                  (("one_handed_sword",), "1-Handed Sword only", "With 1-Handed Sword"),
-                  (("two_handed_sword",), "2-Handed Sword only", "With 2-Handed Sword"),
-                  (("additional",), "Additional Gear only", "With Additional Gear"),
-                  (("special",), "Special Gear only", "With Special Gear"),
-                  (
-                      (
-                          "knuckles",
-                          "magic_device",
-                          "staff",
-                          "bowgun",
-                          "bow",
-                          "two_handed_sword",
-                          "one_handed_sword",
-                      ),
-                      "Knuckle,Magic Device,Staff,Bowgun,Bow,2-Handed Sword,1-Handed Sword only",
-                      "With Knuckles / Magic Device / Staff / Bowgun / Bow / 2-Handed Sword / 1-Handed Sword",
-                  ),
-              )
-              for conditions, condition_text, expected in cases:
-                  with self.subTest(condition_text=condition_text):
-                      row = stat(
-                          "STR",
-                          1,
-                          *conditions,
-                          condition_text=condition_text,
-                      )
-                      self.assertEqual(core.format_condition_display(row), expected)
-
-'''
+          test = (
+              '    def test_real_internal_equipment_tokens_use_game_style_names(self):\n'
+              '        cases = (\n'
+              '            (("one_handed_sword",), "1-Handed Sword only", "With 1-Handed Sword"),\n'
+              '            (("two_handed_sword",), "2-Handed Sword only", "With 2-Handed Sword"),\n'
+              '            (("additional",), "Additional Gear only", "With Additional Gear"),\n'
+              '            (("special",), "Special Gear only", "With Special Gear"),\n'
+              '            (\n'
+              '                ("knuckles", "magic_device", "staff", "bowgun", "bow", "two_handed_sword", "one_handed_sword"),\n'
+              '                "Knuckle,Magic Device,Staff,Bowgun,Bow,2-Handed Sword,1-Handed Sword only",\n'
+              '                "With Knuckles / Magic Device / Staff / Bowgun / Bow / 2-Handed Sword / 1-Handed Sword",\n'
+              '            ),\n'
+              '        )\n'
+              '        for conditions, condition_text, expected in cases:\n'
+              '            with self.subTest(condition_text=condition_text):\n'
+              '                row = stat("STR", 1, *conditions, condition_text=condition_text)\n'
+              '                self.assertEqual(core.format_condition_display(row), expected)\n'
+              '\n'
+          )
           if 'def test_real_internal_equipment_tokens_use_game_style_names' not in text:
               if marker not in text:
                   raise SystemExit('insertion marker not found')
-              text = text.replace(marker, test + marker, 1)
-              path.write_text(text, encoding='utf-8')
+              path.write_text(text.replace(marker, test + marker, 1), encoding='utf-8')
           PY
       - name: Verify RED
         run: |
           set +e
-          python -m unittest \
-            tests.test_game_style_stat_display.GameStyleConditionTests.test_real_internal_equipment_tokens_use_game_style_names -v
+          python -m unittest tests.test_game_style_stat_display.GameStyleConditionTests.test_real_internal_equipment_tokens_use_game_style_names -v
           status=$?
           set -e
           if [ "$status" -eq 0 ]; then
             echo 'Expected the new real-token regression to fail before the production fix.'
             exit 1
           fi
-          echo 'RED confirmed: real stored equipment tokens are not fully mapped yet.'
+          echo 'RED confirmed.'
       - name: Commit regression test
         run: |
           git config user.name "github-actions[bot]"
