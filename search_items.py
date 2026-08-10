@@ -1157,6 +1157,12 @@ _EQUIPMENT_CONDITION_NAMES = {
     "shield": "Shield",
     "light armor": "Light Armor",
     "heavy armor": "Heavy Armor",
+    "additional gear": "Additional Gear",
+    "armor": "Armor",
+    "dual swords": "Dual Swords",
+    "knuckle": "Knuckles",
+    "ninjutsu scroll": "Ninjutsu Scroll",
+    "special gear": "Special Gear",
 }
 
 
@@ -1191,7 +1197,7 @@ def _equipment_condition_names(row: StatRow | dict[str, Any]) -> tuple[str, ...]
     for part in parts:
         normalized = normalize_name(
             re.sub(r"\s+only\s*$", "", part, flags=re.IGNORECASE)
-        )
+        ).replace("_", " ")
         display = _EQUIPMENT_CONDITION_NAMES.get(normalized)
         if display is None:
             return ()
