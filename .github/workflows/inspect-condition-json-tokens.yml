@@ -1,66 +1,86 @@
-name: Inspect real condition JSON tokens
+name: Real equipment condition token RED
 
 on:
   pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  inspect:
+  red:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: feature/game-style-item-presentation
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install import dependencies
+      - name: Install test dependencies
         run: python -m pip install 'discord.py>=2.7.1,<3' 'python-dotenv>=1.1,<2' 'rapidfuzz>=3.14.5' 'ollama>=0.6.2'
-      - name: Inspect token vocabulary and current display resolution
+      - name: Add regression test for real stored tokens
         run: |
           python - <<'PY'
-          import json
-          import sqlite3
-          import search_items as core
+          from pathlib import Path
 
-          con = sqlite3.connect('coryn_data/database/items.sqlite')
-          con.row_factory = sqlite3.Row
-          try:
-              rows = con.execute(
-                  "SELECT DISTINCT conditions_json, condition_text FROM item_stats "
-                  "WHERE conditions_json IS NOT NULL AND trim(conditions_json) NOT IN ('', '[]') "
-                  "ORDER BY condition_text COLLATE NOCASE"
-              ).fetchall()
-              tokens = set()
-              unresolved = []
-              print('=== CONDITION JSON PAIRS ===')
-              for row in rows:
-                  raw = row['conditions_json']
-                  try:
-                      values = json.loads(raw)
-                  except Exception:
-                      values = []
-                  tokens.update(str(v) for v in values)
-                  probe = {
-                      'conditions_json': raw,
-                      'condition_text': row['condition_text'],
-                      'needs_condition_review': False,
-                  }
-                  names = core._equipment_condition_names(probe)
-                  display = core.format_condition_display(probe)
-                  print(f"{raw} | {row['condition_text']!r} | equipment={names!r} | display={display!r}")
-                  text = str(row['condition_text'] or '')
-                  if text.lower().endswith(' only') and text.lower() != 'event only' and not names:
-                      unresolved.append((raw, text, display))
-              print('=== TOKENS ===')
-              for token in sorted(tokens):
-                  print(token)
-              print('=== UNRESOLVED EQUIPMENT-LIKE CONDITIONS ===')
-              for entry in unresolved:
-                  print(entry)
-              assert not unresolved, unresolved
-          finally:
-              con.close()
+          path = Path('tests/test_game_style_stat_display.py')
+          text = path.read_text(encoding='utf-8')
+          marker = '    def test_verified_real_equipment_vocabulary_is_explicitly_mapped(self):\n'
+          test = '''    def test_real_internal_equipment_tokens_use_game_style_names(self):
+              cases = (
+                  (("one_handed_sword",), "1-Handed Sword only", "With 1-Handed Sword"),
+                  (("two_handed_sword",), "2-Handed Sword only", "With 2-Handed Sword"),
+                  (("additional",), "Additional Gear only", "With Additional Gear"),
+                  (("special",), "Special Gear only", "With Special Gear"),
+                  (
+                      (
+                          "knuckles",
+                          "magic_device",
+                          "staff",
+                          "bowgun",
+                          "bow",
+                          "two_handed_sword",
+                          "one_handed_sword",
+                      ),
+                      "Knuckle,Magic Device,Staff,Bowgun,Bow,2-Handed Sword,1-Handed Sword only",
+                      "With Knuckles / Magic Device / Staff / Bowgun / Bow / 2-Handed Sword / 1-Handed Sword",
+                  ),
+              )
+              for conditions, condition_text, expected in cases:
+                  with self.subTest(condition_text=condition_text):
+                      row = stat(
+                          "STR",
+                          1,
+                          *conditions,
+                          condition_text=condition_text,
+                      )
+                      self.assertEqual(core.format_condition_display(row), expected)
+
+'''
+          if 'def test_real_internal_equipment_tokens_use_game_style_names' not in text:
+              if marker not in text:
+                  raise SystemExit('insertion marker not found')
+              text = text.replace(marker, test + marker, 1)
+              path.write_text(text, encoding='utf-8')
           PY
+      - name: Verify RED
+        run: |
+          set +e
+          python -m unittest \
+            tests.test_game_style_stat_display.GameStyleConditionTests.test_real_internal_equipment_tokens_use_game_style_names -v
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo 'Expected the new real-token regression to fail before the production fix.'
+            exit 1
+          fi
+          echo 'RED confirmed: real stored equipment tokens are not fully mapped yet.'
+      - name: Commit regression test
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          test "$(git diff --name-only)" = "tests/test_game_style_stat_display.py"
+          git add tests/test_game_style_stat_display.py
+          git commit -m "test: cover real equipment condition tokens"
+          git push origin HEAD:feature/game-style-item-presentation
