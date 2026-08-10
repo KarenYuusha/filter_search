@@ -26,26 +26,31 @@ jobs:
           python - <<'PY'
           from pathlib import Path
 
-          search_path = Path('search_items.py')
-          search = search_path.read_text(encoding='utf-8')
+          def function_span(text: str, name: str) -> tuple[int, int]:
+              start = text.index(f"def {name}(")
+              next_def = text.find("\ndef ", start + 1)
+              return start, len(text) if next_def < 0 else next_def + 1
 
-          old_stat = '''    for index, result in enumerate(current, start=1):
-              lines.append(
-                  f"{index}. {result.item.name} — {result.item.item_type} — "
-                  + format_stat_display(stat_name, result.primary.amount)
-              )
-              condition = _condition_label(result.primary)
-              if condition:
-                  lines.append(f"   Condition: {condition}")
-              for alternative in result.alternatives:
-                  alternative_value = format_stat_value(stat_name, alternative.amount, signed=True)
-                  alternative_line = f"   Also: {alternative_value or stat_name}"
-                  alternative_condition = _condition_label(alternative)
-                  if alternative_condition:
-                      alternative_line += f" — {alternative_condition}"
-                  lines.append(alternative_line)
-          '''
-          new_stat = '''    for index, result in enumerate(current, start=1):
+          def replace_between(
+              text: str,
+              function_name: str,
+              start_marker: str,
+              end_marker: str,
+              replacement: str,
+              applied_marker: str,
+          ) -> str:
+              if applied_marker in text:
+                  return text
+              fn_start, fn_end = function_span(text, function_name)
+              segment = text[fn_start:fn_end]
+              rel_start = segment.index(start_marker)
+              rel_end = segment.index(end_marker, rel_start)
+              updated = segment[:rel_start] + replacement + segment[rel_end:]
+              return text[:fn_start] + updated + text[fn_end:]
+
+          search_path = Path("search_items.py")
+          search = search_path.read_text(encoding="utf-8")
+          terminal_loop = '''    for index, result in enumerate(current, start=1):
               primary_line = format_stat_display(stat_name, result.primary.amount)
               condition = format_condition_display(result.primary)
               if condition:
@@ -63,71 +68,55 @@ jobs:
                       alternative_line += f" [{alternative_condition}]"
                   lines.append(alternative_line)
           '''
-          if 'primary_line = format_stat_display(stat_name, result.primary.amount)' not in search:
-              if old_stat not in search:
-                  raise SystemExit('expected old terminal stat-result block not found')
-              search = search.replace(old_stat, new_stat, 1)
-
-          search = search.replace(
-              '                condition = _condition_label(row)\n',
-              '                condition = format_condition_display(row)\n',
-              1,
+          search = replace_between(
+              search,
+              "render_stat_results",
+              "    for index, result in enumerate(current, start=1):\n",
+              "    if not results:\n",
+              terminal_loop,
+              "primary_line = format_stat_display(stat_name, result.primary.amount)",
           )
-          search_path.write_text(search, encoding='utf-8')
-
-          discord_path = Path('discord_bot.py')
-          discord = discord_path.read_text(encoding='utf-8')
-
-          old_discord_stat = '''    if isinstance(payload, StatResultsPayload):
-              result = payload.results[index]
-              parsed = payload.parsed
-              stat_name = parsed.stat.stat_name if parsed.stat else result.primary.stat_name
-              lines = [
-                  f"**{result.item.name}** — {result.item.item_type}",
-                  core.format_stat_display(stat_name, result.primary.amount),
-              ]
-              condition = _condition_label(result.primary)
-              if condition:
-                  lines.append(f"Condition: {condition}")
-              return lines
-          '''
-          new_discord_stat = '''    if isinstance(payload, StatResultsPayload):
-              result = payload.results[index]
-              parsed = payload.parsed
-              stat_name = parsed.stat.stat_name if parsed.stat else result.primary.stat_name
-              primary = core.format_stat_display(stat_name, result.primary.amount)
-              condition = core.format_condition_display(result.primary)
-              if condition:
-                  primary += f" [{condition}]"
-              return [
-                  f"**{result.item.name}** — {result.item.item_type}",
-                  primary,
-              ]
-          '''
-          if 'primary = core.format_stat_display(stat_name, result.primary.amount)' not in discord:
-              if old_discord_stat not in discord:
-                  raise SystemExit('expected old Discord stat-result block not found')
-              discord = discord.replace(old_discord_stat, new_discord_stat, 1)
-
-          discord = discord.replace(
-              '                condition = _condition_label(row)\n',
-              '                condition = core.format_condition_display(row)\n',
-              1,
+          expr_start, expr_end = function_span(search, "render_expression_results")
+          expr = search[expr_start:expr_end]
+          expr = expr.replace(
+              "                condition = _condition_label(row)\n",
+              "                condition = format_condition_display(row)\n",
           )
+          search = search[:expr_start] + expr + search[expr_end:]
+          search_path.write_text(search, encoding="utf-8")
 
-          old_detail = '''    stat_lines: list[str] = []
-              for stat in detail.stats:
-                  line = core.format_stat_display(
-                      stat.get("stat_name") or "Unknown stat",
-                      stat.get("amount"),
-                  )
-                  condition = _condition_label(stat)
+          discord_path = Path("discord_bot.py")
+          discord = discord_path.read_text(encoding="utf-8")
+          result_lines_start, result_lines_end = function_span(discord, "_result_lines")
+          result_lines = discord[result_lines_start:result_lines_end]
+          if "primary = core.format_stat_display(stat_name, result.primary.amount)" not in result_lines:
+              stat_start = result_lines.index("    if isinstance(payload, StatResultsPayload):\n")
+              stat_end = result_lines.index(
+                  "    if isinstance(payload, ExpressionResultsPayload):\n",
+                  stat_start,
+              )
+              stat_block = '''    if isinstance(payload, StatResultsPayload):
+                  result = payload.results[index]
+                  parsed = payload.parsed
+                  stat_name = parsed.stat.stat_name if parsed.stat else result.primary.stat_name
+                  primary = core.format_stat_display(stat_name, result.primary.amount)
+                  condition = core.format_condition_display(result.primary)
                   if condition:
-                      line += f" [{condition}]"
-                  stat_lines.append(line)
-              _safe_field(embed, "Stats", "\\n".join(stat_lines) if stat_lines else "None")
+                      primary += f" [{condition}]"
+                  return [
+                      f"**{result.item.name}** — {result.item.item_type}",
+                      primary,
+                  ]
+
           '''
-          new_detail = '''    stat_lines: list[str] = []
+              result_lines = result_lines[:stat_start] + stat_block + result_lines[stat_end:]
+          result_lines = result_lines.replace(
+              "                condition = _condition_label(row)\n",
+              "                condition = core.format_condition_display(row)\n",
+          )
+          discord = discord[:result_lines_start] + result_lines + discord[result_lines_end:]
+
+          detail_block = '''    stat_lines: list[str] = []
               for group in core.build_item_stat_groups(detail.stats):
                   if group.heading is not None:
                       if stat_lines:
@@ -135,13 +124,17 @@ jobs:
                       stat_lines.append(f"**{group.heading}**")
                   stat_lines.extend(group.lines)
               _safe_field(embed, "Stats", "\\n".join(stat_lines) if stat_lines else "None")
-          '''
-          if 'for group in core.build_item_stat_groups(detail.stats):' not in discord:
-              if old_detail not in discord:
-                  raise SystemExit('expected old Discord item-detail stats block not found')
-              discord = discord.replace(old_detail, new_detail, 1)
 
-          discord_path.write_text(discord, encoding='utf-8')
+          '''
+          discord = replace_between(
+              discord,
+              "build_item_detail_embed",
+              "    stat_lines: list[str] = []\n",
+              "    source_lines: list[str] = []\n",
+              detail_block,
+              "for group in core.build_item_stat_groups(detail.stats):",
+          )
+          discord_path.write_text(discord, encoding="utf-8")
           PY
       - name: Verify Task 3 GREEN
         run: python -m unittest tests.test_game_style_stat_display tests.test_action_speed_alias tests.test_unavailable_stat_display tests.test_discord_bot tests.test_discord_source_display -v
