@@ -28,6 +28,7 @@ DEFAULT_DATABASE = Path("coryn_data/database/items.sqlite")
 PAGE_SIZE = 5
 MIN_QUERY_LENGTH = 2
 FUZZY_STAT_THRESHOLD = 70.0
+ITEM_FUZZY_RELEVANCE_THRESHOLD = 70.0
 SEARCH_ONLY_STAT_ALIASES = {
     "aggro": "aggro %",
 }
@@ -1014,11 +1015,22 @@ def _score_item(query: str, item: ItemSummary) -> RankedItem:
     return RankedItem(item, score, match_kind)
 
 
+def _is_relevant_ranked_item(result: RankedItem) -> bool:
+    if result.match_kind in {"exact", "prefix", "substring", "all_tokens"}:
+        return True
+    return result.score >= ITEM_FUZZY_RELEVANCE_THRESHOLD
+
+
+
 def rank_items(query: str, items: Iterable[ItemSummary]) -> list[RankedItem]:
     normalized_query = normalize_name(query)
     if len(normalized_query) < MIN_QUERY_LENGTH:
         return []
-    results = [_score_item(normalized_query, item) for item in items]
+    results = [
+        result
+        for item in items
+        if _is_relevant_ranked_item(result := _score_item(normalized_query, item))
+    ]
     results.sort(
         key=lambda result: (
             -result.score,
