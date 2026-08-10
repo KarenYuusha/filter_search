@@ -1,0 +1,40 @@
+name: Verify Flag Stat Diagnostic
+
+on:
+  pull_request:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Inspect flag-like stat storage
+        run: |
+          python - <<'PY'
+          import sqlite3
+          from pathlib import Path
+
+          db = sqlite3.connect(Path('coryn_data/database/items.sqlite'))
+          db.row_factory = sqlite3.Row
+          print('=== unavailable stats ===')
+          for row in db.execute('''
+              SELECT stat_name, amount, COUNT(*) AS count
+              FROM item_stats
+              WHERE lower(stat_name) LIKE '% unavailable'
+              GROUP BY stat_name, amount
+              ORDER BY stat_name, amount
+          '''):
+              print(dict(row))
+          print('=== amount=1 stat names ===')
+          for row in db.execute('''
+              SELECT stat_name, COUNT(*) AS count
+              FROM item_stats
+              WHERE amount = 1 AND stat_name <> 'Upgrade for'
+              GROUP BY stat_name
+              ORDER BY stat_name
+          '''):
+              print(dict(row))
+          PY
