@@ -1,0 +1,58 @@
+name: Verify Game Style Task 1 GREEN
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check out feature branch
+        run: |
+          git fetch origin feature/game-style-item-presentation
+          git checkout -B feature/game-style-item-presentation origin/feature/game-style-item-presentation
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply Task 1 production changes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          aliases_path = Path('toram_data/aliases.py')
+          text = aliases_path.read_text(encoding='utf-8')
+          old = '''    "motion": "motion speed %",\n    "motion %": "motion speed %",\n    "motion%": "motion speed %",\n'''
+          new = '''    "motion": "motion speed %",\n    "motion %": "motion speed %",\n    "motion%": "motion speed %",\n    "action speed": "motion speed %",\n    "action speed %": "motion speed %",\n    "action speed%": "motion speed %",\n'''
+          if text.count(old) != 1:
+              raise SystemExit(f'expected one motion alias block, found {text.count(old)}')
+          aliases_path.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          search_path = Path('search_items.py')
+          text = search_path.read_text(encoding='utf-8')
+          old = '''def format_stat_display(stat_name: object, amount: object) -> str:\n    name = str(stat_name or "Unknown stat")\n    value = format_stat_value(name, amount, signed=True)\n    return name if not value else f"{name} {value}"\n'''
+          new = '''_STAT_DISPLAY_ALIASES = {\n    "motion speed %": "Action Speed",\n}\n\n\ndef format_stat_name(stat_name: object) -> tuple[str, str]:\n    raw_name = str(stat_name or "Unknown stat")\n    normalized = normalize_stat_text(raw_name)\n    has_trailing_percent = normalized.endswith(" %") and raw_name.rstrip().endswith("%")\n    visible_name = raw_name.rstrip()\n    value_suffix = "%" if has_trailing_percent else ""\n    if has_trailing_percent:\n        visible_name = visible_name[:-1].rstrip()\n    visible_name = _STAT_DISPLAY_ALIASES.get(normalized, visible_name)\n    return visible_name, value_suffix\n\n\ndef format_stat_display(stat_name: object, amount: object) -> str:\n    visible_name, value_suffix = format_stat_name(stat_name)\n    value = format_stat_value(stat_name, amount, signed=True)\n    if not value:\n        return visible_name\n    return f"{visible_name} {value}{value_suffix}"\n'''
+          if text.count(old) != 1:
+              raise SystemExit(f'expected one stat display formatter, found {text.count(old)}')
+          search_path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+      - name: Install focused dependencies
+        run: python -m pip install 'rapidfuzz>=3.14.5' 'ollama>=0.6.2' 'discord.py>=2.7.1,<3' 'python-dotenv>=1.1,<2'
+      - name: Compile
+        run: python -m py_compile search_items.py toram_data/aliases.py
+      - name: Run focused regressions
+        run: |
+          python -m unittest \
+            tests.test_game_style_stat_display \
+            tests.test_action_speed_alias \
+            tests.test_unavailable_stat_display -v
+      - name: Commit Task 1 production changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add search_items.py toram_data/aliases.py
+          git commit -m "feat: add game-style stat display aliases"
+          git push origin HEAD:feature/game-style-item-presentation
