@@ -56,7 +56,7 @@ class ActionSpeedAliasTests(unittest.TestCase):
     def test_action_speed_query_never_calls_qwen(self):
         service = SearchService(AliasRepository(), llm_client=MustNotCallLLM())
         outcome = service.handle_query(
-            "armor with action speed",
+            "find armor with action speed",
             FailedQueryContext(max_entries=3),
         )
         self.assertEqual(outcome.kind, "search")
