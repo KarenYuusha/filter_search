@@ -344,6 +344,8 @@ class SearchService:
                 if len(exact) > 1
                 else core.rank_items(query, self.all_items)
             )
+            if len(results) == 1:
+                return ItemDetailPayload(self.repository.get_item(results[0].item.id))
             return ItemResultsPayload(query, tuple(results))
 
         if parsed.intent == "exact_upgrade":
@@ -371,6 +373,12 @@ class SearchService:
                 if len(exact) > 1
                 else core.rank_items(query, upgrade_items)
             )
+            if len(results) == 1:
+                selected_id = results[0].item.id
+                return UpgradeDetailPayload(
+                    graph=self.repository.get_upgrade_component(selected_id),
+                    selected_item_id=selected_id,
+                )
             return UpgradeResultsPayload(query, tuple(results))
 
         if parsed.intent == "guided_stat":
@@ -404,6 +412,8 @@ class SearchService:
                 parsed.stat.stat_name,
                 parsed.filter.item_types if parsed.filter else None,
             )
+            if len(results) == 1:
+                return ItemDetailPayload(self.repository.get_item(results[0].item.id))
             return StatResultsPayload(parsed, tuple(results))
 
         if parsed.intent == "stat_expression":
@@ -425,6 +435,8 @@ class SearchService:
                 resolved.filter.item_types if resolved.filter else None,
                 primary_sort_ascending=resolved.primary_sort_ascending,
             )
+            if len(results) == 1:
+                return ItemDetailPayload(self.repository.get_item(results[0].item.id))
             return ExpressionResultsPayload(resolved, tuple(results))
 
         return GuidedStatPayload("I couldn't convert that into a supported search.")
