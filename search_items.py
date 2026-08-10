@@ -1142,23 +1142,125 @@ def _parse_conditions(raw: Any) -> list[str]:
     return [str(item) for item in value] if isinstance(value, list) else []
 
 
-def _condition_label(row: StatRow | dict[str, Any]) -> str | None:
+_EQUIPMENT_CONDITION_NAMES = {
+    "1 handed sword": "1-Handed Sword",
+    "2 handed sword": "2-Handed Sword",
+    "bow": "Bow",
+    "bowgun": "Bowgun",
+    "katana": "Katana",
+    "staff": "Staff",
+    "magic device": "Magic Device",
+    "knuckles": "Knuckles",
+    "halberd": "Halberd",
+    "arrow": "Arrow",
+    "dagger": "Dagger",
+    "shield": "Shield",
+    "light armor": "Light Armor",
+    "heavy armor": "Heavy Armor",
+}
+
+
+def _condition_fields(row: StatRow | dict[str, Any]) -> tuple[str | None, str, bool]:
     if isinstance(row, StatRow):
-        condition_text = row.condition_text
-        conditions_json = row.conditions_json
-        needs_review = row.needs_condition_review
-    else:
-        condition_text = row.get("condition_text")
-        conditions_json = row.get("conditions_json")
-        needs_review = bool(row.get("needs_condition_review"))
+        return row.condition_text, row.conditions_json, row.needs_condition_review
+    return (
+        row.get("condition_text"),
+        str(row.get("conditions_json") or "[]"),
+        bool(row.get("needs_condition_review")),
+    )
+
+
+def _raw_condition_label(row: StatRow | dict[str, Any]) -> str | None:
+    condition_text, conditions_json, _needs_review = _condition_fields(row)
     if condition_text:
-        label = str(condition_text)
-    else:
-        conditions = _parse_conditions(conditions_json)
-        label = ", ".join(conditions) if conditions else ""
+        return str(condition_text)
+    conditions = _parse_conditions(conditions_json)
+    return ", ".join(conditions) if conditions else None
+
+
+def _equipment_condition_names(row: StatRow | dict[str, Any]) -> tuple[str, ...]:
+    condition_text, conditions_json, _needs_review = _condition_fields(row)
+    parts = _parse_conditions(conditions_json)
+    if not parts and condition_text:
+        cleaned = re.sub(r"\s+only\s*$", "", str(condition_text), flags=re.IGNORECASE)
+        parts = [part.strip() for part in cleaned.split(",") if part.strip()]
+    if not parts:
+        return ()
+
+    visible: list[str] = []
+    for part in parts:
+        normalized = normalize_name(
+            re.sub(r"\s+only\s*$", "", part, flags=re.IGNORECASE)
+        )
+        display = _EQUIPMENT_CONDITION_NAMES.get(normalized)
+        if display is None:
+            return ()
+        if display not in visible:
+            visible.append(display)
+    return tuple(visible)
+
+
+def format_condition_display(row: StatRow | dict[str, Any]) -> str | None:
+    names = _equipment_condition_names(row)
+    raw = _raw_condition_label(row)
+    _condition_text, _conditions_json, needs_review = _condition_fields(row)
+    label = "With " + " / ".join(names) if names else (raw or "")
     if needs_review:
         label = (label + " [needs review]").strip()
     return label or None
+
+
+def _condition_label(row: StatRow | dict[str, Any]) -> str | None:
+    return format_condition_display(row)
+
+
+@dataclass(frozen=True)
+class StatDisplayGroup:
+    heading: str | None
+    lines: tuple[str, ...]
+
+
+def build_item_stat_groups(
+    stats: Iterable[dict[str, Any]],
+) -> tuple[StatDisplayGroup, ...]:
+    unconditional: list[str] = []
+    order: list[str] = []
+    grouped: dict[str, list[str]] = {}
+
+    for stat in stats:
+        line = format_stat_display(
+            stat.get("stat_name") or "Unknown stat",
+            stat.get("amount"),
+        )
+        _condition_text, _conditions_json, needs_review = _condition_fields(stat)
+        equipment_names = _equipment_condition_names(stat)
+        raw_condition = _raw_condition_label(stat)
+
+        if needs_review:
+            line += " [needs review]"
+
+        if equipment_names:
+            headings = tuple(f"With {name}" for name in equipment_names)
+        elif raw_condition:
+            headings = (raw_condition,)
+        else:
+            unconditional.append(line)
+            continue
+
+        for heading in headings:
+            if heading not in grouped:
+                grouped[heading] = []
+                order.append(heading)
+            grouped[heading].append(line)
+
+    output: list[StatDisplayGroup] = []
+    if unconditional:
+        output.append(StatDisplayGroup(None, tuple(unconditional)))
+    output.extend(
+        StatDisplayGroup(heading, tuple(grouped[heading]))
+        for heading in order
+    )
+    return tuple(output)
 
 
 def render_item(detail: ItemDetail) -> str:
@@ -1180,18 +1282,16 @@ def render_item(detail: ItemDetail) -> str:
         lines.extend(["", "Notes:", str(detail.note)])
 
     lines.extend(["", "Stats:"])
-    if not detail.stats:
+    groups = build_item_stat_groups(detail.stats)
+    if not groups:
         lines.append("- None")
     else:
-        for stat in detail.stats:
-            suffix = _condition_label(stat)
-            rendered = "- " + format_stat_display(
-                stat.get("stat_name") or "Unknown stat",
-                stat.get("amount"),
-            )
-            if suffix:
-                rendered += f" [{suffix}]"
-            lines.append(rendered)
+        for group_index, group in enumerate(groups):
+            if group.heading is not None:
+                if group_index > 0:
+                    lines.append("")
+                lines.append(f"{group.heading}:")
+            lines.extend(f"- {line}" for line in group.lines)
 
     if detail.upgrade_predecessors or detail.upgrade_successors:
         lines.extend(["", "Upgrade:"])
