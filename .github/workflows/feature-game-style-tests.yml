@@ -1,0 +1,34 @@
+name: Feature game-style tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - feature/game-style-item-presentation
+
+jobs:
+  main-baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip && python -m pip install 'discord.py>=2.7.1,<3' 'python-dotenv>=1.1,<2' 'rapidfuzz>=3.14.5' 'ollama>=0.6.2'
+      - name: Run main baseline
+        run: python -m unittest discover -s tests -v
+
+  feature-red:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip && python -m pip install 'discord.py>=2.7.1,<3' 'python-dotenv>=1.1,<2' 'rapidfuzz>=3.14.5' 'ollama>=0.6.2'
+      - name: Verify Task 1 RED tests
+        run: python -m unittest tests.test_game_style_stat_display tests.test_action_speed_alias tests.test_unavailable_stat_display -v
