@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import json
 import unittest
+from decimal import Decimal
 
 import search_items as core
+from discord_bot import build_item_detail_embed, build_search_results_embed
+from toram_search.service import ExpressionResultsPayload, StatResultsPayload
 
 
 def stat(name, amount, *conditions, condition_text=None, needs_review=False):
@@ -15,6 +18,18 @@ def stat(name, amount, *conditions, condition_text=None, needs_review=False):
         "coryn_applies_to": None,
         "needs_condition_review": needs_review,
     }
+
+
+def stat_row(name, amount, *conditions, condition_text=None):
+    return core.StatRow(
+        stat_name=name,
+        amount=amount,
+        conditions_json=json.dumps(list(conditions)),
+        condition_text=condition_text,
+        coryn_applies_to=None,
+        needs_condition_review=False,
+        position=0,
+    )
 
 
 def altadar_like_detail():
@@ -129,6 +144,96 @@ class GameStyleConditionTests(unittest.TestCase):
         self.assertEqual(
             core.format_condition_display(row),
             "With Light Armor / Heavy Armor",
+        )
+
+
+class GameStyleFrontendParityTests(unittest.TestCase):
+    def test_discord_full_detail_uses_one_grouped_stats_field(self):
+        embed = build_item_detail_embed(altadar_like_detail())
+        stats_fields = [field for field in embed.fields if field.name == "Stats"]
+        self.assertEqual(len(stats_fields), 1)
+        stats_value = stats_fields[0].value
+        self.assertIn("STR +6%", stats_value)
+        self.assertIn("**With Light Armor**", stats_value)
+        self.assertIn("**With Heavy Armor**", stats_value)
+        self.assertEqual(stats_value.count("Stability -5%"), 2)
+        self.assertNotIn("Heavy Armor,Light Armor only", stats_value)
+
+    def test_terminal_stat_result_keeps_multi_condition_compact(self):
+        shared = stat_row(
+            "Stability %",
+            -5,
+            "Light Armor",
+            "Heavy Armor",
+            condition_text="Heavy Armor,Light Armor only",
+        )
+        result = core.RankedStatItem(
+            item=core.ItemSummary(2, "Compact Item", "Armor"),
+            primary=shared,
+            alternatives=(),
+        )
+        rendered = core.render_stat_results("Stability %", None, [result], 0)
+        self.assertIn(
+            "Stability -5% [With Light Armor / Heavy Armor]",
+            rendered,
+        )
+        self.assertNotIn("Condition: Heavy Armor,Light Armor only", rendered)
+
+    def test_discord_stat_result_keeps_multi_condition_compact(self):
+        shared = stat_row(
+            "Stability %",
+            -5,
+            "Light Armor",
+            "Heavy Armor",
+            condition_text="Heavy Armor,Light Armor only",
+        )
+        result = core.RankedStatItem(
+            item=core.ItemSummary(3, "Compact Item", "Armor"),
+            primary=shared,
+            alternatives=(),
+        )
+        parsed = core.ParsedSearch(
+            intent="stat_search",
+            raw_query="stability armor",
+            stat=core.StatResolution("Stability %", "stability", 100.0, False),
+        )
+        embed = build_search_results_embed(StatResultsPayload(parsed, (result,)), 0)
+        self.assertIn(
+            "Stability -5% [With Light Armor / Heavy Armor]",
+            embed.description or "",
+        )
+        self.assertNotIn("Condition:", embed.description or "")
+
+    def test_expression_results_use_action_speed_and_full_weapon_name(self):
+        clause = core.ResolvedClause(
+            typed_stat="action speed",
+            stat_name="Motion Speed %",
+            operator=">=",
+            value=Decimal("1"),
+        )
+        expression = core.ResolvedStatExpression((core.ResolvedAndGroup((clause,)),))
+        row = stat_row(
+            "Motion Speed %",
+            10,
+            "1 Handed Sword",
+            condition_text="1 Handed Sword only",
+        )
+        result = core.RankedExpressionItem(
+            item=core.ItemSummary(4, "Speed Item", "Armor"),
+            matches=(core.ClauseMatch(0, clause, (row,)),),
+            primary_amount=10,
+        )
+        parsed = core.ParsedSearch(
+            intent="stat_expression",
+            raw_query="action speed >= 1 armor",
+            resolved_expression=expression,
+        )
+        terminal = core.render_expression_results(expression, None, [result], 0)
+        self.assertIn("Action Speed +10% [With 1-Handed Sword]", terminal)
+        embed = build_search_results_embed(ExpressionResultsPayload(parsed, (result,)), 0)
+        self.assertIn(
+            "Action Speed +10% [With 1-Handed Sword]",
+            embed.description or "",
         )
 
 
