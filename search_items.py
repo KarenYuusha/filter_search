@@ -1797,6 +1797,8 @@ def route_deterministically(
         "stat_choices",
     }:
         return DeterministicRoute("search", parsed=parsed)
+    if parsed.intent == "item_search" and repository.exact_name_matches(raw):
+        return DeterministicRoute("search", parsed=parsed)
     if (
         parsed.intent == "stat_expression"
         and not parsed.error
