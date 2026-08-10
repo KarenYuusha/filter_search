@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  task4-red:
+  task4-green:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,5 +21,125 @@ jobs:
           python-version: '3.12'
       - name: Install test dependencies
         run: python -m pip install --upgrade pip && python -m pip install 'discord.py>=2.7.1,<3' 'python-dotenv>=1.1,<2' 'rapidfuzz>=3.14.5' 'ollama>=0.6.2'
-      - name: Verify Task 4 RED
-        run: python -m unittest tests.test_single_result_auto_open.ServiceSingleResultAutoOpenTests -v
+      - name: Implement sole-result service short-circuits
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("toram_search/service.py")
+          text = path.read_text(encoding="utf-8")
+
+          replacements = [
+              (
+                  '''            results = (
+                      [core.RankedItem(item=item, score=100.0, match_kind="exact") for item in exact]
+                      if len(exact) > 1
+                      else core.rank_items(query, self.all_items)
+                  )
+                  return ItemResultsPayload(query, tuple(results))
+          ''',
+                  '''            results = (
+                      [core.RankedItem(item=item, score=100.0, match_kind="exact") for item in exact]
+                      if len(exact) > 1
+                      else core.rank_items(query, self.all_items)
+                  )
+                  if len(results) == 1:
+                      return ItemDetailPayload(self.repository.get_item(results[0].item.id))
+                  return ItemResultsPayload(query, tuple(results))
+          ''',
+                  "return ItemDetailPayload(self.repository.get_item(results[0].item.id))",
+              ),
+              (
+                  '''            results = (
+                      [core.RankedItem(item=item, score=100.0, match_kind="exact") for item in exact]
+                      if len(exact) > 1
+                      else core.rank_items(query, upgrade_items)
+                  )
+                  return UpgradeResultsPayload(query, tuple(results))
+          ''',
+                  '''            results = (
+                      [core.RankedItem(item=item, score=100.0, match_kind="exact") for item in exact]
+                      if len(exact) > 1
+                      else core.rank_items(query, upgrade_items)
+                  )
+                  if len(results) == 1:
+                      selected_id = results[0].item.id
+                      return UpgradeDetailPayload(
+                          graph=self.repository.get_upgrade_component(selected_id),
+                          selected_item_id=selected_id,
+                      )
+                  return UpgradeResultsPayload(query, tuple(results))
+          ''',
+                  "selected_id = results[0].item.id",
+              ),
+              (
+                  '''            results = self.repository.search_by_stat(
+                      parsed.stat.stat_name,
+                      parsed.filter.item_types if parsed.filter else None,
+                  )
+                  return StatResultsPayload(parsed, tuple(results))
+          ''',
+                  '''            results = self.repository.search_by_stat(
+                      parsed.stat.stat_name,
+                      parsed.filter.item_types if parsed.filter else None,
+                  )
+                  if len(results) == 1:
+                      return ItemDetailPayload(self.repository.get_item(results[0].item.id))
+                  return StatResultsPayload(parsed, tuple(results))
+          ''',
+                  "return StatResultsPayload(parsed, tuple(results))",
+              ),
+              (
+                  '''            results = self.repository.search_by_expression(
+                      resolved.resolved_expression,
+                      resolved.filter.item_types if resolved.filter else None,
+                      primary_sort_ascending=resolved.primary_sort_ascending,
+                  )
+                  return ExpressionResultsPayload(resolved, tuple(results))
+          ''',
+                  '''            results = self.repository.search_by_expression(
+                      resolved.resolved_expression,
+                      resolved.filter.item_types if resolved.filter else None,
+                      primary_sort_ascending=resolved.primary_sort_ascending,
+                  )
+                  if len(results) == 1:
+                      return ItemDetailPayload(self.repository.get_item(results[0].item.id))
+                  return ExpressionResultsPayload(resolved, tuple(results))
+          ''',
+                  "return ExpressionResultsPayload(resolved, tuple(results))",
+              ),
+          ]
+
+          for old, new, fallback_marker in replacements:
+              if old in text:
+                  text = text.replace(old, new, 1)
+              elif new not in text and fallback_marker not in text:
+                  raise SystemExit("expected service materialization block not found")
+
+          path.write_text(text, encoding="utf-8")
+          PY
+      - name: Verify Task 4 GREEN
+        run: |
+          python -m unittest \
+            tests.test_single_result_auto_open.ServiceSingleResultAutoOpenTests \
+            tests.test_search_service \
+            tests.test_discord_followup_regressions \
+            tests.test_discord_bot -v
+      - name: Synchronize, reapply if needed, reverify, and commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add toram_search/service.py
+          if git diff --cached --quiet; then
+            echo "Task 4 already applied"
+            exit 0
+          fi
+          git commit -m "feat: auto-open sole service search result"
+          git fetch origin feature/game-style-item-presentation
+          git rebase origin/feature/game-style-item-presentation
+          python -m unittest \
+            tests.test_single_result_auto_open.ServiceSingleResultAutoOpenTests \
+            tests.test_search_service \
+            tests.test_discord_followup_regressions \
+            tests.test_discord_bot -v
+          git push origin HEAD:feature/game-style-item-presentation
