@@ -1,0 +1,56 @@
+name: Diagnose Mage Robe Routing
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Inspect Mage Robe database rows
+        run: |
+          python - <<'PY'
+          import sqlite3
+          from pathlib import Path
+
+          db = Path('coryn_data/database/items.sqlite')
+          conn = sqlite3.connect(db)
+          rows = conn.execute(
+              "SELECT id, name, item_type FROM items WHERE lower(trim(name)) = lower(?) ORDER BY id",
+              ('Mage Robe',),
+          ).fetchall()
+          print(f'exact_casefold_rows={len(rows)}')
+          for row in rows:
+              print(row)
+          conn.close()
+          PY
+      - name: Reproduce deterministic route
+        run: |
+          python -m pip install 'rapidfuzz>=3.14.5' 'ollama>=0.6.2' 'python-dotenv>=1.1,<2'
+          python - <<'PY'
+          from pathlib import Path
+          import search_items as core
+          from toram_search.help_db import HelpService
+
+          repo = core.ItemRepository(Path('coryn_data/database/items.sqlite'))
+          try:
+              help_service = HelpService()
+              db_service = core.make_database_question_service(repo)
+              parsed = core.parse_search_query('mage robe', repo)
+              route = core.route_deterministically(
+                  'mage robe', repo, repo.list_items(), help_service, db_service
+              )
+              print('parsed_intent=', parsed.intent)
+              print('parsed_item_query=', parsed.item_query)
+              print('route_kind=', route.kind)
+              print('exact_matches=', [(x.id, x.name, x.item_type) for x in repo.exact_name_matches('mage robe')])
+          finally:
+              repo.close()
+          PY
