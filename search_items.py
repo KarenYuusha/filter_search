@@ -1144,7 +1144,9 @@ def _parse_conditions(raw: Any) -> list[str]:
 
 _EQUIPMENT_CONDITION_NAMES = {
     "1 handed sword": "1-Handed Sword",
+    "one handed sword": "1-Handed Sword",
     "2 handed sword": "2-Handed Sword",
+    "two handed sword": "2-Handed Sword",
     "bow": "Bow",
     "bowgun": "Bowgun",
     "katana": "Katana",
@@ -1158,11 +1160,13 @@ _EQUIPMENT_CONDITION_NAMES = {
     "light armor": "Light Armor",
     "heavy armor": "Heavy Armor",
     "additional gear": "Additional Gear",
+    "additional": "Additional Gear",
     "armor": "Armor",
     "dual swords": "Dual Swords",
     "knuckle": "Knuckles",
     "ninjutsu scroll": "Ninjutsu Scroll",
     "special gear": "Special Gear",
+    "special": "Special Gear",
 }
 
 
