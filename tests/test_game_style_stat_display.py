@@ -119,6 +119,48 @@ class GameStyleConditionTests(unittest.TestCase):
             with self.subTest(expected=expected):
                 self.assertEqual(core.format_condition_display(row), expected)
 
+    def test_real_snake_case_condition_codes_use_game_style_names(self):
+        light = stat(
+            "Short Range Damage %",
+            11,
+            "light_armor",
+            condition_text="Light Armor only",
+        )
+        shared = stat(
+            "Stability %",
+            -5,
+            "heavy_armor",
+            "light_armor",
+            condition_text="Heavy Armor,Light Armor only",
+        )
+        self.assertEqual(core.format_condition_display(light), "With Light Armor")
+        self.assertEqual(
+            core.format_condition_display(shared),
+            "With Heavy Armor / Light Armor",
+        )
+
+    def test_verified_real_equipment_vocabulary_is_explicitly_mapped(self):
+        cases = (
+            ("Additional Gear only", "With Additional Gear"),
+            ("Armor only", "With Armor"),
+            ("Dual Swords only", "With Dual Swords"),
+            ("Knuckle only", "With Knuckles"),
+            ("Ninjutsu Scroll only", "With Ninjutsu Scroll"),
+            ("Special Gear only", "With Special Gear"),
+        )
+        for condition_text, expected in cases:
+            with self.subTest(condition_text=condition_text):
+                self.assertEqual(
+                    core.format_condition_display(
+                        stat("STR", 1, condition_text=condition_text)
+                    ),
+                    expected,
+                )
+
+    def test_non_equipment_event_only_condition_is_preserved(self):
+        row = stat("STR", 1, condition_text="Event only")
+        self.assertEqual(core.format_condition_display(row), "Event only")
+
     def test_unknown_only_condition_is_preserved(self):
         row = stat("STR", 1, condition_text="Special state only")
         self.assertEqual(core.format_condition_display(row), "Special state only")
