@@ -28,13 +28,22 @@ jobs:
               ORDER BY stat_name, amount
           '''):
               print(dict(row))
-          print('=== amount=1 stat names ===')
+          print('=== anomalous unavailable rows ===')
           for row in db.execute('''
-              SELECT stat_name, COUNT(*) AS count
-              FROM item_stats
-              WHERE amount = 1 AND stat_name <> 'Upgrade for'
-              GROUP BY stat_name
-              ORDER BY stat_name
+              SELECT s.item_id, i.name, i.item_type, s.stat_name, s.amount,
+                     s.conditions_json, s.condition_text, s.needs_condition_review
+              FROM item_stats AS s
+              JOIN items AS i ON i.id = s.item_id
+              WHERE lower(s.stat_name) LIKE '% unavailable'
+                AND s.amount <> 1
+              ORDER BY s.stat_name, s.item_id
           '''):
               print(dict(row))
+          print('=== amount=1 numeric controls ===')
+          for stat_name in ('STR', 'Critical Rate', 'ATK %'):
+              row = db.execute('''
+                  SELECT COUNT(*) AS count FROM item_stats
+                  WHERE stat_name = ? AND amount = 1
+              ''', (stat_name,)).fetchone()
+              print(stat_name, int(row['count']))
           PY
