@@ -23,7 +23,7 @@ from discord_bot import (
     valid_local_image_paths,
     visible_attachment_name,
 )
-from toram_search.service import ItemResultsPayload, UpgradeResultsPayload
+from toram_search.service import ItemResultsPayload, ServiceOutcome, UpgradeResultsPayload
 
 
 class DiscordConfigTests(unittest.TestCase):
@@ -334,6 +334,46 @@ class DiscordFormattingTests(unittest.TestCase):
         parameters = inspect.signature(discord_bot.build_service_outcome_message).parameters
         self.assertIn("bot_example_prefix", parameters)
         self.assertNotIn("bot_mention", parameters)
+
+    def test_failed_outcome_with_suggestion_renders_specific_query(self):
+        sessions = DiscordSessionManager()
+        key = (10, 30, 20)
+        session = sessions.start_query(key, "highest xtall cr weapon")
+
+        embed, view, file = discord_bot.build_service_outcome_message(
+            ServiceOutcome("failed", suggested_query="cr wp xtal"),
+            bot_example_prefix="@Toram Search",
+            sessions=sessions,
+            key=key,
+            generation=session.generation,
+            database_path=Path("coryn_data/database/items.sqlite"),
+        )
+
+        self.assertEqual(embed.title, "I couldn't interpret that search")
+        self.assertEqual(embed.description, "Did you mean: `@Toram Search cr wp xtal`")
+        self.assertIsNone(view)
+        self.assertIsNone(file)
+
+    def test_failed_outcome_without_suggestion_keeps_generic_examples(self):
+        sessions = DiscordSessionManager()
+        key = (10, 30, 20)
+        session = sessions.start_query(key, "unresolved query")
+
+        embed, view, file = discord_bot.build_service_outcome_message(
+            ServiceOutcome("failed"),
+            bot_example_prefix="@Toram Search",
+            sessions=sessions,
+            key=key,
+            generation=session.generation,
+            database_path=Path("coryn_data/database/items.sqlite"),
+        )
+
+        self.assertIn("@Toram Search hp armor", embed.description)
+        self.assertIn("@Toram Search cr bow", embed.description)
+        self.assertIn("@Toram Search hp > 5000 and cr bow", embed.description)
+        self.assertNotIn("Did you mean", embed.description)
+        self.assertIsNone(view)
+        self.assertIsNone(file)
 
 
 if __name__ == "__main__":
