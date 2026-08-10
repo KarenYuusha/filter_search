@@ -115,7 +115,9 @@ For the first version, reconstruction should focus on a common simple-search sha
 - optional conservative filler words;
 - arbitrary order of recognized stat/filter tokens.
 
-Do not initially add comparison, AND/OR, ranking, or multi-stat reconstruction unless the existing parser already accepts the reconstructed canonical query. Those capabilities can be added incrementally behind tests as real failed-query examples appear.
+Do not initially add comparison, AND/OR, ranking, or multi-stat reconstruction unless the existing parser already accepts the raw query before reconstruction. Those broader shapes may still be eligible for safe post-Qwen guidance, but they should not be auto-executed by v1 reconstruction merely because a correction can be guessed.
+
+This narrow first step gives the project a reusable reconstruction layer without turning it into a second full parser immediately.
 
 ### 4. High-confidence reconstruction may execute directly
 
@@ -263,7 +265,7 @@ Update `SearchService.handle_query` conceptually as follows:
 5. If reconstruction identifies deterministic ambiguity:
    - return the existing clarification payload;
    - do not call Qwen merely to resolve that known ambiguity.
-6. Otherwise record the failed input as today and call Qwen exactly once.
+6. Otherwise record the input as a fallback attempt and call Qwen exactly once.
 7. Validate the Qwen payload deterministically.
 8. If valid, keep the existing confirmation/search flow.
 9. If `refuse`, preserve the unsupported-request flow.
@@ -274,13 +276,15 @@ Update `SearchService.handle_query` conceptually as follows:
 
 The original requirement remains useful: when a query truly reaches Qwen and Qwen still cannot produce a valid interpretation, prefer a query-specific example over generic syntax examples when it can be generated safely.
 
-However, this is now a **guidance path**, not the main way to repair simple reordered queries. Cases such as `xtall cr weapon` should already have been handled by deterministic reconstruction before Qwen.
+This is a **guidance path**, not the main way to repair simple reordered queries. Cases such as `xtall cr weapon` should already have been handled by deterministic reconstruction before Qwen.
 
 Create a helper approximately equivalent to:
 
 `try_suggest_query(raw_query, repository) -> str | None`
 
-It should reuse the same normalization/entity-recognition primitives as deterministic reconstruction, but it may return guidance in cases that are safe to explain yet not eligible for automatic execution under the current reconstruction feature set.
+It should reuse the same normalization and entity-recognition primitives as deterministic reconstruction, but its supported surface may be broader than the v1 auto-execution surface. This distinction prevents the suggestion stage from being redundant.
+
+For example, v1 reconstruction may intentionally auto-execute only one-stat + one-filter searches, while guidance may safely canonicalize an already parser-supported ranking shape such as a reordered `highest cr weapon xtal` into a canonical query. The guidance is still not executed automatically because that query shape is outside the v1 reconstruction policy.
 
 A suggestion may be shown only when:
 
@@ -288,7 +292,7 @@ A suggestion may be shown only when:
 - all meaningful user tokens are accounted for;
 - no ambiguous stat/filter choice is hidden;
 - the generated query re-parses successfully through the deterministic parser;
-- the parsed result matches the entities recognized from the original input.
+- the parsed result matches the entities/operators/ranking recognized from the original input.
 
 If these conditions are not met, return no specific suggestion.
 
@@ -301,10 +305,11 @@ Continue using `FailedQueryContext`.
 Ordering should be:
 
 - deterministic parser/reconstruction successes do not enter failed history;
-- a query is recorded when it actually needs the Qwen fallback;
+- a query is recorded when it actually enters Qwen fallback;
 - Qwen sees prior failed inputs and prior safe suggestions;
 - if Qwen fails and deterministic guidance produces a suggestion, save it with `context.set_latest_suggestion(...)`;
-- a later Qwen call may use that previous suggestion as context.
+- a later Qwen call may use that previous suggestion as context;
+- successful confirmed searches continue clearing failed context according to existing session behavior.
 
 No new session store is required.
 
@@ -400,9 +405,9 @@ Verify:
 - valid Qwen structured output is validated and preserved;
 - ambiguous deterministic terms are clarified rather than delegated to Qwen;
 - `refuse` and `unavailable` behavior remains unchanged;
-- failed Qwen interpretation may attach a safe suggestion;
+- failed Qwen interpretation may attach a safe suggestion from a broader guidance-only shape;
 - failed Qwen interpretation with no safe suggestion falls back to generic help;
-- failed-query context is only recorded when the query actually reaches fallback.
+- failed-query context is only recorded for queries that actually enter fallback.
 
 ### Qwen contract tests
 
@@ -448,6 +453,7 @@ The design is complete in implementation when all of the following are true:
 7. Every Qwen search proposal passes strict deterministic validation before database execution.
 8. Qwen cannot directly answer item facts from memory or execute arbitrary SQL.
 9. Safe failed-query suggestions are parser-validated before display and never auto-executed from the failure message.
-10. Failed-query history is recorded only for inputs that actually enter fallback.
-11. Existing help/database/refuse behavior remains constrained to the supported capabilities.
-12. The architecture can add future search capabilities by extending the structured model/executor first, then language interpretation, rather than by growing an unbounded regex grammar.
+10. The suggestion surface may be broader than v1 auto-reconstruction, but neither may silently drop meaningful tokens or hide ambiguity.
+11. Failed-query history is recorded only for inputs that actually enter fallback and is cleared on successful completion according to existing behavior.
+12. Existing help/database/refuse behavior remains constrained to the supported capabilities.
+13. The architecture can add future search capabilities by extending the structured model/executor first, then language interpretation, rather than by growing an unbounded regex grammar.
