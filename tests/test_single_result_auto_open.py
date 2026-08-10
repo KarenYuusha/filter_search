@@ -259,5 +259,163 @@ class ServiceSingleResultAutoOpenTests(unittest.TestCase):
         )
 
 
+class CliSingleResultAutoOpenTests(unittest.TestCase):
+    def setUp(self):
+        self.repository = AutoOpenRepository()
+
+    @staticmethod
+    def no_input(_prompt: str) -> str:
+        raise AssertionError("single result should auto-open before requesting input")
+
+    @staticmethod
+    def stat_search() -> core.ParsedSearch:
+        return core.ParsedSearch(
+            intent="stat_search",
+            raw_query="hp",
+            stat=core.StatResolution("MaxHP", "hp", 100.0, False),
+        )
+
+    @staticmethod
+    def expression_search() -> core.ParsedSearch:
+        clause = core.ResolvedClause(
+            typed_stat="hp",
+            stat_name="MaxHP",
+            operator=">=",
+            value=Decimal("1"),
+        )
+        return core.ParsedSearch(
+            intent="stat_expression",
+            raw_query="hp >= 1",
+            resolved_expression=core.ResolvedStatExpression(
+                (core.ResolvedAndGroup((clause,)),)
+            ),
+        )
+
+    def test_one_fuzzy_item_result_opens_without_choice(self):
+        output: list[str] = []
+        outcome = core._interactive_item_results(
+            self.repository,
+            "altadr",
+            self.repository.list_items(),
+            input_fn=self.no_input,
+            output_fn=output.append,
+        )
+        self.assertEqual(outcome.kind, "selected")
+        rendered = "\n".join(output)
+        self.assertIn("Altadar", rendered)
+        self.assertNotIn("Choose 1–5", rendered)
+
+    def test_duplicate_exact_item_results_keep_choice(self):
+        self.repository.exact_names["Mage Robe"] = [
+            self.repository.mage_a,
+            self.repository.mage_b,
+        ]
+        answers = iter(("1",))
+        output: list[str] = []
+        outcome = core._interactive_item_results(
+            self.repository,
+            "Mage Robe",
+            self.repository.list_items(),
+            input_fn=lambda _prompt: next(answers),
+            output_fn=output.append,
+        )
+        self.assertEqual(outcome.kind, "selected")
+        self.assertIn("Suggestions 1–2 of 2", "\n".join(output))
+
+    def test_one_stat_result_opens_without_commands(self):
+        self.repository.stat_results = [
+            core.RankedStatItem(self.repository.other, row("MaxHP", 5000), ())
+        ]
+        output: list[str] = []
+        outcome = core.interactive_stat_results(
+            self.repository,
+            self.stat_search(),
+            input_fn=self.no_input,
+            output_fn=output.append,
+        )
+        self.assertEqual(outcome.kind, "selected")
+        rendered = "\n".join(output)
+        self.assertIn("Other Item", rendered)
+        self.assertNotIn("Commands: 1–5", rendered)
+
+    def test_two_stat_results_keep_commands(self):
+        self.repository.stat_results = [
+            core.RankedStatItem(self.repository.other, row("MaxHP", 5000), ()),
+            core.RankedStatItem(self.repository.mage_a, row("MaxHP", 4000), ()),
+        ]
+        answers = iter(("1",))
+        output: list[str] = []
+        outcome = core.interactive_stat_results(
+            self.repository,
+            self.stat_search(),
+            input_fn=lambda _prompt: next(answers),
+            output_fn=output.append,
+        )
+        self.assertEqual(outcome.kind, "selected")
+        self.assertIn("Commands: 1–5", "\n".join(output))
+
+    def test_one_expression_result_opens_without_commands(self):
+        self.repository.expression_results = [
+            core.RankedExpressionItem(self.repository.other, (), 5000)
+        ]
+        output: list[str] = []
+        outcome = core.interactive_expression_results(
+            self.repository,
+            self.expression_search(),
+            input_fn=self.no_input,
+            output_fn=output.append,
+        )
+        self.assertEqual(outcome.kind, "selected")
+        rendered = "\n".join(output)
+        self.assertIn("Other Item", rendered)
+        self.assertNotIn("Commands: 1–5", rendered)
+
+    def test_two_expression_results_keep_commands(self):
+        self.repository.expression_results = [
+            core.RankedExpressionItem(self.repository.other, (), 5000),
+            core.RankedExpressionItem(self.repository.mage_a, (), 4000),
+        ]
+        answers = iter(("1",))
+        output: list[str] = []
+        outcome = core.interactive_expression_results(
+            self.repository,
+            self.expression_search(),
+            input_fn=lambda _prompt: next(answers),
+            output_fn=output.append,
+        )
+        self.assertEqual(outcome.kind, "selected")
+        self.assertIn("Commands: 1–5", "\n".join(output))
+
+    def test_one_fuzzy_upgrade_result_opens_tree_without_choice(self):
+        output: list[str] = []
+        outcome = core._interactive_upgrade_results(
+            self.repository,
+            "Don Upgrad B",
+            self.repository.list_items(),
+            input_fn=self.no_input,
+            output_fn=output.append,
+        )
+        self.assertEqual(outcome.kind, "selected")
+        rendered = "\n".join(output)
+        self.assertIn("Upgrade Tree — Don Upgrade B", rendered)
+        self.assertNotIn("Choose 1–5", rendered)
+
+    def test_two_upgrade_results_keep_choice(self):
+        second = core.ItemSummary(6, "Don Upgrade Beta", "Enhancer Crysta (Blue)")
+        self.repository.items.append(second)
+        self.repository.exact_upgrades["Don Upgrade"] = [self.repository.don, second]
+        answers = iter(("1",))
+        output: list[str] = []
+        outcome = core._interactive_upgrade_results(
+            self.repository,
+            "Don Upgrade",
+            self.repository.list_items(),
+            input_fn=lambda _prompt: next(answers),
+            output_fn=output.append,
+        )
+        self.assertEqual(outcome.kind, "selected")
+        self.assertIn("Suggestions 1–2 of 2", "\n".join(output))
+
+
 if __name__ == "__main__":
     unittest.main()
