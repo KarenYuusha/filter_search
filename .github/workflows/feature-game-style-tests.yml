@@ -37,7 +37,6 @@ jobs:
         run: python -m unittest tests.test_game_style_stat_display tests.test_action_speed_alias tests.test_unavailable_stat_display -v
 
   task2-green:
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
