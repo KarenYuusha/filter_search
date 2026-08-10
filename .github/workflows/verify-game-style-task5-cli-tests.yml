@@ -1,0 +1,164 @@
+name: Verify Terminal Single Result Auto Open
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check out feature branch
+        run: |
+          git fetch origin feature/game-style-item-presentation
+          git checkout -B feature/game-style-item-presentation origin/feature/game-style-item-presentation
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Append terminal regression tests
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('tests/test_single_result_auto_open.py')
+          text = path.read_text(encoding='utf-8')
+          marker = 'class CliSingleResultAutoOpenTests(unittest.TestCase):'
+          if marker not in text:
+              block = r'''
+
+class CliSingleResultAutoOpenTests(unittest.TestCase):
+    @staticmethod
+    def fail_input(_prompt):
+        raise AssertionError("single result should open before prompting")
+
+    def setUp(self):
+        self.repository = AutoOpenRepository()
+
+    def test_one_fuzzy_item_result_opens_without_choice(self):
+        output = []
+        outcome = core._interactive_item_results(
+            self.repository,
+            "altadr",
+            self.repository.list_items(),
+            input_fn=self.fail_input,
+            output_fn=output.append,
+        )
+        rendered = "\n".join(output)
+        self.assertEqual(outcome.kind, "selected")
+        self.assertIn("Altadar", rendered)
+        self.assertNotIn("Suggestions", rendered)
+
+    def test_one_fuzzy_upgrade_result_opens_tree_without_choice(self):
+        output = []
+        outcome = core._interactive_upgrade_results(
+            self.repository,
+            "Don Upgrad B",
+            self.repository.list_items(),
+            input_fn=self.fail_input,
+            output_fn=output.append,
+        )
+        rendered = "\n".join(output)
+        self.assertEqual(outcome.kind, "selected")
+        self.assertIn("Upgrade Tree — Don Upgrade B", rendered)
+        self.assertNotIn("Suggestions", rendered)
+
+    def test_one_stat_result_opens_without_result_commands(self):
+        self.repository.stat_results = [
+            core.RankedStatItem(self.repository.other, row("MaxHP", 5000), ())
+        ]
+        output = []
+        outcome = core.interactive_stat_results(
+            self.repository,
+            ServiceSingleResultAutoOpenTests.stat_search(),
+            input_fn=self.fail_input,
+            output_fn=output.append,
+        )
+        rendered = "\n".join(output)
+        self.assertEqual(outcome.kind, "selected")
+        self.assertIn("Other Item", rendered)
+        self.assertNotIn("Commands:", rendered)
+
+    def test_one_expression_result_opens_without_result_commands(self):
+        clause = core.ResolvedClause(
+            typed_stat="hp",
+            stat_name="MaxHP",
+            operator=">=",
+            value=Decimal("1"),
+        )
+        expression = core.ResolvedStatExpression((core.ResolvedAndGroup((clause,)),))
+        parsed = core.ParsedSearch(
+            intent="stat_expression",
+            raw_query="hp >= 1",
+            resolved_expression=expression,
+        )
+        self.repository.expression_results = [
+            core.RankedExpressionItem(self.repository.other, (), 5000)
+        ]
+        output = []
+        outcome = core.interactive_expression_results(
+            self.repository,
+            parsed,
+            input_fn=self.fail_input,
+            output_fn=output.append,
+        )
+        rendered = "\n".join(output)
+        self.assertEqual(outcome.kind, "selected")
+        self.assertIn("Other Item", rendered)
+        self.assertNotIn("Commands:", rendered)
+
+    def test_multiple_item_results_keep_choice_screen(self):
+        self.repository.exact_names["Mage Robe"] = [
+            self.repository.mage_a,
+            self.repository.mage_b,
+        ]
+        answers = iter(("1",))
+        output = []
+        outcome = core._interactive_item_results(
+            self.repository,
+            "Mage Robe",
+            self.repository.list_items(),
+            input_fn=lambda _prompt: next(answers),
+            output_fn=output.append,
+        )
+        rendered = "\n".join(output)
+        self.assertEqual(outcome.kind, "selected")
+        self.assertIn("Suggestions 1–2 of 2", rendered)
+'''
+              if text.rstrip().endswith('unittest.main()'):
+                  suffix = '\n\nif __name__ == "__main__":\n    unittest.main()\n'
+                  head, sep, _tail = text.rpartition(suffix)
+                  if not sep:
+                      raise SystemExit('expected unittest main footer')
+                  text = head + block + suffix
+              else:
+                  text = text.rstrip() + block + '\n'
+              path.write_text(text, encoding='utf-8')
+          PY
+      - name: Install focused dependencies
+        run: python -m pip install 'rapidfuzz>=3.14.5' 'ollama>=0.6.2' 'discord.py>=2.7.1,<3' 'python-dotenv>=1.1,<2'
+      - name: Compile
+        run: python -m py_compile search_items.py tests/test_single_result_auto_open.py
+      - name: Run terminal regressions
+        run: |
+          python -m unittest \
+            tests.test_single_result_auto_open.CliSingleResultAutoOpenTests \
+            tests.test_cli_upgrade -v
+      - name: Commit terminal regression tests
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/test_single_result_auto_open.py
+          if git diff --cached --quiet; then
+            echo "Terminal regression tests already present"
+            exit 0
+          fi
+          git commit -m "test: cover terminal single-result auto-open"
+          git fetch origin feature/game-style-item-presentation
+          git rebase origin/feature/game-style-item-presentation
+          python -m unittest \
+            tests.test_single_result_auto_open.CliSingleResultAutoOpenTests \
+            tests.test_cli_upgrade -v
+          git push origin HEAD:feature/game-style-item-presentation
