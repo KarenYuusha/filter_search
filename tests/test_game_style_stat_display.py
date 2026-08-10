@@ -139,6 +139,23 @@ class GameStyleConditionTests(unittest.TestCase):
             "With Heavy Armor / Light Armor",
         )
 
+    def test_real_internal_equipment_tokens_use_game_style_names(self):
+        cases = (
+            (("one_handed_sword",), "1-Handed Sword only", "With 1-Handed Sword"),
+            (("two_handed_sword",), "2-Handed Sword only", "With 2-Handed Sword"),
+            (("additional",), "Additional Gear only", "With Additional Gear"),
+            (("special",), "Special Gear only", "With Special Gear"),
+            (
+                ("knuckles", "magic_device", "staff", "bowgun", "bow", "two_handed_sword", "one_handed_sword"),
+                "Knuckle,Magic Device,Staff,Bowgun,Bow,2-Handed Sword,1-Handed Sword only",
+                "With Knuckles / Magic Device / Staff / Bowgun / Bow / 2-Handed Sword / 1-Handed Sword",
+            ),
+        )
+        for conditions, condition_text, expected in cases:
+            with self.subTest(condition_text=condition_text):
+                row = stat("STR", 1, *conditions, condition_text=condition_text)
+                self.assertEqual(core.format_condition_display(row), expected)
+
     def test_verified_real_equipment_vocabulary_is_explicitly_mapped(self):
         cases = (
             ("Additional Gear only", "With Additional Gear"),
