@@ -1457,7 +1457,7 @@ def render_expression_results(
             for row_index, row in enumerate(match.rows):
                 prefix = "   " if row_index == 0 else "   Also: "
                 rendered = format_stat_display(match.clause.stat_name, row.amount)
-                condition = _condition_label(row)
+                condition = format_condition_display(row)
                 if condition:
                     rendered += f" [{condition}]"
                 lines.append(prefix + rendered)

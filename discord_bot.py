@@ -294,7 +294,7 @@ def _result_lines(payload: SearchPayload, index: int) -> list[str]:
                     match.clause.stat_name,
                     row.amount,
                 )
-                condition = _condition_label(row)
+                condition = core.format_condition_display(row)
                 if condition:
                     text += f" [{condition}]"
                 lines.append(text)
