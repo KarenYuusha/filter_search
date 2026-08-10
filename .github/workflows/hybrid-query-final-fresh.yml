@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 48afd8e559f2ca87eb30f18e7c1f28cfcc2db746
+          ref: 76d32726d5c566fd4ec357a97a36de959ad879d0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -40,7 +40,6 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-
           from search_items import ItemRepository
           from toram_data.aliases import normalize_name
           from toram_search.service import ExpressionResultsPayload, SearchService, StatClarificationPayload
@@ -53,26 +52,25 @@ jobs:
           repository = ItemRepository(Path('coryn_data/database/items.sqlite'))
           try:
               service = SearchService(repository, llm_client=MustNotCallLLM())
-
               context = FailedQueryContext(max_entries=3)
               outcome = service.handle_query('xtall cr weapon', context)
-              assert outcome.kind == 'search', outcome
-              assert isinstance(outcome.payload, ExpressionResultsPayload), type(outcome.payload)
-              assert context.snapshot() == (), context.snapshot()
+              assert outcome.kind == 'search'
+              assert isinstance(outcome.payload, ExpressionResultsPayload)
+              assert context.snapshot() == ()
               expression = outcome.payload.parsed.resolved_expression
               assert expression is not None
               assert expression.groups[0].clauses[0].stat_name == 'Critical Rate'
               assert outcome.payload.parsed.filter is not None
-              actual_type_keys = tuple(normalize_name(item_type) for item_type in outcome.payload.parsed.filter.item_types)
-              expected_type_keys = tuple(normalize_name(item_type) for item_type in ('Weapon Crysta', 'Enhancer Crysta (Red)'))
-              assert actual_type_keys == expected_type_keys
+              actual = tuple(normalize_name(x) for x in outcome.payload.parsed.filter.item_types)
+              expected = tuple(normalize_name(x) for x in ('Weapon Crysta', 'Enhancer Crysta (Red)'))
+              assert actual == expected, (actual, expected)
 
               context = FailedQueryContext(max_entries=3)
               ambiguous = service.handle_query('crit xtal weapon', context)
-              assert ambiguous.kind == 'search', ambiguous
-              assert isinstance(ambiguous.payload, StatClarificationPayload), type(ambiguous.payload)
+              assert ambiguous.kind == 'search'
+              assert isinstance(ambiguous.payload, StatClarificationPayload)
               assert ambiguous.payload.clarification.candidates == ('Critical Rate', 'Critical Damage')
-              assert context.snapshot() == (), context.snapshot()
+              assert context.snapshot() == ()
           finally:
               repository.close()
           PY
