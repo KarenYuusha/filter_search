@@ -12,7 +12,12 @@ from toram_search.session import FailedQueryContext
 class FakeRepository:
     def __init__(self):
         self.stats = ["Critical Rate", "Critical Damage", "MaxHP"]
-        self.item_types = {"Bow", "Armor"}
+        self.item_types = {
+            "Bow",
+            "Armor",
+            "Weapon Crysta",
+            "Enhancer Crysta (Red)",
+        }
         self.expression_calls = []
         self.stat_calls = []
 
@@ -108,6 +113,37 @@ class SearchServiceTests(unittest.TestCase):
             outcome.payload.clarification.candidates,
             ("Critical Rate", "Critical Damage"),
         )
+        self.assertEqual(repository.expression_calls, [])
+
+    def test_reconstructed_weapon_xtal_never_calls_qwen_or_records_failure(self):
+        repository = FakeRepository()
+        service = SearchService(repository, llm_client=MustNotCallLLM())
+        context = FailedQueryContext(max_entries=3)
+
+        outcome = service.handle_query("xtall cr weapon", context)
+
+        self.assertEqual(outcome.kind, "search")
+        self.assertIsInstance(outcome.payload, ExpressionResultsPayload)
+        self.assertEqual(context.snapshot(), ())
+        expression, item_types, ascending = repository.expression_calls[-1]
+        self.assertEqual(item_types, ("Weapon Crysta", "Enhancer Crysta (Red)"))
+        self.assertFalse(ascending)
+        self.assertEqual(expression.groups[0].clauses[0].stat_name, "Critical Rate")
+
+    def test_reconstructed_crit_uses_existing_clarification_without_qwen(self):
+        repository = FakeRepository()
+        service = SearchService(repository, llm_client=MustNotCallLLM())
+        context = FailedQueryContext(max_entries=3)
+
+        outcome = service.handle_query("crit xtal weapon", context)
+
+        self.assertEqual(outcome.kind, "search")
+        self.assertIsInstance(outcome.payload, StatClarificationPayload)
+        self.assertEqual(
+            outcome.payload.clarification.candidates,
+            ("Critical Rate", "Critical Damage"),
+        )
+        self.assertEqual(context.snapshot(), ())
         self.assertEqual(repository.expression_calls, [])
 
     def test_clarification_choice_executes_deterministic_search(self):
