@@ -35,6 +35,14 @@ class QueryReconstructionTests(unittest.TestCase):
     def test_order_is_flexible(self):
         self.assertEqual(self.reconstruct("weapon xtall cr").canonical_query, "cr wp xtal")
 
+    def test_filter_token_overlap_preserves_flexible_order(self):
+        for query in ("weapon atk weapon xtal", "weapon xtal weapon atk"):
+            with self.subTest(query=query):
+                result = self.reconstruct(query)
+                self.assertEqual(result.kind, "success")
+                self.assertEqual(result.canonical_query, "weapon atk wp xtal")
+                self.assertEqual(result.stat_resolution.candidates, ("Weapon ATK",))
+
     def test_known_filler_is_allowed(self):
         self.assertEqual(self.reconstruct("find xtall cr weapon").canonical_query, "cr wp xtal")
 
