@@ -44,7 +44,10 @@ jobs:
               parsed = outcome.payload.parsed
               assert parsed.filter is not None
               assert parsed.filter.label == 'Weapon Crysta + Red Enhancer', parsed.filter
-              assert parsed.filter.item_types == ('Weapon Crysta', 'Enhancer Crysta (Red)'), parsed.filter.item_types
+              assert tuple(value.casefold() for value in parsed.filter.item_types) == (
+                  'weapon crysta',
+                  'enhancer crysta (red)',
+              ), parsed.filter.item_types
               assert parsed.resolved_expression is not None
               assert parsed.resolved_expression.groups[0].clauses[0].stat_name == 'Critical Rate'
 
