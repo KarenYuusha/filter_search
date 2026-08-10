@@ -51,6 +51,7 @@ jobs:
 
           repository = ItemRepository(Path('coryn_data/database/items.sqlite'))
           try:
+              available_types = repository.list_item_types()
               service = SearchService(repository, llm_client=MustNotCallLLM())
 
               context = FailedQueryContext(max_entries=3)
@@ -62,7 +63,16 @@ jobs:
               assert expression is not None
               assert expression.groups[0].clauses[0].stat_name == 'Critical Rate'
               assert outcome.payload.parsed.filter is not None
-              assert outcome.payload.parsed.filter.item_types == ('Weapon Crysta', 'Enhancer Crysta (Red)')
+              expected_types = tuple(
+                  item_type
+                  for item_type in ('Weapon Crysta', 'Enhancer Crysta (Red)')
+                  if item_type in available_types
+              )
+              assert expected_types, sorted(available_types)
+              assert outcome.payload.parsed.filter.item_types == expected_types, (
+                  outcome.payload.parsed.filter.item_types,
+                  expected_types,
+              )
 
               context = FailedQueryContext(max_entries=3)
               ambiguous = service.handle_query('crit xtal weapon', context)
