@@ -14,8 +14,8 @@ jobs:
       - name: Check out exact relevance feature head
         run: |
           git fetch origin main fix/item-upgrade-search-relevance
-          git checkout --detach 16a65ef
-          test "$(git rev-parse HEAD)" = "16a65ef3d8143e90cd484b6f7c313b63a09aa3be"
+          git checkout --detach 16a65efabb5d054533a2e6fc9d32ab28918a880b
+          test "$(git rev-parse HEAD)" = "16a65efabb5d054533a2e6fc9d32ab28918a880b"
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
