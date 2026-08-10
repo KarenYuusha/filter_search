@@ -3,6 +3,8 @@ name: Hybrid query final fresh verification
 on:
   push:
     branches: [verify/hybrid-query-final-fresh]
+  pull_request:
+    branches: [main]
 
 jobs:
   verify:
