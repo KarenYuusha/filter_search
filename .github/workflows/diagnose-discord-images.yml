@@ -1,0 +1,68 @@
+name: Diagnose Discord Images
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Inspect database image paths
+        run: |
+          python - <<'PY'
+          import sqlite3
+          from pathlib import Path
+
+          db_path = Path('coryn_data/database/items.sqlite')
+          print(f'database={db_path} exists={db_path.is_file()} resolved={db_path.resolve()}')
+          appearance_root = Path('coryn_data/appearance')
+          appearance_files = [p for p in appearance_root.rglob('*') if p.is_file()] if appearance_root.exists() else []
+          print(f'appearance_root={appearance_root} exists={appearance_root.exists()} file_count={len(appearance_files)}')
+
+          conn = sqlite3.connect(db_path)
+          conn.row_factory = sqlite3.Row
+          rows = conn.execute('''
+              SELECT ii.item_id, i.name, i.item_type, ii.local_path, ii.source_url
+              FROM item_images AS ii
+              JOIN items AS i ON i.id = ii.item_id
+              WHERE ii.local_path IS NOT NULL AND TRIM(ii.local_path) <> ''
+              ORDER BY i.name COLLATE NOCASE, ii.position, ii.id
+          ''').fetchall()
+          print(f'database_image_rows={len(rows)}')
+
+          existing = []
+          missing = []
+          for row in rows:
+              stored = Path(str(row['local_path']))
+              resolved = stored if stored.is_absolute() else (db_path.parent / stored).resolve()
+              record = (row, resolved)
+              (existing if resolved.is_file() else missing).append(record)
+
+          print(f'resolved_existing={len(existing)} resolved_missing={len(missing)}')
+          print('--- existing samples ---')
+          for row, resolved in existing[:10]:
+              print(f"{row['item_id']} | {row['name']} | {row['local_path']} -> {resolved}")
+          print('--- missing samples ---')
+          for row, resolved in missing[:20]:
+              parent = resolved.parent
+              children = sorted(p.name for p in parent.iterdir())[:10] if parent.is_dir() else []
+              print(f"{row['item_id']} | {row['name']} | {row['local_path']} -> {resolved} | parent_exists={parent.is_dir()} | siblings={children}")
+
+          print('--- source-url-only rows ---')
+          source_only = conn.execute('''
+              SELECT COUNT(*) AS count
+              FROM item_images
+              WHERE (local_path IS NULL OR TRIM(local_path) = '')
+                AND source_url IS NOT NULL AND TRIM(source_url) <> ''
+          ''').fetchone()['count']
+          print(f'source_url_without_local_path={source_only}')
+
+          conn.close()
+          PY
