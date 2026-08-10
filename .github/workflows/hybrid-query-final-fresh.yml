@@ -1,0 +1,89 @@
+name: Hybrid query final fresh verification
+
+on:
+  push:
+    branches: [verify/hybrid-query-final-fresh]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 4267fcfac600c1d575fc4d01262e595af694871d
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip rapidfuzz discord.py python-dotenv ollama
+      - name: Focused hybrid regressions
+        run: |
+          python -m unittest \
+            tests.test_query_reconstruction \
+            tests.test_search_service \
+            tests.test_direct_structured_intent \
+            tests.test_natural_give_ranking \
+            tests.test_discord_bot -v
+      - name: Compile modified Python files
+        run: |
+          python -m py_compile \
+            discord_bot.py \
+            toram_data/stat_query.py \
+            toram_search/reconstruction.py \
+            toram_search/service.py \
+            tests/test_query_reconstruction.py \
+            tests/test_search_service.py \
+            tests/test_discord_bot.py
+      - name: Real database smoke checks
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from search_items import ItemRepository
+          from toram_search.service import ExpressionResultsPayload, SearchService, StatClarificationPayload
+          from toram_search.session import FailedQueryContext
+
+          class MustNotCallLLM:
+              def complete(self, *args, **kwargs):
+                  raise AssertionError('Qwen must not be called for deterministic reconstruction')
+
+          repository = ItemRepository(Path('coryn_data/database/items.sqlite'))
+          try:
+              service = SearchService(repository, llm_client=MustNotCallLLM())
+
+              context = FailedQueryContext(max_entries=3)
+              outcome = service.handle_query('xtall cr weapon', context)
+              assert outcome.kind == 'search', outcome
+              assert isinstance(outcome.payload, ExpressionResultsPayload), type(outcome.payload)
+              assert context.snapshot() == (), context.snapshot()
+              expression = outcome.payload.parsed.resolved_expression
+              assert expression is not None
+              assert expression.groups[0].clauses[0].stat_name == 'Critical Rate'
+              assert outcome.payload.parsed.filter is not None
+              assert outcome.payload.parsed.filter.item_types == ('Weapon Crysta', 'Enhancer Crysta (Red)')
+
+              context = FailedQueryContext(max_entries=3)
+              ambiguous = service.handle_query('crit xtal weapon', context)
+              assert ambiguous.kind == 'search', ambiguous
+              assert isinstance(ambiguous.payload, StatClarificationPayload), type(ambiguous.payload)
+              assert ambiguous.payload.clarification.candidates == ('Critical Rate', 'Critical Damage')
+              assert context.snapshot() == (), context.snapshot()
+          finally:
+              repository.close()
+          PY
+      - name: Full suite against current main baseline
+        shell: bash
+        run: |
+          set +e
+          python -m unittest discover -s tests -v > /tmp/full-suite.txt 2>&1
+          status=$?
+          set -e
+          cat /tmp/full-suite.txt
+          if [ "$status" -eq 0 ]; then
+            exit 0
+          fi
+          grep -q 'test_rejected_payload_is_logged_with_reason' /tmp/full-suite.txt
+          grep -q 'FAILED (failures=1)' /tmp/full-suite.txt
+          if grep -q 'errors=' /tmp/full-suite.txt; then
+            exit 1
+          fi
