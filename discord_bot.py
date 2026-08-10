@@ -1294,13 +1294,22 @@ def build_service_outcome_message(
         )
 
     if outcome.kind == "failed":
-        return (
-            _build_text_embed(
-                "I couldn't interpret that search",
+        if outcome.suggested_query:
+            description = (
+                "Did you mean: "
+                f"`{bot_example_prefix} {outcome.suggested_query}`"
+            )
+        else:
+            description = (
                 "Try an explicit item/stat query, for example:\n"
                 f"• `{bot_example_prefix} hp armor`\n"
                 f"• `{bot_example_prefix} cr bow`\n"
-                f"• `{bot_example_prefix} hp > 5000 and cr bow`",
+                f"• `{bot_example_prefix} hp > 5000 and cr bow`"
+            )
+        return (
+            _build_text_embed(
+                "I couldn't interpret that search",
+                description,
             ),
             None,
             None,

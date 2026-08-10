@@ -26,6 +26,13 @@ class ItemTypeFilter:
 
 
 @dataclass(frozen=True)
+class ItemFilterPhrase:
+    phrase: str
+    label: str
+    item_types: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class ParsedClause:
     typed_stat: str
     operator: ComparisonOperator
@@ -220,6 +227,23 @@ def _filter_candidates() -> list[tuple[str, str, tuple[str, ...]]]:
         candidates.append((_normalize_filter_text(alias), item_type, (item_type,)))
     candidates.sort(key=lambda row: (len(row[0].split()), len(row[0])), reverse=True)
     return candidates
+
+
+def list_item_filter_phrases(
+    available_item_types: set[str],
+) -> tuple[ItemFilterPhrase, ...]:
+    output: list[ItemFilterPhrase] = []
+    seen: set[ItemFilterPhrase] = set()
+    for phrase, label, configured_types in _filter_candidates():
+        item_types = _existing_types(configured_types, available_item_types)
+        if not item_types:
+            continue
+        row = ItemFilterPhrase(phrase, label, item_types)
+        if row in seen:
+            continue
+        seen.add(row)
+        output.append(row)
+    return tuple(output)
 
 
 def _extract_trailing_filter(

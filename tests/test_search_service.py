@@ -1,5 +1,6 @@
 import unittest
 
+from toram_search.llm import LLMUnavailableError
 from toram_search.service import (
     ExpressionResultsPayload,
     SearchService,
@@ -12,7 +13,12 @@ from toram_search.session import FailedQueryContext
 class FakeRepository:
     def __init__(self):
         self.stats = ["Critical Rate", "Critical Damage", "MaxHP"]
-        self.item_types = {"Bow", "Armor"}
+        self.item_types = {
+            "Bow",
+            "Armor",
+            "Weapon Crysta",
+            "Enhancer Crysta (Red)",
+        }
         self.expression_calls = []
         self.stat_calls = []
 
@@ -57,9 +63,20 @@ class MustNotCallLLM:
 class FakeLLM:
     def __init__(self, payload):
         self.payload = payload
+        self.calls = 0
 
     def complete(self, *args, **kwargs):
+        self.calls += 1
         return self.payload
+
+
+class UnavailableLLM:
+    def __init__(self):
+        self.calls = 0
+
+    def complete(self, *args, **kwargs):
+        self.calls += 1
+        raise LLMUnavailableError("offline")
 
 
 class SearchServiceTests(unittest.TestCase):
@@ -110,6 +127,37 @@ class SearchServiceTests(unittest.TestCase):
         )
         self.assertEqual(repository.expression_calls, [])
 
+    def test_reconstructed_weapon_xtal_never_calls_qwen_or_records_failure(self):
+        repository = FakeRepository()
+        service = SearchService(repository, llm_client=MustNotCallLLM())
+        context = FailedQueryContext(max_entries=3)
+
+        outcome = service.handle_query("xtall cr weapon", context)
+
+        self.assertEqual(outcome.kind, "search")
+        self.assertIsInstance(outcome.payload, ExpressionResultsPayload)
+        self.assertEqual(context.snapshot(), ())
+        expression, item_types, ascending = repository.expression_calls[-1]
+        self.assertEqual(item_types, ("Weapon Crysta", "Enhancer Crysta (Red)"))
+        self.assertFalse(ascending)
+        self.assertEqual(expression.groups[0].clauses[0].stat_name, "Critical Rate")
+
+    def test_reconstructed_crit_uses_existing_clarification_without_qwen(self):
+        repository = FakeRepository()
+        service = SearchService(repository, llm_client=MustNotCallLLM())
+        context = FailedQueryContext(max_entries=3)
+
+        outcome = service.handle_query("crit xtal weapon", context)
+
+        self.assertEqual(outcome.kind, "search")
+        self.assertIsInstance(outcome.payload, StatClarificationPayload)
+        self.assertEqual(
+            outcome.payload.clarification.candidates,
+            ("Critical Rate", "Critical Damage"),
+        )
+        self.assertEqual(context.snapshot(), ())
+        self.assertEqual(repository.expression_calls, [])
+
     def test_clarification_choice_executes_deterministic_search(self):
         repository = FakeRepository()
         service = SearchService(repository, llm_client=MustNotCallLLM())
@@ -147,8 +195,88 @@ class SearchServiceTests(unittest.TestCase):
 
         self.assertEqual(outcome.kind, "confirm_search")
         self.assertEqual(len(outcome.search_requests), 1)
+        self.assertEqual(llm.calls, 1)
         self.assertEqual(repository.stat_calls, [])
         self.assertEqual(repository.expression_calls, [])
+
+    def test_failed_qwen_attaches_safe_suggestion_once(self):
+        repository = FakeRepository()
+        llm = FakeLLM({"intent": "search", "candidates": []})
+        service = SearchService(repository, llm_client=llm)
+        context = FailedQueryContext(max_entries=3)
+
+        outcome = service.handle_query("highest xtall cr weapon", context)
+
+        self.assertEqual(outcome.kind, "failed")
+        self.assertEqual(outcome.suggested_query, "cr wp xtal")
+        self.assertEqual(llm.calls, 1)
+        self.assertEqual(context.snapshot()[-1].suggested_query, "cr wp xtal")
+        self.assertEqual(repository.expression_calls, [])
+        self.assertEqual(repository.stat_calls, [])
+
+    def test_failed_qwen_does_not_guess_ambiguous_crit(self):
+        repository = FakeRepository()
+        llm = FakeLLM({"intent": "search", "candidates": []})
+        service = SearchService(repository, llm_client=llm)
+
+        outcome = service.handle_query(
+            "highest crit xtal weapon",
+            FailedQueryContext(max_entries=3),
+        )
+
+        self.assertEqual(outcome.kind, "failed")
+        self.assertIsNone(outcome.suggested_query)
+        self.assertEqual(llm.calls, 1)
+
+    def test_successful_qwen_interpretation_has_no_failed_suggestion(self):
+        repository = FakeRepository()
+        llm = FakeLLM(
+            {
+                "intent": "search",
+                "candidates": [
+                    {"item_filter": "armor", "stats": [{"name": "MaxHP"}]}
+                ],
+            }
+        )
+        service = SearchService(repository, llm_client=llm)
+
+        outcome = service.handle_query(
+            "could you locate protective equipment that increases health",
+            FailedQueryContext(max_entries=3),
+        )
+
+        self.assertEqual(outcome.kind, "confirm_search")
+        self.assertIsNone(outcome.suggested_query)
+        self.assertEqual(llm.calls, 1)
+        self.assertEqual(repository.expression_calls, [])
+
+    def test_refuse_does_not_attach_suggestion(self):
+        repository = FakeRepository()
+        llm = FakeLLM({"intent": "refuse"})
+        service = SearchService(repository, llm_client=llm)
+
+        outcome = service.handle_query(
+            "tell me something unrelated",
+            FailedQueryContext(max_entries=3),
+        )
+
+        self.assertEqual(outcome.kind, "refuse")
+        self.assertIsNone(outcome.suggested_query)
+        self.assertEqual(llm.calls, 1)
+
+    def test_unavailable_does_not_attach_suggestion(self):
+        repository = FakeRepository()
+        llm = UnavailableLLM()
+        service = SearchService(repository, llm_client=llm)
+
+        outcome = service.handle_query(
+            "could you explain this strange equipment request",
+            FailedQueryContext(max_entries=3),
+        )
+
+        self.assertEqual(outcome.kind, "unavailable")
+        self.assertIsNone(outcome.suggested_query)
+        self.assertEqual(llm.calls, 1)
 
     def test_confirmed_qwen_request_is_validated_then_executed(self):
         repository = FakeRepository()

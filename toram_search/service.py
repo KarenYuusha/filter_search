@@ -5,6 +5,10 @@ from typing import Literal, Mapping
 
 import search_items as core
 from toram_search.fallback import SearchIntentRequest
+from toram_search.reconstruction import (
+    try_reconstruct_simple_search,
+    try_suggest_query,
+)
 from toram_search.session import FailedQueryContext
 
 
@@ -97,6 +101,7 @@ class ServiceOutcome:
     payload: SearchPayload | None = None
     text: str | None = None
     search_requests: tuple[SearchIntentRequest, ...] = ()
+    suggested_query: str | None = None
 
 
 def resolve_expression_noninteractively(
@@ -233,6 +238,25 @@ class SearchService:
         if route.kind == "refuse":
             return ServiceOutcome("refuse")
 
+        reconstruction = try_reconstruct_simple_search(
+            query,
+            available_stats=self.repository.list_stat_names(),
+            available_item_types=self.repository.list_item_types(),
+        )
+        if reconstruction.kind in {"success", "ambiguous"} and reconstruction.canonical_query:
+            reconstructed_route = core.route_deterministically(
+                reconstruction.canonical_query,
+                self.repository,
+                self.all_items,
+                self.help_service,
+                self.database_service,
+            )
+            if reconstructed_route.kind == "search" and reconstructed_route.parsed is not None:
+                return ServiceOutcome(
+                    "search",
+                    payload=self._materialize(reconstructed_route.parsed, {}),
+                )
+
         if route.record_failure:
             context.record_failure(query)
         fallback = self.fallback_service.interpret(query, context.snapshot())
@@ -256,6 +280,22 @@ class SearchService:
             return ServiceOutcome("refuse")
         if fallback.kind == "unavailable":
             return ServiceOutcome("unavailable")
+        suggestion = try_suggest_query(
+            query,
+            available_stats=self.repository.list_stat_names(),
+            available_item_types=self.repository.list_item_types(),
+        )
+        if suggestion is not None:
+            suggestion_route = core.route_deterministically(
+                suggestion,
+                self.repository,
+                self.all_items,
+                self.help_service,
+                self.database_service,
+            )
+            if suggestion_route.kind == "search" and suggestion_route.parsed is not None:
+                context.set_latest_suggestion(suggestion)
+                return ServiceOutcome("failed", suggested_query=suggestion)
         return ServiceOutcome("failed")
 
     def confirm_search_request(
