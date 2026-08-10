@@ -1,0 +1,24 @@
+name: Verify Exact Item Build Refusal RED
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check out feature branch
+        run: |
+          git fetch origin fix/exact-item-before-build-refusal
+          git checkout -B fix/exact-item-before-build-refusal origin/fix/exact-item-before-build-refusal
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install focused dependencies
+        run: python -m pip install 'rapidfuzz>=3.14.5' 'ollama>=0.6.2' 'python-dotenv>=1.1,<2'
+      - name: Run RED regression
+        run: python -m unittest tests.test_exact_item_build_refusal -v
