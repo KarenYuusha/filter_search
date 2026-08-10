@@ -1,0 +1,64 @@
+name: Inspect real condition JSON tokens
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/game-style-item-presentation
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Inspect token vocabulary and current display resolution
+        run: |
+          python - <<'PY'
+          import json
+          import sqlite3
+          import search_items as core
+
+          con = sqlite3.connect('coryn_data/database/items.sqlite')
+          con.row_factory = sqlite3.Row
+          try:
+              rows = con.execute(
+                  "SELECT DISTINCT conditions_json, condition_text FROM item_stats "
+                  "WHERE conditions_json IS NOT NULL AND trim(conditions_json) NOT IN ('', '[]') "
+                  "ORDER BY condition_text COLLATE NOCASE"
+              ).fetchall()
+              tokens = set()
+              unresolved = []
+              print('=== CONDITION JSON PAIRS ===')
+              for row in rows:
+                  raw = row['conditions_json']
+                  try:
+                      values = json.loads(raw)
+                  except Exception:
+                      values = []
+                  tokens.update(str(v) for v in values)
+                  probe = {
+                      'conditions_json': raw,
+                      'condition_text': row['condition_text'],
+                      'needs_condition_review': False,
+                  }
+                  names = core._equipment_condition_names(probe)
+                  display = core.format_condition_display(probe)
+                  print(f"{raw} | {row['condition_text']!r} | equipment={names!r} | display={display!r}")
+                  text = str(row['condition_text'] or '')
+                  if text.lower().endswith(' only') and text.lower() != 'event only' and not names:
+                      unresolved.append((raw, text, display))
+              print('=== TOKENS ===')
+              for token in sorted(tokens):
+                  print(token)
+              print('=== UNRESOLVED EQUIPMENT-LIKE CONDITIONS ===')
+              for entry in unresolved:
+                  print(entry)
+              assert not unresolved, unresolved
+          finally:
+              con.close()
+          PY
