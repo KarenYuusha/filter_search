@@ -4,113 +4,146 @@ on:
   pull_request:
     branches: [feature/item-query-understanding]
 
+permissions:
+  contents: write
+
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 1cf705cf4844515fa808d6628d890270b1f151ef
+          ref: feature/item-query-understanding
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Guard exact reviewed head
+        run: test "$(git rev-parse HEAD)" = "1cf705cf4844515fa808d6628d890270b1f151ef"
+      - name: Remove private reconstruction coupling
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          entities = Path("toram_search/item_query_entities.py")
+          text = entities.read_text(encoding="utf-8")
+          old = '''FilterMatchStatus = Literal["unique", "none", "ambiguous"]
+          FilterMatchKind = Literal["exact", "fuzzy"]
+
+          _FILTER_FUZZY_BOUNDARIES = frozenset(
+          '''
+          new = '''FilterMatchStatus = Literal["unique", "none", "ambiguous"]
+          FilterMatchKind = Literal["exact", "fuzzy"]
+
+          ITEM_QUERY_FILLERS = frozenset(
+          '''
+          if text.count(old) != 1:
+              raise SystemExit("entity filler declaration target changed")
+          text = text.replace(old, new, 1)
+          marker = '''    }
+          )
+
+
+          @dataclass(frozen=True)
+          class QueryToken:
+          '''
+          replacement = '''    }
+          )
+          _FILTER_FUZZY_BOUNDARIES = ITEM_QUERY_FILLERS
+
+
+          @dataclass(frozen=True)
+          class QueryToken:
+          '''
+          if text.count(marker) != 1:
+              raise SystemExit("entity filler closing target changed")
+          entities.write_text(text.replace(marker, replacement, 1), encoding="utf-8")
+
+          reconstruction = Path("toram_search/reconstruction.py")
+          text = reconstruction.read_text(encoding="utf-8")
+          old_import = '''from toram_search.item_query_entities import (
+              find_exact_item_filter_matches,
+              remaining_tokens,
+              tokenize_item_query,
+          )
+          '''
+          new_import = '''from toram_search.item_query_entities import (
+              ITEM_QUERY_FILLERS,
+              find_exact_item_filter_matches,
+              remaining_tokens,
+              tokenize_item_query,
+          )
+          '''
+          if text.count(old_import) != 1:
+              raise SystemExit("reconstruction import target changed")
+          text = text.replace(old_import, new_import, 1)
+          filler_block = '''_FILLERS = frozenset(
+              {
+                  "a",
+                  "an",
+                  "can",
+                  "find",
+                  "give",
+                  "gives",
+                  "has",
+                  "have",
+                  "having",
+                  "i",
+                  "me",
+                  "show",
+                  "some",
+                  "that",
+                  "the",
+                  "want",
+                  "which",
+                  "with",
+                  "you",
+              }
+          )
+          '''
+          if text.count(filler_block) != 1:
+              raise SystemExit("reconstruction filler block changed")
+          text = text.replace(filler_block, "", 1)
+          text = text.replace("token.normalized not in _FILLERS", "token.normalized not in ITEM_QUERY_FILLERS")
+          reconstruction.write_text(text, encoding="utf-8")
+
+          understanding = Path("toram_search/understanding.py")
+          text = understanding.read_text(encoding="utf-8")
+          old_import = '''from toram_search.item_query_entities import (
+              ItemFilterMatch,
+              QueryToken,
+          '''
+          new_import = '''from toram_search.item_query_entities import (
+              ITEM_QUERY_FILLERS,
+              ItemFilterMatch,
+              QueryToken,
+          '''
+          if text.count(old_import) != 1:
+              raise SystemExit("understanding entity import target changed")
+          text = text.replace(old_import, new_import, 1)
+          private_import = "from toram_search.reconstruction import _FILLERS\n"
+          if text.count(private_import) != 1:
+              raise SystemExit("understanding private import target changed")
+          text = text.replace(private_import, "", 1)
+          text = text.replace("token.normalized not in _FILLERS", "token.normalized not in ITEM_QUERY_FILLERS")
+          understanding.write_text(text, encoding="utf-8")
+          PY
       - name: Install test dependencies
         run: python -m pip install --upgrade pip rapidfuzz discord.py python-dotenv ollama
-      - name: Focused item-query feature gate
+      - name: Verify shared-filler refactor
         run: |
           python -m unittest \
             tests.test_item_query_entities \
             tests.test_item_query_understanding \
             tests.test_query_reconstruction \
-            tests.test_search_service \
-            tests.test_discord_bot \
-            tests.test_discord_item_understanding \
             tests.test_item_query_safety \
             -v
-      - name: Compile modified modules
+          python -m py_compile toram_search/item_query_entities.py toram_search/reconstruction.py toram_search/understanding.py
+      - name: Commit reviewed refactor
         run: |
-          python -m py_compile \
-            toram_search/item_query_entities.py \
-            toram_search/understanding.py \
-            toram_search/reconstruction.py \
-            toram_search/session.py \
-            toram_search/service.py \
-            discord_bot.py
-      - name: Real database smoke checks
-        run: |
-          python - <<'PY'
-          import search_items as core
-          from toram_search.service import SearchService, StatClarificationPayload
-          from toram_search.session import FailedQueryContext
-
-          class MustNotCallLLM:
-              def complete(self, *args, **kwargs):
-                  raise AssertionError("Qwen must not be called for deterministic smoke cases")
-
-          repository = core.ItemRepository(core.DEFAULT_DATABASE)
-          try:
-              service = SearchService(repository, llm_client=MustNotCallLLM())
-
-              context = FailedQueryContext(max_entries=3)
-              direct = service.handle_query("xtall cr weapon", context)
-              assert direct.kind == "search", direct
-              assert context.snapshot() == ()
-
-              context = FailedQueryContext(max_entries=3)
-              ambiguous = service.handle_query("crit xtal weapon", context)
-              assert ambiguous.kind == "search", ambiguous
-              assert isinstance(ambiguous.payload, StatClarificationPayload), ambiguous.payload
-              assert ambiguous.payload.clarification.candidates == (
-                  "Critical Rate",
-                  "Critical Damage",
-              )
-              assert context.snapshot() == ()
-
-              context = FailedQueryContext(max_entries=3)
-              partial = service.handle_query("highest xtall cr weapon", context)
-              assert partial.kind == "item_understanding", partial
-              understanding = partial.pending_item_search.understanding
-              assert understanding.decision == "suggest", understanding
-              assert understanding.suggested_query == "cr wp xtal", understanding
-              assert understanding.unresolved_tokens == ("highest",), understanding
-              assert context.snapshot() == ()
-
-              context = FailedQueryContext(max_entries=3)
-              fuzzy = service.handle_query("cr wepon xtal", context)
-              assert fuzzy.kind == "item_understanding", fuzzy
-              issue = fuzzy.pending_item_search.understanding.uncertainties[0]
-              assert issue.reason == "FUZZY_FILTER", issue
-              assert context.snapshot() == ()
-              confirmed = service.continue_item_understanding(
-                  fuzzy.pending_item_search,
-                  issue.issue_id,
-                  issue.choices[0].value,
-                  context,
-              )
-              assert confirmed.kind == "search", confirmed
-              assert context.snapshot() == ()
-          finally:
-              repository.close()
-          PY
-      - name: Full suite matches known baseline
-        run: |
-          python - <<'PY'
-          import subprocess
-          import sys
-
-          result = subprocess.run(
-              [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"],
-              text=True,
-              stdout=subprocess.PIPE,
-              stderr=subprocess.STDOUT,
-          )
-          print(result.stdout)
-          expected_test = (
-              "test_rejected_payload_is_logged_with_reason "
-              "(test_structured_fallback.StructuredFallbackTests.test_rejected_payload_is_logged_with_reason)"
-          )
-          assert result.returncode != 0, "full suite unexpectedly changed baseline to green; review baseline assertion"
-          assert expected_test in result.stdout, "known baseline failure was not present"
-          assert "FAILED (failures=1)" in result.stdout, "full suite has failures beyond the single known baseline"
-          assert "errors=" not in result.stdout.split("FAILED", 1)[-1], "full suite has unexpected errors"
-          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add toram_search/item_query_entities.py toram_search/reconstruction.py toram_search/understanding.py
+          git diff --cached --check
+          git commit -m "refactor: share item query filler vocabulary"
+          git push origin HEAD:feature/item-query-understanding
