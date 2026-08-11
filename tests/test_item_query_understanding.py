@@ -65,6 +65,26 @@ class ItemQueryUnderstandingTests(unittest.TestCase):
         self.assertEqual(result.decision, "fallback")
         self.assertIn("UNSAFE_SHAPE", result.reasons)
 
+    def test_fuzzy_stat_requires_confirmation(self):
+        result = self.understand("weapon xtal crtical rate")
+        self.assertEqual(result.decision, "confirm")
+        issue = result.uncertainties[0]
+        self.assertEqual(issue.reason, "FUZZY_STAT")
+        self.assertEqual([choice.value for choice in issue.choices], ["Critical Rate"])
+
+    def test_fuzzy_filter_requires_confirmation(self):
+        result = self.understand("cr wepon xtal")
+        self.assertEqual(result.decision, "confirm")
+        self.assertEqual(result.uncertainties[0].reason, "FUZZY_FILTER")
+
+    def test_semantic_ambiguity_precedes_fuzzy_filter(self):
+        result = self.understand("crit wepon xtal")
+        self.assertEqual(result.decision, "clarify")
+        self.assertEqual(
+            [issue.reason for issue in result.uncertainties],
+            ["AMBIGUOUS_STAT", "FUZZY_FILTER"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
