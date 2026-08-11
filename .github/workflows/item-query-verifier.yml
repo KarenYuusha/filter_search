@@ -10,40 +10,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 5fdf1a1a258a6b5f81f8c91ecad604cad34a1b40
+          ref: 4dc98bbdf7e2f989a42a937363bf38b16a579210
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install diagnostic dependencies
+      - name: Install test dependencies
         run: python -m pip install --upgrade pip rapidfuzz discord.py python-dotenv ollama
-      - name: Diagnose real filter precedence
-        run: |
-          python - <<'PY'
-          import search_items as core
-          from toram_search.item_query_entities import (
-              find_exact_item_filter_matches,
-              find_unique_fuzzy_item_filter_match,
-              tokenize_item_query,
-          )
-          from toram_search.understanding import understand_item_query
-
-          repository = core.ItemRepository(core.DEFAULT_DATABASE)
-          try:
-              stats = repository.list_stat_names()
-              types = repository.list_item_types()
-              query = "highest xtall cr weapon"
-              tokens = tokenize_item_query(query)
-              exact = find_exact_item_filter_matches(tokens, types)
-              fuzzy = find_unique_fuzzy_item_filter_match(tokens, types)
-              print("exact status", exact.status)
-              for match in exact.matches:
-                  print("exact", match.typed_text, match.phrase.label, match.canonical_phrase, match.token_indexes)
-              print("fuzzy", fuzzy)
-              print("understanding", understand_item_query(
-                  query,
-                  available_stats=stats,
-                  available_item_types=types,
-              ))
-          finally:
-              repository.close()
-          PY
+      - name: Task 6 fuzzy precedence RED
+        run: python -m unittest tests.test_item_query_entities.ItemQueryEntityTests.test_fuzzy_same_semantic_filter_never_overrides_exact_match -v
