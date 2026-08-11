@@ -1,9 +1,12 @@
-name: Core modularization Task 1 RED
+name: Core modularization Task 1 GREEN
 on:
   pull_request:
 
+permissions:
+  contents: write
+
 jobs:
-  red:
+  green:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -13,16 +16,34 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install rapidfuzz python-dotenv ollama discord.py
-      - name: Verify current missing-candidates contract is RED
+      - name: Apply Task 1 patch
         run: |
           python - <<'PY'
-          from tests.test_structured_fallback import service
-          import unittest
+          from pathlib import Path
 
-          fallback = service({"intent": "search"})
-          with unittest.TestCase().assertLogs("toram_search.fallback", level="DEBUG") as captured:
-              outcome = fallback.interpret("which bow has the highest critical rate", ())
-          assert outcome.kind == "failed"
-          text = "\n".join(captured.output)
-          assert "missing or invalid search candidates" in text, text
+          fallback = Path('toram_search/fallback.py')
+          text = fallback.read_text()
+          old = '''        if intent == "search":\n            if set(payload) != {"intent", "candidates"}:\n                return self._failed("search payload has unexpected fields", payload)\n            candidates_obj = payload.get("candidates")\n            if not isinstance(candidates_obj, list) or not 1 <= len(candidates_obj) <= 3:\n                return self._failed("missing or invalid search candidates", payload)\n'''
+          new = '''        if intent == "search":\n            candidates_obj = payload.get("candidates")\n            if not isinstance(candidates_obj, list) or not 1 <= len(candidates_obj) <= 3:\n                return self._failed("missing or invalid search candidates", payload)\n            if set(payload) != {"intent", "candidates"}:\n                return self._failed("search payload has unexpected fields", payload)\n'''
+          assert old in text, 'fallback anchor not found'
+          fallback.write_text(text.replace(old, new, 1))
+
+          test_path = Path('tests/test_structured_fallback.py')
+          text = test_path.read_text()
+          anchor = '''    def test_schema_is_sent_to_llm_client(self):\n'''
+          addition = '''    def test_search_payload_with_candidates_and_extra_field_is_rejected_as_unexpected_fields(self):\n        fallback = service(\n            {\n                "intent": "search",\n                "candidates": [\n                    {\n                        "stats": [{"name": "Critical Rate"}],\n                        "item_filter": "bow",\n                    }\n                ],\n                "extra": True,\n            }\n        )\n\n        with self.assertLogs("toram_search.fallback", level="DEBUG") as captured:\n            outcome = fallback.interpret("cr bow", ())\n\n        self.assertEqual(outcome.kind, "failed")\n        self.assertIn(\n            "search payload has unexpected fields",\n            "\\n".join(captured.output),\n        )\n\n'''
+          assert anchor in text, 'test anchor not found'
+          assert 'test_search_payload_with_candidates_and_extra_field_is_rejected_as_unexpected_fields' not in text
+          test_path.write_text(text.replace(anchor, addition + anchor, 1))
           PY
+      - name: Run Task 1 focused suite
+        run: python -m unittest tests.test_structured_fallback -v
+      - name: Run full suite
+        run: python -m unittest discover -s tests -v
+      - name: Commit feature changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add toram_search/fallback.py tests/test_structured_fallback.py
+          git commit -m "fix: restore structured fallback rejection contract"
+          git push origin HEAD:refactor/core-search-modularization
