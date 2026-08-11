@@ -26,7 +26,6 @@ jobs:
               ExpressionResultsPayload,
               SearchService,
               StatClarificationPayload,
-              StatResultsPayload,
           )
           from toram_search.session import FailedQueryContext
 
@@ -45,14 +44,16 @@ jobs:
               assert consume.payload.parsed.filter.label == 'Usable'
               expression = consume.payload.parsed.resolved_expression
               assert expression is not None
-              clause = expression.groups[0].clauses[0]
-              assert clause.stat_name.casefold() == '% stronger against earth'
+              assert expression.groups[0].clauses[0].stat_name.casefold() == '% stronger against earth'
 
               reconstructed = service.handle_query('xtall cr weapon', FailedQueryContext(max_entries=3))
               assert reconstructed.kind == 'search', reconstructed
-              assert isinstance(reconstructed.payload, StatResultsPayload), reconstructed.payload
-              assert reconstructed.payload.parsed.stat is not None
-              assert reconstructed.payload.parsed.stat.stat_name == 'Critical Rate'
+              assert isinstance(reconstructed.payload, ExpressionResultsPayload), reconstructed.payload
+              assert reconstructed.payload.parsed.filter is not None
+              assert reconstructed.payload.parsed.filter.label == 'Weapon Crysta + Red Enhancer'
+              expression = reconstructed.payload.parsed.resolved_expression
+              assert expression is not None
+              assert expression.groups[0].clauses[0].stat_name == 'Critical Rate'
 
               ambiguous = service.handle_query('crit xtal weapon', FailedQueryContext(max_entries=3))
               assert ambiguous.kind == 'search', ambiguous
