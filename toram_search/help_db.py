@@ -110,6 +110,21 @@ class DatabaseQuestionService:
                 return item_type, (item_type,)
         return None
 
+    def _canonical_item_type_count_phrase(self, text: str) -> tuple[str, tuple[str, ...]] | None:
+        cleaned = self._clean(text)
+        resolved = self._canonical_item_type(cleaned)
+        if resolved is not None:
+            return resolved
+
+        words = cleaned.split()
+        if not words:
+            return None
+        last = words[-1]
+        if len(last) <= 1 or not last.casefold().endswith("s"):
+            return None
+        singular = " ".join((*words[:-1], last[:-1]))
+        return self._canonical_item_type(singular)
+
     def _canonical_stat(self, text: str) -> str | None:
         cleaned = self._clean(text)
         if self._resolve_stat is not None:
@@ -151,9 +166,13 @@ class DatabaseQuestionService:
             if item is not None:
                 return DatabaseActionRequest("item_type_exists", item_type=item[0])
 
-        m = re.fullmatch(r"how many (.+?) items (?:are there|are in the database)", raw, flags=re.I)
+        m = re.fullmatch(
+            r"how many (.+?)(?: items)? (?:do you have|are there|are in the database)",
+            raw,
+            flags=re.I,
+        )
         if m:
-            item = self._canonical_item_type(m.group(1))
+            item = self._canonical_item_type_count_phrase(m.group(1))
             if item is not None:
                 return DatabaseActionRequest("count_items_by_type", item_type=item[0])
 
