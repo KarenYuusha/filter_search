@@ -77,6 +77,11 @@ from toram_search.ranking import RankedItem, rank_items
 '''
 assert import_anchor in text
 text = text.replace(import_anchor, imports + import_anchor, 1)
+text = text.replace(
+    'from toram_search.routing import route_deterministically\n',
+    'from toram_search.routing import make_database_question_service, route_deterministically\n',
+    1,
+)
 
 replacements = {
     'core.ItemDetail': 'ItemDetail',
@@ -126,8 +131,6 @@ assert 'import search_items' not in text
 assert 'core.' not in text
 service_path.write_text(text)
 
-# Move the actual fallback implementation out of the terminal module but retain
-# a compatibility wrapper with the old call signature.
 search_path = Path('search_items.py')
 search_text = search_path.read_text()
 tree = ast.parse(search_text)
@@ -163,7 +166,6 @@ search_text = search_text.replace(
 )
 search_path.write_text(search_text)
 
-# Add a permanent dependency-direction regression.
 test_path = Path('tests/test_core_module_boundaries.py')
 test_text = test_path.read_text()
 if 'import ast\n' not in test_text:
