@@ -1,51 +1,23 @@
-name: Core modularization Task 5 GREEN
+name: Core modularization Task 6 RED
 on:
   pull_request:
 
-permissions:
-  contents: write
-
 jobs:
-  green:
+  red:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: refactor/core-search-modularization
-          path: feature
-      - uses: actions/checkout@v4
-        with:
-          ref: verify/core-modularization-task1
-          path: verifier
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - run: pip install rapidfuzz python-dotenv ollama discord.py
-      - name: Apply Task 5
-        working-directory: feature
-        run: python ../verifier/.github/scripts/task5_patch.py
-      - name: Compile
-        working-directory: feature
-        run: python -m py_compile toram_search/parser.py search_items.py toram_search/service.py
-      - name: Focused tests
-        working-directory: feature
+      - name: Verify routing module is missing
         run: |
-          python -m unittest \
-            tests.test_core_module_boundaries \
-            tests.test_structured_fallback \
-            tests.test_direct_structured_intent \
-            tests.test_query_reconstruction \
-            tests.test_item_query_understanding \
-            tests.test_search_service \
-            -v
-      - name: Full suite
-        working-directory: feature
-        run: python -m unittest discover -s tests -v
-      - name: Commit Task 5
-        working-directory: feature
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add toram_search/parser.py search_items.py tests/test_core_module_boundaries.py
-          git commit -m "refactor: extract deterministic query parser"
-          git push origin HEAD:refactor/core-search-modularization
+          python - <<'PY'
+          import search_items
+          from toram_search.routing import DeterministicRoute, route_deterministically
+          assert search_items.DeterministicRoute is DeterministicRoute
+          assert search_items.route_deterministically is route_deterministically
+          PY
