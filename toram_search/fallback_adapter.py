@@ -37,6 +37,7 @@ def build_fallback_service(
             repository,
         ) is not None,
         validate_database_action=database_service.validate_request,
+        ground_database_action=database_service.is_request_grounded,
         stat_catalog=tuple(repository.list_stat_names()),
         alias_catalog=tuple(aliases),
         item_filter_catalog=tuple(filter_labels),
