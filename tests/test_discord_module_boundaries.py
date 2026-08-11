@@ -110,6 +110,13 @@ class DiscordModuleBoundaryTests(unittest.TestCase):
         self.assertIs(discord_bot.build_service_outcome_message, build_service_outcome_message)
         self.assertIs(discord_bot.edit_service_outcome, edit_service_outcome)
 
+    def test_app_symbols_have_canonical_package_owner(self):
+        from toram_discord.app import create_client, main, process_tagged_query
+
+        self.assertIs(discord_bot.process_tagged_query, process_tagged_query)
+        self.assertIs(discord_bot.create_client, create_client)
+        self.assertIs(discord_bot.main, main)
+
 
 if __name__ == "__main__":
     unittest.main()
