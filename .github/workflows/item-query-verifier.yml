@@ -1,0 +1,20 @@
+name: Item query verifier
+
+on:
+  push:
+    branches: [verify/item-query-understanding]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dda7c0eaca2fb8321261105c5cb07fa6a9125817
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip rapidfuzz discord.py python-dotenv ollama
+      - name: Task 1 RED
+        run: python -m unittest tests.test_item_query_entities -v
