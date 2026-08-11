@@ -5,16 +5,15 @@ from typing import Literal, Mapping
 
 import search_items as core
 from toram_search.fallback import SearchIntentRequest
-from toram_search.reconstruction import (
-    try_reconstruct_simple_search,
-    try_suggest_query,
-)
-from toram_search.session import FailedQueryContext
+from toram_search.reconstruction import try_reconstruct_simple_search
+from toram_search.session import FailedQueryContext, PendingItemSearch
+from toram_search.understanding import ConfirmedItemChoice, understand_item_query
 
 
 ServiceKind = Literal[
     "search",
     "confirm_search",
+    "item_understanding",
     "help",
     "database",
     "refuse",
@@ -102,6 +101,7 @@ class ServiceOutcome:
     text: str | None = None
     search_requests: tuple[SearchIntentRequest, ...] = ()
     suggested_query: str | None = None
+    pending_item_search: PendingItemSearch | None = None
 
 
 def resolve_expression_noninteractively(
@@ -210,6 +210,18 @@ class SearchService:
             self.llm_client,
         )
 
+    def _execute_canonical_item_search(self, canonical_query: str) -> ServiceOutcome:
+        route = core.route_deterministically(
+            canonical_query,
+            self.repository,
+            self.all_items,
+            self.help_service,
+            self.database_service,
+        )
+        if route.kind != "search" or route.parsed is None:
+            return ServiceOutcome("failed")
+        return ServiceOutcome("search", payload=self._materialize(route.parsed, {}))
+
     def handle_query(
         self,
         query: str,
@@ -244,21 +256,26 @@ class SearchService:
             available_item_types=self.repository.list_item_types(),
         )
         if reconstruction.kind in {"success", "ambiguous"} and reconstruction.canonical_query:
-            reconstructed_route = core.route_deterministically(
-                reconstruction.canonical_query,
-                self.repository,
-                self.all_items,
-                self.help_service,
-                self.database_service,
-            )
-            if reconstructed_route.kind == "search" and reconstructed_route.parsed is not None:
-                return ServiceOutcome(
-                    "search",
-                    payload=self._materialize(reconstructed_route.parsed, {}),
-                )
+            reconstructed = self._execute_canonical_item_search(reconstruction.canonical_query)
+            if reconstructed.kind == "search":
+                return reconstructed
 
-        if route.record_failure:
-            context.record_failure(query)
+        understanding = understand_item_query(
+            query,
+            available_stats=self.repository.list_stat_names(),
+            available_item_types=self.repository.list_item_types(),
+        )
+        if understanding.decision == "execute" and understanding.canonical_query:
+            understood = self._execute_canonical_item_search(understanding.canonical_query)
+            if understood.kind == "search":
+                return understood
+        elif understanding.decision in {"clarify", "confirm", "suggest"}:
+            return ServiceOutcome(
+                "item_understanding",
+                pending_item_search=PendingItemSearch(query, understanding),
+            )
+
+        context.record_failure(query)
         fallback = self.fallback_service.interpret(query, context.snapshot())
         if fallback.kind == "search_requests" and fallback.search_requests:
             context.set_latest_suggestion(
@@ -280,23 +297,71 @@ class SearchService:
             return ServiceOutcome("refuse")
         if fallback.kind == "unavailable":
             return ServiceOutcome("unavailable")
-        suggestion = try_suggest_query(
-            query,
+        return ServiceOutcome("failed")
+
+    def continue_item_understanding(
+        self,
+        pending: PendingItemSearch,
+        issue_id: str,
+        selected_value: str,
+        context: FailedQueryContext,
+    ) -> ServiceOutcome:
+        if not pending.understanding.uncertainties:
+            return ServiceOutcome("failed")
+        issue = pending.understanding.uncertainties[0]
+        if issue.issue_id != issue_id:
+            return ServiceOutcome("failed")
+        if selected_value not in {choice.value for choice in issue.choices}:
+            return ServiceOutcome("failed")
+
+        confirmed_choices = (
+            *pending.confirmed_choices,
+            ConfirmedItemChoice(issue_id, selected_value),
+        )
+        understanding = understand_item_query(
+            pending.original_query,
             available_stats=self.repository.list_stat_names(),
             available_item_types=self.repository.list_item_types(),
+            confirmed_choices=confirmed_choices,
         )
-        if suggestion is not None:
-            suggestion_route = core.route_deterministically(
-                suggestion,
-                self.repository,
-                self.all_items,
-                self.help_service,
-                self.database_service,
-            )
-            if suggestion_route.kind == "search" and suggestion_route.parsed is not None:
-                context.set_latest_suggestion(suggestion)
-                return ServiceOutcome("failed", suggested_query=suggestion)
-        return ServiceOutcome("failed")
+        if understanding.decision == "fallback":
+            return ServiceOutcome("failed")
+        if understanding.decision == "execute" and understanding.canonical_query:
+            outcome = self._execute_canonical_item_search(understanding.canonical_query)
+            if outcome.kind == "search":
+                context.clear()
+            return outcome
+        return ServiceOutcome(
+            "item_understanding",
+            pending_item_search=PendingItemSearch(
+                pending.original_query,
+                understanding,
+                confirmed_choices,
+            ),
+        )
+
+    def confirm_pending_item_search(
+        self,
+        pending: PendingItemSearch,
+        context: FailedQueryContext,
+    ) -> ServiceOutcome:
+        understanding = pending.understanding
+        canonical_query: str | None = None
+        if understanding.decision == "suggest" and understanding.suggested_query:
+            canonical_query = understanding.suggested_query
+        elif (
+            understanding.decision == "confirm"
+            and not understanding.uncertainties
+            and understanding.canonical_query
+        ):
+            canonical_query = understanding.canonical_query
+        if canonical_query is None:
+            return ServiceOutcome("failed")
+
+        outcome = self._execute_canonical_item_search(canonical_query)
+        if outcome.kind == "search":
+            context.clear()
+        return outcome
 
     def confirm_search_request(
         self,
