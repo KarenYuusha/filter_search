@@ -222,7 +222,14 @@ def find_unique_fuzzy_item_filter_match(
 
     if len(best_by_semantic) != 1:
         return None
-    return next(iter(best_by_semantic.values()))
+    selected = next(iter(best_by_semantic.values()))
+    exact_semantics = {
+        semantic_filter_key(match.phrase)
+        for match in exact.matches
+    }
+    if semantic_filter_key(selected.phrase) in exact_semantics:
+        return None
+    return selected
 
 
 def remaining_tokens(
