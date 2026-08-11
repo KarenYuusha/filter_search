@@ -48,6 +48,12 @@ from toram_data.aliases import (
     resolve_stat_term,
 )
 
+from toram_data.item_filters import (
+    extract_item_filter,
+    list_item_filter_phrases,
+    resolve_item_filter,
+)
+
 from toram_data.stat_query import (
     ItemTypeFilter,
     ParsedAndGroup,
@@ -295,102 +301,6 @@ class ResultScreenOutcome:
     kind: Literal["selected", "new_query", "new", "quit"]
     query: str | None = None
     search_request: SearchIntentRequest | None = None
-
-
-def _normalize_filter_text(value: str) -> str:
-    tokens = normalize_stat_text(value).split()
-    return " ".join(ITEM_WORD_ALIASES.get(token, token) for token in tokens)
-
-
-def _available_types_by_normalized(available_item_types: set[str]) -> dict[str, str]:
-    return {normalize_name(value): value for value in available_item_types}
-
-
-def _existing_types(
-    configured: Iterable[str],
-    available_item_types: set[str],
-) -> tuple[str, ...]:
-    by_normalized = _available_types_by_normalized(available_item_types)
-    output: list[str] = []
-    for configured_type in configured:
-        actual = by_normalized.get(normalize_name(configured_type))
-        if actual is not None and actual not in output:
-            output.append(actual)
-    return tuple(output)
-
-
-def _find_phrase_tokens(tokens: list[str], phrase: str) -> tuple[int, int] | None:
-    phrase_tokens = phrase.split()
-    if not phrase_tokens or len(phrase_tokens) > len(tokens):
-        return None
-    for start in range(len(tokens) - len(phrase_tokens) + 1):
-        end = start + len(phrase_tokens)
-        if tokens[start:end] == phrase_tokens:
-            return start, end
-    return None
-
-
-def _filter_candidates() -> list[tuple[str, str, tuple[str, ...]]]:
-    combinations = {
-        "wp xtal": ("Weapon Crysta + Red Enhancer", ("Weapon Crysta", "Enhancer Crysta (Red)")),
-        "weapon xtal": ("Weapon Crysta + Red Enhancer", ("Weapon Crysta", "Enhancer Crysta (Red)")),
-        "ring xtal": ("Special Crysta + Purple Enhancer", ("Special Crysta", "Enhancer Crysta (Purple)")),
-        "rings xtal": ("Special Crysta + Purple Enhancer", ("Special Crysta", "Enhancer Crysta (Purple)")),
-        "special xtal": ("Special Crysta + Purple Enhancer", ("Special Crysta", "Enhancer Crysta (Purple)")),
-        "special gear xtal": ("Special Crysta + Purple Enhancer", ("Special Crysta", "Enhancer Crysta (Purple)")),
-        "arm xtal": ("Armor Crysta + Green Enhancer", ("Armor Crysta", "Enhancer Crysta (Green)")),
-        "armor xtal": ("Armor Crysta + Green Enhancer", ("Armor Crysta", "Enhancer Crysta (Green)")),
-        "add xtal": ("Additional Crysta + Yellow Enhancer", ("Additional Crysta", "Enhancer Crysta (Yellow)")),
-        "ad xtal": ("Additional Crysta + Yellow Enhancer", ("Additional Crysta", "Enhancer Crysta (Yellow)")),
-        "hat xtal": ("Additional Crysta + Yellow Enhancer", ("Additional Crysta", "Enhancer Crysta (Yellow)")),
-        "additional xtal": ("Additional Crysta + Yellow Enhancer", ("Additional Crysta", "Enhancer Crysta (Yellow)")),
-        "red xtal": ("Enhancer Crysta (Red)", ("Enhancer Crysta (Red)",)),
-        "purple xtal": ("Enhancer Crysta (Purple)", ("Enhancer Crysta (Purple)",)),
-        "green xtal": ("Enhancer Crysta (Green)", ("Enhancer Crysta (Green)",)),
-        "yellow xtal": ("Enhancer Crysta (Yellow)", ("Enhancer Crysta (Yellow)",)),
-        "xtal": ("All Crysta", ALL_CRYSTA_TYPES),
-        "wp": ("Main Weapons", MAIN_WEAPON_TYPES),
-        "weapon": ("Main Weapons", MAIN_WEAPON_TYPES),
-    }
-    candidates = [(phrase, label, types) for phrase, (label, types) in combinations.items()]
-    for alias, item_type in ITEM_TYPE_ALIASES.items():
-        candidates.append((_normalize_filter_text(alias), item_type, (item_type,)))
-    candidates.sort(key=lambda value: (len(value[0].split()), len(value[0])), reverse=True)
-    return candidates
-
-
-def extract_item_filter(
-    text: str,
-    available_item_types: set[str],
-) -> tuple[FilterResolution | None, str]:
-    normalized = _normalize_filter_text(text)
-    tokens = normalized.split()
-    for phrase, label, configured_types in _filter_candidates():
-        span = _find_phrase_tokens(tokens, phrase)
-        if span is None:
-            continue
-        item_types = _existing_types(configured_types, available_item_types)
-        if not item_types:
-            continue
-        start, end = span
-        remaining = " ".join(tokens[:start] + tokens[end:])
-        return (
-            FilterResolution(label=label, item_types=item_types, consumed_text=phrase),
-            remaining,
-        )
-    return None, normalized
-
-
-def resolve_item_filter(
-    text: str,
-    available_item_types: set[str],
-) -> FilterResolution | None:
-    resolution, remaining = extract_item_filter(text, available_item_types)
-    if resolution is None:
-        return None
-    if remaining:
-        return resolution
-    return resolution
 
 
 def resolve_stat_choices(text: str, available_stats: list[str]) -> tuple[str, ...]:
@@ -2178,8 +2088,8 @@ def _build_fallback_service(
 
     filter_labels: list[str] = []
     seen: set[str] = set()
-    for phrase, label, _types in _filter_candidates():
-        value = f"{phrase} -> {label}"
+    for row in list_item_filter_phrases(repository.list_item_types()):
+        value = f"{row.phrase} -> {row.label}"
         if value not in seen:
             seen.add(value)
             filter_labels.append(value)
