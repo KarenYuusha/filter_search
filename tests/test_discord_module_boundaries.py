@@ -1,9 +1,25 @@
 from __future__ import annotations
 
+import ast
+import importlib
 import unittest
 from pathlib import Path
 
 import discord_bot
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def imported_modules(path: Path) -> set[str]:
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    modules: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            modules.update(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            modules.add(node.module)
+    return modules
 
 
 class DiscordModuleBoundaryTests(unittest.TestCase):
@@ -116,6 +132,54 @@ class DiscordModuleBoundaryTests(unittest.TestCase):
         self.assertIs(discord_bot.process_tagged_query, process_tagged_query)
         self.assertIs(discord_bot.create_client, create_client)
         self.assertIs(discord_bot.main, main)
+
+    def test_all_discord_modules_import_cleanly(self):
+        for module_name in (
+            "toram_discord.config",
+            "toram_discord.sessions",
+            "toram_discord.render",
+            "toram_discord.views",
+            "toram_discord.app",
+        ):
+            with self.subTest(module=module_name):
+                self.assertIsNotNone(importlib.import_module(module_name))
+
+    def test_search_and_data_layers_do_not_import_discord_frontend(self):
+        for package_name in ("toram_search", "toram_data"):
+            for path in sorted((ROOT / package_name).glob("*.py")):
+                modules = imported_modules(path)
+                forbidden = {
+                    module
+                    for module in modules
+                    if module == "discord_bot" or module.startswith("toram_discord")
+                }
+                self.assertFalse(forbidden, f"{path} imports {sorted(forbidden)}")
+
+    def test_discord_package_does_not_import_compatibility_facade(self):
+        for path in sorted((ROOT / "toram_discord").glob("*.py")):
+            modules = imported_modules(path)
+            self.assertNotIn("discord_bot", modules, f"{path} imports discord_bot")
+
+    def test_discord_bot_is_import_only_facade_plus_launcher(self):
+        path = ROOT / "discord_bot.py"
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        definitions = [
+            node
+            for node in ast.walk(tree)
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
+        ]
+        self.assertEqual(definitions, [])
+        self.assertTrue(
+            any(
+                isinstance(node, ast.If)
+                and isinstance(node.test, ast.Compare)
+                and any(
+                    isinstance(name, ast.Name) and name.id == "__name__"
+                    for name in ast.walk(node.test)
+                )
+                for node in tree.body
+            )
+        )
 
 
 if __name__ == "__main__":
