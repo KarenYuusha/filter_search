@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import ast
+import subprocess
 from pathlib import Path
+
+SOURCE_COMMIT = 'c672e9589b956da26e43100841f119c308805299'
 
 SEARCH_MODELS = '''from __future__ import annotations
 
@@ -73,50 +76,22 @@ class UpgradeGraph:
     missing_nodes: dict[int, ItemSummary]
 '''
 
-BOUNDARY_TESTS = '''import unittest
-
-import search_items
-from toram_data.search_models import (
-    ClauseMatch,
-    ItemDetail,
-    ItemSummary,
-    RankedExpressionItem,
-    RankedStatItem,
-    StatRow,
-    UpgradeGraph,
+subprocess.run(
+    ['git', 'fetch', 'origin', SOURCE_COMMIT, '--depth=1'],
+    check=True,
+    stdout=subprocess.DEVNULL,
 )
-from toram_data.search_repository import ItemRepository
-
-
-class CoreModuleBoundaryTests(unittest.TestCase):
-    def test_search_items_reexports_domain_models(self):
-        self.assertIs(search_items.ItemSummary, ItemSummary)
-        self.assertIs(search_items.ItemDetail, ItemDetail)
-        self.assertIs(search_items.StatRow, StatRow)
-        self.assertIs(search_items.RankedStatItem, RankedStatItem)
-        self.assertIs(search_items.ClauseMatch, ClauseMatch)
-        self.assertIs(search_items.RankedExpressionItem, RankedExpressionItem)
-        self.assertIs(search_items.UpgradeGraph, UpgradeGraph)
-
-    def test_search_items_reexports_search_repository(self):
-        self.assertIs(search_items.ItemRepository, ItemRepository)
-
-    def test_editor_repository_stays_separate(self):
-        from toram_data.repository import ItemRepository as EditorItemRepository
-
-        self.assertIsNot(ItemRepository, EditorItemRepository)
-'''
-
-source_path = Path('search_items.py')
-source = source_path.read_text()
-tree = ast.parse(source)
-
+old_source = subprocess.check_output(
+    ['git', 'show', f'{SOURCE_COMMIT}:search_items.py'],
+    text=True,
+)
+tree = ast.parse(old_source)
 repo_node = next(
     node
     for node in tree.body
     if isinstance(node, ast.ClassDef) and node.name == 'ItemRepository'
 )
-repo_segment = ast.get_source_segment(source, repo_node)
+repo_segment = ast.get_source_segment(old_source, repo_node)
 assert repo_segment is not None
 
 repository_header = '''from __future__ import annotations
@@ -142,48 +117,3 @@ from toram_data.stat_query import ResolvedStatExpression, compare_amount
 
 Path('toram_data/search_models.py').write_text(SEARCH_MODELS)
 Path('toram_data/search_repository.py').write_text(repository_header + repo_segment + '\n')
-Path('tests/test_core_module_boundaries.py').write_text(BOUNDARY_TESTS)
-
-moved_names = {
-    'ItemSummary',
-    'ItemDetail',
-    'StatRow',
-    'RankedStatItem',
-    'ClauseMatch',
-    'RankedExpressionItem',
-    'UpgradeGraph',
-    'ItemRepository',
-}
-remove_nodes = [
-    node
-    for node in tree.body
-    if isinstance(node, ast.ClassDef) and node.name in moved_names
-]
-lines = source.splitlines(keepends=True)
-for node in sorted(remove_nodes, key=lambda value: value.lineno, reverse=True):
-    start_line = min(
-        [node.lineno, *(decorator.lineno for decorator in node.decorator_list)]
-    )
-    start = start_line - 1
-    end = node.end_lineno
-    while end < len(lines) and lines[end].strip() == '':
-        end += 1
-    del lines[start:end]
-source = ''.join(lines)
-
-imports = '''from toram_data.search_models import (
-    ClauseMatch,
-    ItemDetail,
-    ItemSummary,
-    RankedExpressionItem,
-    RankedStatItem,
-    StatRow,
-    UpgradeGraph,
-)
-from toram_data.search_repository import ItemRepository
-
-'''
-marker = 'FilterResolution = ItemTypeFilter\n'
-assert marker in source
-source = source.replace(marker, imports + marker, 1)
-source_path.write_text(source)
