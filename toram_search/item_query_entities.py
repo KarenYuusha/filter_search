@@ -5,12 +5,38 @@ from dataclasses import dataclass
 from itertools import combinations, product
 from typing import Literal
 
+from rapidfuzz import fuzz
+
 from toram_data.aliases import ITEM_WORD_ALIASES, normalize_stat_text
 from toram_data.stat_query import ItemFilterPhrase, list_item_filter_phrases
 
 
 FilterMatchStatus = Literal["unique", "none", "ambiguous"]
 FilterMatchKind = Literal["exact", "fuzzy"]
+
+_FILTER_FUZZY_BOUNDARIES = frozenset(
+    {
+        "a",
+        "an",
+        "can",
+        "find",
+        "give",
+        "gives",
+        "has",
+        "have",
+        "having",
+        "i",
+        "me",
+        "show",
+        "some",
+        "that",
+        "the",
+        "want",
+        "which",
+        "with",
+        "you",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -114,6 +140,77 @@ def find_exact_item_filter_matches(
                 )
             )
     return ExactFilterMatches("unique", tuple(matches))
+
+
+def find_unique_fuzzy_item_filter_match(
+    tokens: tuple[QueryToken, ...],
+    available_item_types: set[str],
+    fuzzy_threshold: float = 85.0,
+) -> ItemFilterMatch | None:
+    if not tokens:
+        return None
+
+    exact = find_exact_item_filter_matches(tokens, available_item_types)
+    if exact.status == "ambiguous":
+        return None
+    max_exact_size = max(
+        (len(match.token_indexes) for match in exact.matches),
+        default=0,
+    )
+
+    catalog = list_item_filter_phrases(available_item_types)
+    if not catalog:
+        return None
+    max_phrase_tokens = max(len(row.phrase.split()) for row in catalog)
+
+    best_by_semantic: dict[
+        tuple[str, tuple[str, ...]],
+        ItemFilterMatch,
+    ] = {}
+    for start in range(len(tokens)):
+        max_length = min(max_phrase_tokens, len(tokens) - start)
+        for length in range(1, max_length + 1):
+            span = tokens[start : start + length]
+            if any(token.normalized in _FILTER_FUZZY_BOUNDARIES for token in span):
+                continue
+            span_text = " ".join(token.normalized for token in span)
+            indexes = tuple(token.index for token in span)
+            typed_text = " ".join(token.text for token in span)
+            for row in catalog:
+                if span_text == row.phrase:
+                    continue
+                weighted = float(fuzz.WRatio(span_text, row.phrase))
+                token_score = float(fuzz.token_sort_ratio(span_text, row.phrase))
+                score = min(weighted, token_score)
+                if score < fuzzy_threshold:
+                    continue
+                match = ItemFilterMatch(
+                    typed_text=typed_text,
+                    token_indexes=indexes,
+                    phrase=row,
+                    canonical_phrase=canonical_filter_phrase(row, catalog),
+                    match_kind="fuzzy",
+                    score=score,
+                )
+                key = semantic_filter_key(row)
+                previous = best_by_semantic.get(key)
+                if previous is None or (
+                    match.score,
+                    len(match.token_indexes),
+                    -len(match.canonical_phrase),
+                ) > (
+                    previous.score,
+                    len(previous.token_indexes),
+                    -len(previous.canonical_phrase),
+                ):
+                    best_by_semantic[key] = match
+
+    if len(best_by_semantic) != 1:
+        return None
+    match = next(iter(best_by_semantic.values()))
+    if max_exact_size >= len(match.token_indexes):
+        return None
+    return match
 
 
 def remaining_tokens(
