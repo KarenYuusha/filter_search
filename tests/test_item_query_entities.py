@@ -2,6 +2,7 @@ import unittest
 
 from toram_search.item_query_entities import (
     find_exact_item_filter_matches,
+    find_unique_fuzzy_item_filter_match,
     remaining_tokens,
     tokenize_item_query,
 )
@@ -42,6 +43,17 @@ class ItemQueryEntityTests(unittest.TestCase):
             for match in result.matches
         }
         self.assertIn(("weapon", "atk"), remaining)
+
+    def test_wepon_xtal_has_one_fuzzy_filter_candidate(self):
+        tokens = tokenize_item_query("cr wepon xtal")
+        match = find_unique_fuzzy_item_filter_match(tokens, TYPES)
+        self.assertIsNotNone(match)
+        self.assertEqual(
+            match.phrase.item_types,
+            ("Weapon Crysta", "Enhancer Crysta (Red)"),
+        )
+        self.assertEqual(match.canonical_phrase, "wp xtal")
+        self.assertEqual(match.match_kind, "fuzzy")
 
 
 if __name__ == "__main__":
