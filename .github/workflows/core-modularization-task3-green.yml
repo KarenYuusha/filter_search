@@ -26,7 +26,7 @@ jobs:
         run: python ../verifier/.github/scripts/task3_patch.py
       - name: Compile
         working-directory: feature
-        run: python -m py_compile toram_data/models.py toram_data/repository.py search_items.py
+        run: python -m py_compile toram_data/search_models.py toram_data/search_repository.py search_items.py
       - name: Focused tests
         working-directory: feature
         run: python -m unittest tests.test_core_module_boundaries tests.test_search_service tests.test_item_search_relevance -v
@@ -35,7 +35,7 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-          from toram_data.repository import ItemRepository
+          from toram_data.search_repository import ItemRepository
 
           repo = ItemRepository(Path('coryn_data/database/items.sqlite'))
           try:
@@ -54,6 +54,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add toram_data/models.py toram_data/repository.py search_items.py tests/test_core_module_boundaries.py
+          git add toram_data/search_models.py toram_data/search_repository.py search_items.py tests/test_core_module_boundaries.py
           git commit -m "refactor: extract item repository and domain models"
           git push origin HEAD:refactor/core-search-modularization
