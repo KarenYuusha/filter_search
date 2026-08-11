@@ -24,6 +24,26 @@ from discord_bot import (
     visible_attachment_name,
 )
 from toram_search.service import ItemResultsPayload, ServiceOutcome, UpgradeResultsPayload
+from toram_search.session import PendingItemSearch
+from toram_search.understanding import understand_item_query
+
+
+UNDERSTANDING_STATS = ["Critical Rate", "Critical Damage", "MaxHP"]
+UNDERSTANDING_TYPES = {
+    "Weapon Crysta",
+    "Enhancer Crysta (Red)",
+    "Armor",
+    "Bow",
+}
+
+
+def make_pending_item_search(query: str) -> PendingItemSearch:
+    understanding = understand_item_query(
+        query,
+        available_stats=UNDERSTANDING_STATS,
+        available_item_types=UNDERSTANDING_TYPES,
+    )
+    return PendingItemSearch(query, understanding)
 
 
 class DiscordConfigTests(unittest.TestCase):
@@ -190,6 +210,15 @@ class DiscordSessionTests(unittest.TestCase):
         self.assertEqual(attempts[0].suggested_query, "hp armor")
         self.assertIsNot(first.failed_context, second.failed_context)
 
+    def test_new_query_drops_pending_item_understanding(self):
+        sessions = DiscordSessionManager()
+        key = (10, 30, 20)
+        first = sessions.start_query(key, "crit wepon xtal")
+        first.pending_item_search = make_pending_item_search("crit wepon xtal")
+        second = sessions.start_query(key, "cr bow")
+        self.assertIsNone(second.pending_item_search)
+        self.assertFalse(sessions.is_current(key, first.generation))
+
 
 class DiscordFormattingTests(unittest.TestCase):
     def test_truncate_discord_text(self):
@@ -308,17 +337,12 @@ class DiscordFormattingTests(unittest.TestCase):
         self.assertFalse(discord_bot.is_upgrade_suggestion_payload(direct))
 
     def test_bot_example_prefix_prefers_guild_display_name(self):
-        self.assertTrue(
-            hasattr(discord_bot, "bot_example_prefix"),
-            "Discord output needs a guild display-name example helper",
-        )
         member = SimpleNamespace(display_name="Toram Search")
         guild = SimpleNamespace(get_member=lambda user_id: member if user_id == 99 else None)
         bot_user = SimpleNamespace(id=99, display_name="GlobalBot", name="GlobalBot")
         self.assertEqual(discord_bot.bot_example_prefix(guild, bot_user), "@Toram Search")
 
     def test_bot_example_prefix_falls_back_to_account_name(self):
-        self.assertTrue(hasattr(discord_bot, "bot_example_prefix"))
         guild = SimpleNamespace(get_member=lambda _user_id: None)
         bot_user = SimpleNamespace(id=99, display_name="GlobalBot", name="GlobalBot")
         self.assertEqual(discord_bot.bot_example_prefix(guild, bot_user), "@GlobalBot")
@@ -335,11 +359,59 @@ class DiscordFormattingTests(unittest.TestCase):
         self.assertIn("bot_example_prefix", parameters)
         self.assertNotIn("bot_mention", parameters)
 
+    def test_partial_understanding_embed_is_human_readable(self):
+        pending = make_pending_item_search("cr weapon xtal blah")
+        embed = discord_bot.build_item_understanding_embed(pending)
+        visible = "\n".join(
+            [
+                embed.title or "",
+                embed.description or "",
+                *(field.name + "\n" + field.value for field in embed.fields),
+            ]
+        )
+        self.assertIn("Critical Rate", visible)
+        self.assertIn("Weapon Crysta", visible)
+        self.assertIn("blah", visible)
+        self.assertIn("cr wp xtal", visible)
+        self.assertNotIn("UNKNOWN_TOKEN", visible)
+
+    def test_ambiguity_view_has_structured_choice_buttons(self):
+        sessions = DiscordSessionManager()
+        key = (10, 30, 20)
+        session = sessions.start_query(key, "crit wepon xtal")
+        pending = make_pending_item_search("crit wepon xtal")
+        view = discord_bot.ItemUnderstandingView(
+            sessions=sessions,
+            key=key,
+            generation=session.generation,
+            database_path=Path("coryn_data/database/items.sqlite"),
+            pending=pending,
+        )
+        labels = [child.label for child in view.children if hasattr(child, "label")]
+        self.assertIn("Critical Rate", labels)
+        self.assertIn("Critical Damage", labels)
+        self.assertIn("Cancel", labels)
+
+    def test_suggestion_view_requires_explicit_use(self):
+        sessions = DiscordSessionManager()
+        key = (10, 30, 20)
+        session = sessions.start_query(key, "highest xtall cr weapon")
+        pending = make_pending_item_search("highest xtall cr weapon")
+        view = discord_bot.ItemUnderstandingView(
+            sessions=sessions,
+            key=key,
+            generation=session.generation,
+            database_path=Path("coryn_data/database/items.sqlite"),
+            pending=pending,
+        )
+        labels = [child.label for child in view.children if hasattr(child, "label")]
+        self.assertIn("Use suggestion", labels)
+        self.assertNotIn("Search", labels)
+
     def test_failed_outcome_with_suggestion_renders_specific_query(self):
         sessions = DiscordSessionManager()
         key = (10, 30, 20)
         session = sessions.start_query(key, "highest xtall cr weapon")
-
         embed, view, file = discord_bot.build_service_outcome_message(
             ServiceOutcome("failed", suggested_query="cr wp xtal"),
             bot_example_prefix="@Toram Search",
@@ -348,7 +420,6 @@ class DiscordFormattingTests(unittest.TestCase):
             generation=session.generation,
             database_path=Path("coryn_data/database/items.sqlite"),
         )
-
         self.assertEqual(embed.title, "I couldn't interpret that search")
         self.assertEqual(embed.description, "Did you mean: `@Toram Search cr wp xtal`")
         self.assertIsNone(view)
@@ -358,7 +429,6 @@ class DiscordFormattingTests(unittest.TestCase):
         sessions = DiscordSessionManager()
         key = (10, 30, 20)
         session = sessions.start_query(key, "unresolved query")
-
         embed, view, file = discord_bot.build_service_outcome_message(
             ServiceOutcome("failed"),
             bot_example_prefix="@Toram Search",
@@ -367,7 +437,6 @@ class DiscordFormattingTests(unittest.TestCase):
             generation=session.generation,
             database_path=Path("coryn_data/database/items.sqlite"),
         )
-
         self.assertIn("@Toram Search hp armor", embed.description)
         self.assertIn("@Toram Search cr bow", embed.description)
         self.assertIn("@Toram Search hp > 5000 and cr bow", embed.description)

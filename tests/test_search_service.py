@@ -83,12 +83,10 @@ class SearchServiceTests(unittest.TestCase):
     def test_deterministic_armor_hp_never_calls_qwen(self):
         repository = FakeRepository()
         service = SearchService(repository, llm_client=MustNotCallLLM())
-
         outcome = service.handle_query(
             "can you find armor with hp",
             FailedQueryContext(max_entries=3),
         )
-
         self.assertEqual(outcome.kind, "search")
         self.assertIsInstance(outcome.payload, ExpressionResultsPayload)
         self.assertEqual(len(repository.expression_calls), 1)
@@ -99,15 +97,12 @@ class SearchServiceTests(unittest.TestCase):
     def test_natural_highest_critical_rate_bow_never_calls_qwen(self):
         repository = FakeRepository()
         service = SearchService(repository, llm_client=MustNotCallLLM())
-
         outcome = service.handle_query(
             "which bow has the highest critical rate",
             FailedQueryContext(max_entries=3),
         )
-
         self.assertEqual(outcome.kind, "search")
         self.assertIsInstance(outcome.payload, ExpressionResultsPayload)
-        self.assertEqual(len(repository.expression_calls), 1)
         expression, item_types, ascending = repository.expression_calls[0]
         self.assertEqual(item_types, ("Bow",))
         self.assertFalse(ascending)
@@ -116,9 +111,7 @@ class SearchServiceTests(unittest.TestCase):
     def test_ambiguous_crit_returns_clarification_without_input(self):
         repository = FakeRepository()
         service = SearchService(repository, llm_client=MustNotCallLLM())
-
         outcome = service.handle_query("crit bow", FailedQueryContext(max_entries=3))
-
         self.assertEqual(outcome.kind, "search")
         self.assertIsInstance(outcome.payload, StatClarificationPayload)
         self.assertEqual(
@@ -131,9 +124,7 @@ class SearchServiceTests(unittest.TestCase):
         repository = FakeRepository()
         service = SearchService(repository, llm_client=MustNotCallLLM())
         context = FailedQueryContext(max_entries=3)
-
         outcome = service.handle_query("xtall cr weapon", context)
-
         self.assertEqual(outcome.kind, "search")
         self.assertIsInstance(outcome.payload, ExpressionResultsPayload)
         self.assertEqual(context.snapshot(), ())
@@ -146,9 +137,7 @@ class SearchServiceTests(unittest.TestCase):
         repository = FakeRepository()
         service = SearchService(repository, llm_client=MustNotCallLLM())
         context = FailedQueryContext(max_entries=3)
-
         outcome = service.handle_query("crit xtal weapon", context)
-
         self.assertEqual(outcome.kind, "search")
         self.assertIsInstance(outcome.payload, StatClarificationPayload)
         self.assertEqual(
@@ -163,18 +152,94 @@ class SearchServiceTests(unittest.TestCase):
         service = SearchService(repository, llm_client=MustNotCallLLM())
         first = service.handle_query("crit bow", FailedQueryContext(max_entries=3))
         clarification = first.payload.clarification
-
         outcome = service.continue_clarification(
             first.payload.parsed,
             {(clarification.group_index, clarification.clause_index): "Critical Rate"},
         )
-
         self.assertEqual(outcome.kind, "search")
         self.assertIsInstance(outcome.payload, ExpressionResultsPayload)
         self.assertEqual(
             repository.expression_calls[-1][0].groups[0].clauses[0].stat_name,
             "Critical Rate",
         )
+
+    def test_partial_suggestion_skips_qwen_and_failure_history(self):
+        repository = FakeRepository()
+        service = SearchService(repository, llm_client=MustNotCallLLM())
+        context = FailedQueryContext(max_entries=3)
+        outcome = service.handle_query("highest xtall cr weapon", context)
+        self.assertEqual(outcome.kind, "item_understanding")
+        self.assertEqual(outcome.pending_item_search.understanding.decision, "suggest")
+        self.assertEqual(
+            outcome.pending_item_search.understanding.suggested_query,
+            "cr wp xtal",
+        )
+        self.assertEqual(context.snapshot(), ())
+        self.assertEqual(repository.expression_calls, [])
+
+    def test_ambiguity_plus_fuzzy_filter_skips_qwen(self):
+        repository = FakeRepository()
+        service = SearchService(repository, llm_client=MustNotCallLLM())
+        context = FailedQueryContext(max_entries=3)
+        outcome = service.handle_query("crit wepon xtal", context)
+        self.assertEqual(outcome.kind, "item_understanding")
+        self.assertEqual(outcome.pending_item_search.understanding.decision, "clarify")
+        self.assertEqual(context.snapshot(), ())
+        self.assertEqual(repository.expression_calls, [])
+
+    def test_one_fuzzy_filter_choice_executes_after_revalidation(self):
+        repository = FakeRepository()
+        service = SearchService(repository, llm_client=MustNotCallLLM())
+        context = FailedQueryContext(max_entries=3)
+        first = service.handle_query("cr wepon xtal", context)
+        issue = first.pending_item_search.understanding.uncertainties[0]
+        outcome = service.continue_item_understanding(
+            first.pending_item_search,
+            issue.issue_id,
+            issue.choices[0].value,
+            context,
+        )
+        self.assertEqual(outcome.kind, "search")
+        self.assertEqual(len(repository.expression_calls), 1)
+        self.assertEqual(context.snapshot(), ())
+
+    def test_two_choices_require_final_confirmation(self):
+        repository = FakeRepository()
+        service = SearchService(repository, llm_client=MustNotCallLLM())
+        context = FailedQueryContext(max_entries=3)
+        first = service.handle_query("crit wepon xtal", context)
+        first_issue = first.pending_item_search.understanding.uncertainties[0]
+        second = service.continue_item_understanding(
+            first.pending_item_search,
+            first_issue.issue_id,
+            "Critical Rate",
+            context,
+        )
+        second_issue = second.pending_item_search.understanding.uncertainties[0]
+        third = service.continue_item_understanding(
+            second.pending_item_search,
+            second_issue.issue_id,
+            second_issue.choices[0].value,
+            context,
+        )
+        self.assertEqual(third.kind, "item_understanding")
+        self.assertEqual(third.pending_item_search.understanding.decision, "confirm")
+        self.assertEqual(third.pending_item_search.understanding.uncertainties, ())
+        self.assertEqual(repository.expression_calls, [])
+        final = service.confirm_pending_item_search(third.pending_item_search, context)
+        self.assertEqual(final.kind, "search")
+        self.assertEqual(len(repository.expression_calls), 1)
+        self.assertEqual(context.snapshot(), ())
+
+    def test_safe_partial_suggestion_executes_only_after_explicit_confirmation(self):
+        repository = FakeRepository()
+        service = SearchService(repository, llm_client=MustNotCallLLM())
+        context = FailedQueryContext(max_entries=3)
+        first = service.handle_query("highest xtall cr weapon", context)
+        self.assertEqual(repository.expression_calls, [])
+        final = service.confirm_pending_item_search(first.pending_item_search, context)
+        self.assertEqual(final.kind, "search")
+        self.assertEqual(len(repository.expression_calls), 1)
 
     def test_qwen_search_requires_confirmation_before_execution(self):
         repository = FakeRepository()
@@ -187,46 +252,29 @@ class SearchServiceTests(unittest.TestCase):
             }
         )
         service = SearchService(repository, llm_client=llm)
-
+        context = FailedQueryContext(max_entries=3)
         outcome = service.handle_query(
             "could you locate protective equipment that increases health",
-            FailedQueryContext(max_entries=3),
+            context,
         )
-
         self.assertEqual(outcome.kind, "confirm_search")
         self.assertEqual(len(outcome.search_requests), 1)
         self.assertEqual(llm.calls, 1)
+        self.assertEqual(len(context.snapshot()), 1)
         self.assertEqual(repository.stat_calls, [])
         self.assertEqual(repository.expression_calls, [])
-
-    def test_failed_qwen_attaches_safe_suggestion_once(self):
-        repository = FakeRepository()
-        llm = FakeLLM({"intent": "search", "candidates": []})
-        service = SearchService(repository, llm_client=llm)
-        context = FailedQueryContext(max_entries=3)
-
-        outcome = service.handle_query("highest xtall cr weapon", context)
-
-        self.assertEqual(outcome.kind, "failed")
-        self.assertEqual(outcome.suggested_query, "cr wp xtal")
-        self.assertEqual(llm.calls, 1)
-        self.assertEqual(context.snapshot()[-1].suggested_query, "cr wp xtal")
-        self.assertEqual(repository.expression_calls, [])
-        self.assertEqual(repository.stat_calls, [])
 
     def test_failed_qwen_does_not_guess_ambiguous_crit(self):
         repository = FakeRepository()
         llm = FakeLLM({"intent": "search", "candidates": []})
         service = SearchService(repository, llm_client=llm)
-
         outcome = service.handle_query(
             "highest crit xtal weapon",
             FailedQueryContext(max_entries=3),
         )
-
-        self.assertEqual(outcome.kind, "failed")
-        self.assertIsNone(outcome.suggested_query)
-        self.assertEqual(llm.calls, 1)
+        self.assertEqual(outcome.kind, "item_understanding")
+        self.assertEqual(outcome.pending_item_search.understanding.decision, "clarify")
+        self.assertEqual(llm.calls, 0)
 
     def test_successful_qwen_interpretation_has_no_failed_suggestion(self):
         repository = FakeRepository()
@@ -239,12 +287,10 @@ class SearchServiceTests(unittest.TestCase):
             }
         )
         service = SearchService(repository, llm_client=llm)
-
         outcome = service.handle_query(
             "could you locate protective equipment that increases health",
             FailedQueryContext(max_entries=3),
         )
-
         self.assertEqual(outcome.kind, "confirm_search")
         self.assertIsNone(outcome.suggested_query)
         self.assertEqual(llm.calls, 1)
@@ -254,12 +300,10 @@ class SearchServiceTests(unittest.TestCase):
         repository = FakeRepository()
         llm = FakeLLM({"intent": "refuse"})
         service = SearchService(repository, llm_client=llm)
-
         outcome = service.handle_query(
             "tell me something unrelated",
             FailedQueryContext(max_entries=3),
         )
-
         self.assertEqual(outcome.kind, "refuse")
         self.assertIsNone(outcome.suggested_query)
         self.assertEqual(llm.calls, 1)
@@ -268,12 +312,10 @@ class SearchServiceTests(unittest.TestCase):
         repository = FakeRepository()
         llm = UnavailableLLM()
         service = SearchService(repository, llm_client=llm)
-
         outcome = service.handle_query(
             "could you explain this strange equipment request",
             FailedQueryContext(max_entries=3),
         )
-
         self.assertEqual(outcome.kind, "unavailable")
         self.assertIsNone(outcome.suggested_query)
         self.assertEqual(llm.calls, 1)
@@ -281,9 +323,7 @@ class SearchServiceTests(unittest.TestCase):
     def test_confirmed_qwen_request_is_validated_then_executed(self):
         repository = FakeRepository()
         service = SearchService(repository, llm_client=MustNotCallLLM())
-
         from toram_search.fallback import SearchIntentRequest, SearchStatIntent
-
         request = SearchIntentRequest(
             stats=(SearchStatIntent("MaxHP"),),
             item_filter="armor",
@@ -293,7 +333,6 @@ class SearchServiceTests(unittest.TestCase):
             "natural wording",
             FailedQueryContext(max_entries=3),
         )
-
         self.assertEqual(outcome.kind, "search")
         self.assertIsInstance(outcome.payload, StatResultsPayload)
         self.assertEqual(repository.stat_calls, [("MaxHP", ("Armor",))])

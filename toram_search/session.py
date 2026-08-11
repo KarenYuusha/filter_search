@@ -4,6 +4,8 @@ from collections import deque
 from dataclasses import dataclass, replace
 from typing import Literal
 
+from toram_search.understanding import ConfirmedItemChoice, ItemQueryUnderstanding
+
 
 @dataclass(frozen=True)
 class FailedQueryAttempt:
@@ -28,6 +30,13 @@ class FailedQueryContext:
 
     def snapshot(self) -> tuple[FailedQueryAttempt, ...]:
         return tuple(self._entries)
+
+
+@dataclass(frozen=True)
+class PendingItemSearch:
+    original_query: str
+    understanding: ItemQueryUnderstanding
+    confirmed_choices: tuple[ConfirmedItemChoice, ...] = ()
 
 
 ScreenInputKind = Literal[
