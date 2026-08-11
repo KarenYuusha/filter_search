@@ -56,6 +56,30 @@ class DiscordModuleBoundaryTests(unittest.TestCase):
         self.assertIs(discord_bot.valid_local_image_paths, valid_local_image_paths)
         self.assertIs(discord_bot.visible_attachment_name, visible_attachment_name)
 
+    def test_service_bridge_has_canonical_package_owner(self):
+        from toram_discord.views import (
+            run_clarification_sync,
+            run_confirmed_request_sync,
+            run_item_detail_sync,
+            run_item_understanding_choice_sync,
+            run_pending_item_search_confirmation_sync,
+            run_query_sync,
+            run_upgrade_selection_sync,
+            send_if_current,
+        )
+
+        self.assertIs(discord_bot.run_query_sync, run_query_sync)
+        self.assertIs(discord_bot.run_confirmed_request_sync, run_confirmed_request_sync)
+        self.assertIs(discord_bot.run_clarification_sync, run_clarification_sync)
+        self.assertIs(discord_bot.run_item_understanding_choice_sync, run_item_understanding_choice_sync)
+        self.assertIs(
+            discord_bot.run_pending_item_search_confirmation_sync,
+            run_pending_item_search_confirmation_sync,
+        )
+        self.assertIs(discord_bot.run_item_detail_sync, run_item_detail_sync)
+        self.assertIs(discord_bot.run_upgrade_selection_sync, run_upgrade_selection_sync)
+        self.assertIs(discord_bot.send_if_current, send_if_current)
+
 
 if __name__ == "__main__":
     unittest.main()
