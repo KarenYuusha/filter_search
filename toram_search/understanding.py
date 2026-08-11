@@ -133,6 +133,21 @@ def _stat_part(span: _StatSpan) -> ResolvedItemPart:
     )
 
 
+def _confirmed_stat_part(
+    span: _StatSpan,
+    choice: ItemQueryChoice,
+    reason: ReasonCode,
+) -> ResolvedItemPart:
+    return ResolvedItemPart(
+        part_kind="stat",
+        typed_text=" ".join(token.text for token in span.tokens),
+        value=choice.value,
+        display_label=choice.value,
+        canonical_text=choice.canonical_text,
+        reason=reason,
+    )
+
+
 def _filter_part(match: ItemFilterMatch, tokens: tuple[QueryToken, ...]) -> ResolvedItemPart:
     by_index = {token.index: token for token in tokens}
     used = tuple(by_index[index] for index in match.token_indexes)
@@ -148,6 +163,20 @@ def _filter_part(match: ItemFilterMatch, tokens: tuple[QueryToken, ...]) -> Reso
         display_label=match.phrase.label,
         canonical_text=match.canonical_phrase,
         reason=reason,
+    )
+
+
+def _confirmed_filter_part(
+    match: ItemFilterMatch,
+    choice: ItemQueryChoice,
+) -> ResolvedItemPart:
+    return ResolvedItemPart(
+        part_kind="item_filter",
+        typed_text=match.typed_text,
+        value=choice.value,
+        display_label=choice.display_label,
+        canonical_text=choice.canonical_text,
+        reason="FUZZY_FILTER",
     )
 
 
@@ -232,7 +261,6 @@ def _find_unique_fuzzy_stat_span(
     tokens: tuple[QueryToken, ...],
     available_stats: tuple[str, ...],
 ) -> _StatSpan | None:
-    candidates: list[_StatSpan] = []
     for length in range(len(tokens), 0, -1):
         level: list[_StatSpan] = []
         for start in range(0, len(tokens) - length + 1):
@@ -319,6 +347,31 @@ def _ordered_uncertainties(
     )
 
 
+def _confirmed_choice_map(
+    confirmed_choices: tuple[ConfirmedItemChoice, ...],
+) -> dict[str, str] | None:
+    output: dict[str, str] = {}
+    for choice in confirmed_choices:
+        previous = output.get(choice.issue_id)
+        if previous is not None and previous != choice.value:
+            return None
+        output[choice.issue_id] = choice.value
+    return output
+
+
+def _selected_choice(
+    issue: ItemQueryUncertainty,
+    confirmed: dict[str, str],
+) -> ItemQueryChoice | None | bool:
+    selected_value = confirmed.get(issue.issue_id)
+    if selected_value is None:
+        return None
+    return next(
+        (choice for choice in issue.choices if choice.value == selected_value),
+        False,
+    )
+
+
 def understand_item_query(
     raw_query: str,
     *,
@@ -326,7 +379,9 @@ def understand_item_query(
     available_item_types: set[str],
     confirmed_choices: tuple[ConfirmedItemChoice, ...] = (),
 ) -> ItemQueryUnderstanding:
-    del confirmed_choices  # Applied in the continuation task; accepted now for API stability.
+    confirmed = _confirmed_choice_map(confirmed_choices)
+    if confirmed is None:
+        return ItemQueryUnderstanding("fallback")
 
     tokens = tokenize_item_query(raw_query)
     if len(tokens) > _MAX_UNDERSTANDING_TOKENS:
@@ -358,9 +413,7 @@ def understand_item_query(
         if option is not None:
             options.append(option)
 
-    if found_multiple_stats:
-        return ItemQueryUnderstanding("fallback")
-    if not options:
+    if found_multiple_stats or not options:
         return ItemQueryUnderstanding("fallback")
 
     semantic_keys = {_core_semantic_key(option) for option in options}
@@ -380,32 +433,53 @@ def understand_item_query(
     uncertainties: list[ItemQueryUncertainty] = []
     resolved_parts: list[ResolvedItemPart] = []
     reasons: list[ReasonCode] = []
+    seen_issue_ids: set[str] = set()
 
-    if resolution.status == "ambiguous":
-        uncertainties.append(_stat_uncertainty(option.stat_span))
-        reasons.append("AMBIGUOUS_STAT")
-    elif resolution.status == "fuzzy":
-        uncertainties.append(_stat_uncertainty(option.stat_span))
-        reasons.append("FUZZY_STAT")
+    typed_stat = " ".join(token.text for token in option.stat_span.tokens)
+    if resolution.status in {"ambiguous", "fuzzy"}:
+        issue = _stat_uncertainty(option.stat_span)
+        seen_issue_ids.add(issue.issue_id)
+        selected = _selected_choice(issue, confirmed)
+        if selected is False:
+            return ItemQueryUnderstanding("fallback")
+        if selected is None:
+            uncertainties.append(issue)
+            reasons.append(issue.reason)
+            stat_canonical = _canonical_stat_text(typed_stat, resolution)
+        else:
+            resolved_parts.append(_confirmed_stat_part(option.stat_span, selected, issue.reason))
+            reasons.append(issue.reason)
+            stat_canonical = selected.canonical_text
     else:
         stat_part = _stat_part(option.stat_span)
         resolved_parts.append(stat_part)
         reasons.append(stat_part.reason)
+        stat_canonical = stat_part.canonical_text
 
     if option.filter_match.match_kind == "fuzzy":
-        uncertainties.append(_filter_uncertainty(option.filter_match))
-        reasons.append("FUZZY_FILTER")
-        filter_canonical = option.filter_match.canonical_phrase
+        issue = _filter_uncertainty(option.filter_match)
+        seen_issue_ids.add(issue.issue_id)
+        selected = _selected_choice(issue, confirmed)
+        if selected is False:
+            return ItemQueryUnderstanding("fallback")
+        if selected is None:
+            uncertainties.append(issue)
+            reasons.append("FUZZY_FILTER")
+            filter_canonical = option.filter_match.canonical_phrase
+        else:
+            resolved_parts.append(_confirmed_filter_part(option.filter_match, selected))
+            reasons.append("FUZZY_FILTER")
+            filter_canonical = selected.canonical_text
     else:
         filter_part = _filter_part(option.filter_match, tokens)
         resolved_parts.append(filter_part)
         reasons.append(filter_part.reason)
         filter_canonical = filter_part.canonical_text
 
-    typed_stat = " ".join(token.text for token in option.stat_span.tokens)
-    stat_canonical = _canonical_stat_text(typed_stat, resolution)
-    canonical_query = f"{stat_canonical} {filter_canonical}"
+    if set(confirmed) - seen_issue_ids:
+        return ItemQueryUnderstanding("fallback")
 
+    canonical_query = f"{stat_canonical} {filter_canonical}"
     if unresolved:
         reasons.append("UNKNOWN_TOKEN")
 
@@ -432,6 +506,15 @@ def understand_item_query(
             unresolved_tokens=unresolved,
             canonical_query=canonical_query,
             suggested_query=canonical_query,
+            reasons=_unique_reasons(*reasons),
+        )
+
+    if len(confirmed) >= 2:
+        reasons.append("MULTIPLE_CORRECTIONS")
+        return ItemQueryUnderstanding(
+            "confirm",
+            resolved_parts=tuple(resolved_parts),
+            canonical_query=canonical_query,
             reasons=_unique_reasons(*reasons),
         )
 
