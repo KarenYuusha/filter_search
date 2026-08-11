@@ -1,0 +1,36 @@
+name: Cleanup Discord modularization helpers
+
+on:
+  push:
+    branches: [refactor/discord-modularization]
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: contains(github.event.head_commit.message, '[cleanup-discord-modularization]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/discord-modularization
+      - run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git rm \
+            .github/workflows/discord-modularization-verify.yml \
+            .github/scripts/apply_discord_task1.py \
+            .github/workflows/apply-discord-task1.yml \
+            .github/scripts/apply_discord_task2.py \
+            .github/workflows/apply-discord-task2.yml \
+            .github/scripts/apply_discord_task3.py \
+            .github/workflows/apply-discord-task3.yml \
+            .github/scripts/apply_discord_task4.py \
+            .github/workflows/apply-discord-task4.yml \
+            .github/scripts/apply_discord_task5.py \
+            .github/workflows/apply-discord-task5.yml \
+            .superpowers/sdd/discord-modularization/progress.md \
+            .github/workflows/cleanup-discord-modularization.yml
+          git commit -m 'chore: remove Discord modularization helpers'
+          git push origin HEAD:refactor/discord-modularization
