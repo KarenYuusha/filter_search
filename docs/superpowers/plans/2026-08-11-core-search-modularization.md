@@ -4,7 +4,7 @@
 
 **Goal:** Remove the reverse dependency on `search_items.py`, make item-filter configuration single-source, and split reusable repository/ranking/parser/routing code into focused modules without changing supported search behavior.
 
-**Architecture:** Keep the current deterministic-first search behavior and Qwen safety boundary. Refactor incrementally behind compatibility imports: `toram_data` owns database/domain/filter concerns, `toram_search` owns ranking/parsing/routing/orchestration, and top-level `search_items.py` remains a CLI/compatibility surface until a later CLI-only cleanup. Discord behavior is intentionally unchanged in this plan.
+**Architecture:** Keep the current deterministic-first search behavior and Qwen safety boundary. Refactor incrementally behind compatibility imports: `toram_data` owns database/domain/filter concerns, `toram_search` owns ranking/parsing/routing/orchestration, and top-level `search_items.py` remains the terminal frontend plus a temporary compatibility surface. Discord behavior is intentionally unchanged in this plan.
 
 **Tech Stack:** Python 3, stdlib `dataclasses`/`unittest`/`ast`, SQLite, existing `rapidfuzz`, existing Discord.py frontend, existing Ollama/Qwen fallback.
 
@@ -12,50 +12,45 @@
 
 - No database schema changes.
 - No new third-party dependencies.
-- Preserve the deterministic-first routing order and existing Qwen confirmation/validation boundary.
+- Preserve deterministic-first routing and the existing Qwen confirmation/validation boundary.
 - Preserve exact item search, upgrade search, stat search, stat-expression search, reconstruction, clarification, and fuzzy-confirmation behavior.
 - Preserve current aliases, including `consume -> Usable` and `dte -> % stronger against earth`.
 - Keep `crit` intentionally ambiguous between Critical Rate and Critical Damage.
-- Do not add boss, skill, build-role, plugin-domain, or generic abstraction layers in this refactor.
-- Do not redesign Discord UI or interaction behavior in this refactor.
-- Compatibility imports from `search_items.py` are allowed during the migration, but no module under `toram_data/` or `toram_search/` may import `search_items` when the plan is complete.
-- Every task must end with a green focused test gate before the next task begins.
-- The final repository suite must be fully green; the current structured-fallback logging mismatch is fixed first so later refactor failures cannot hide behind a known baseline failure.
+- Do not add boss, skill, build-role, plugin-domain, or generic domain abstraction layers.
+- Do not redesign Discord UI or interaction behavior.
+- Compatibility imports from `search_items.py` are allowed during migration, but no module under `toram_data/` or `toram_search/` may import `search_items` when this plan is complete.
+- Every task ends with a green focused gate before the next task begins.
+- The final repository suite must be fully green. Fix the existing structured-fallback logging mismatch before structural work so later regressions cannot hide behind a baseline failure.
 
 ---
 
 ## Target Module Map
 
-### Create
+**Create**
+- `toram_data/item_filters.py` — item-filter dataclasses, configured filter catalog, exact extraction, trailing extraction.
+- `toram_data/models.py` — domain/database result dataclasses currently owned by `search_items.py`.
+- `toram_data/repository.py` — SQLite `ItemRepository`.
+- `toram_search/ranking.py` — item-name ranking and paging.
+- `toram_search/parser.py` — parsed-search models, deterministic parsing, structured-request validation.
+- `toram_search/routing.py` — deterministic route classification.
+- `toram_search/fallback_adapter.py` — Toram-specific `QwenFallbackService` construction.
+- `tests/test_item_filters.py` — direct single-source filter regressions.
+- `tests/test_core_module_boundaries.py` — compatibility and dependency-direction regressions.
 
-- `toram_data/item_filters.py` — item-filter dataclasses, alias-backed filter catalog, exact filter extraction, trailing-filter extraction.
-- `toram_data/models.py` — database/domain result dataclasses currently owned by `search_items.py`.
-- `toram_data/repository.py` — SQLite `ItemRepository` and database query methods.
-- `toram_search/ranking.py` — item-name fuzzy/exact ranking and result paging.
-- `toram_search/parser.py` — parsed-search models plus deterministic query parsing and structured-request validation.
-- `toram_search/routing.py` — deterministic route classification and direct help/database/refusal routing.
-- `toram_search/fallback_adapter.py` — Toram-specific construction of `QwenFallbackService` from repository catalogs and validators.
-- `tests/test_item_filters.py` — direct tests for the single item-filter source of truth.
-- `tests/test_core_module_boundaries.py` — compatibility/export and dependency-direction regression tests.
-
-### Modify
-
+**Modify**
 - `toram_search/fallback.py`
 - `toram_data/stat_query.py`
 - `toram_search/item_query_entities.py`
 - `toram_search/reconstruction.py`
 - `toram_search/service.py`
 - `search_items.py`
-- existing focused tests such as `tests/test_structured_fallback.py`, `tests/test_item_search_relevance.py`, `tests/test_query_reconstruction.py`, `tests/test_search_service.py`, and parser/stat-query tests.
+- focused tests already covering fallback, relevance, reconstruction, understanding, parsing, and service behavior.
 
-### Explicitly defer
-
-- Splitting `discord_bot.py` into config/session/render/view modules.
-- Adding Discord session expiration/cleanup.
-- Replacing `dict[str, Any]` nested item stats/sources/images with dedicated typed dataclasses.
-- Moving the terminal UI out of `search_items.py` into a `toram_cli` package.
-
-Those are separate follow-up refactors after this core dependency cleanup is complete and green.
+**Defer to later plans**
+- splitting `discord_bot.py` into config/session/render/views/runtime;
+- Discord session expiration/cleanup;
+- replacing nested stat/source/image dictionaries with typed dataclasses;
+- moving terminal screens into a `toram_cli` package.
 
 ---
 
@@ -65,13 +60,14 @@ Those are separate follow-up refactors after this core dependency cleanup is com
 - Modify: `toram_search/fallback.py`
 - Modify: `tests/test_structured_fallback.py`
 
-**Interfaces:**
-- Consumes: existing `QwenFallbackService.interpret(current_input, history)`.
-- Produces: unchanged `FallbackOutcome`; only the rejection reason for a search payload missing `candidates` is made consistent with the existing test contract.
+**Produces:**
+- unchanged `FallbackOutcome` behavior;
+- `{"intent": "search"}` reports `missing or invalid search candidates`;
+- a search payload containing valid `candidates` plus extra keys still reports `search payload has unexpected fields`.
 
-- [ ] **Step 1: Add a regression that distinguishes missing candidates from extra fields**
+- [ ] **Step 1: Add the strict-extra-field regression**
 
-Keep the existing missing-candidates assertion and add this test to `tests/test_structured_fallback.py`:
+Add to `StructuredFallbackTests`:
 
 ```python
 def test_search_payload_with_candidates_and_extra_field_is_rejected_as_unexpected_fields(self):
@@ -92,12 +88,13 @@ def test_search_payload_with_candidates_and_extra_field_is_rejected_as_unexpecte
         outcome = fallback.interpret("cr bow", ())
 
     self.assertEqual(outcome.kind, "failed")
-    self.assertIn("search payload has unexpected fields", "\n".join(captured.output))
+    self.assertIn(
+        "search payload has unexpected fields",
+        "\n".join(captured.output),
+    )
 ```
 
-- [ ] **Step 2: Run the two focused tests and verify the existing missing-candidates case is RED**
-
-Run:
+- [ ] **Step 2: Verify RED**
 
 ```bash
 python -m unittest \
@@ -106,13 +103,11 @@ python -m unittest \
   -v
 ```
 
-Expected before the fix:
-- `test_rejected_payload_is_logged_with_reason` fails because `{"intent": "search"}` currently logs `search payload has unexpected fields`.
-- the new extra-field test passes or remains valid after the fix.
+Expected before the fix: the existing missing-candidates test fails because `{"intent": "search"}` currently logs `search payload has unexpected fields`.
 
-- [ ] **Step 3: Reorder search-payload validation without weakening strictness**
+- [ ] **Step 3: Reorder only the search-payload checks**
 
-Change only the `intent == "search"` branch in `QwenFallbackService.interpret` so missing/invalid candidates are checked before the exact-key-set check:
+Use this branch in `QwenFallbackService.interpret`:
 
 ```python
 if intent == "search":
@@ -141,7 +136,7 @@ if intent == "search":
     return self._failed("no search candidate passed validation", payload)
 ```
 
-- [ ] **Step 4: Run the structured fallback suite**
+- [ ] **Step 4: Verify focused GREEN**
 
 ```bash
 python -m unittest tests.test_structured_fallback -v
@@ -149,13 +144,13 @@ python -m unittest tests.test_structured_fallback -v
 
 Expected: `OK`.
 
-- [ ] **Step 5: Establish the clean repository baseline**
+- [ ] **Step 5: Establish clean repository baseline**
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-Expected: full suite `OK`. Do not start the refactor if another failure remains; diagnose it first.
+Expected: full suite `OK`. If anything else fails, diagnose it before continuing.
 
 - [ ] **Step 6: Commit**
 
@@ -176,48 +171,13 @@ git commit -m "fix: restore structured fallback rejection contract"
 - Modify: `toram_search/item_query_entities.py`
 - Modify: `toram_search/reconstruction.py`
 
-**Interfaces:**
-- Produces:
+**Produces:**
+- `ItemTypeFilter(label, item_types, consumed_text)`;
+- `ItemFilterPhrase(phrase, label, item_types)`;
+- public functions `normalize_filter_text`, `list_item_filter_phrases`, `extract_item_filter`, `resolve_item_filter`, and `extract_trailing_item_filter`;
+- compatibility imports from `toram_data.stat_query` for `ItemTypeFilter`, `ItemFilterPhrase`, and `list_item_filter_phrases`.
 
-```python
-@dataclass(frozen=True)
-class ItemTypeFilter:
-    label: str
-    item_types: tuple[str, ...]
-    consumed_text: str
-
-@dataclass(frozen=True)
-class ItemFilterPhrase:
-    phrase: str
-    label: str
-    item_types: tuple[str, ...]
-
-
-def normalize_filter_text(value: str) -> str: ...
-
-def list_item_filter_phrases(
-    available_item_types: set[str],
-) -> tuple[ItemFilterPhrase, ...]: ...
-
-def extract_item_filter(
-    text: str,
-    available_item_types: set[str],
-) -> tuple[ItemTypeFilter | None, str]: ...
-
-def resolve_item_filter(
-    text: str,
-    available_item_types: set[str],
-) -> ItemTypeFilter | None: ...
-
-def extract_trailing_item_filter(
-    text: str,
-    available_item_types: set[str],
-) -> tuple[ItemTypeFilter | None, str]: ...
-```
-
-- Compatibility: `toram_data.stat_query.ItemTypeFilter`, `toram_data.stat_query.ItemFilterPhrase`, and `toram_data.stat_query.list_item_filter_phrases` remain importable by re-exporting the imported names.
-
-- [ ] **Step 1: Write direct filter-catalog tests**
+- [ ] **Step 1: Write direct filter tests**
 
 Create `tests/test_item_filters.py`:
 
@@ -260,7 +220,7 @@ class ItemFilterTests(unittest.TestCase):
         )
         self.assertEqual(remaining, "cr")
 
-    def test_trailing_filter_extracts_same_semantics(self):
+    def test_trailing_filter_uses_same_semantics(self):
         item_filter, remaining = extract_trailing_item_filter(
             "critical rate weapon xtal",
             ITEM_TYPES,
@@ -270,30 +230,30 @@ class ItemFilterTests(unittest.TestCase):
         self.assertEqual(item_filter.label, "Weapon Crysta + Red Enhancer")
         self.assertEqual(remaining, "critical rate")
 
-    def test_catalog_contains_alias_backed_usable_filter(self):
+    def test_catalog_contains_consume_alias(self):
         rows = list_item_filter_phrases(ITEM_TYPES)
-        pairs = {(row.phrase, row.label) for row in rows}
-
-        self.assertIn(("consume", "Usable"), pairs)
+        self.assertIn(
+            ("consume", "Usable"),
+            {(row.phrase, row.label) for row in rows},
+        )
 ```
 
-- [ ] **Step 2: Run the new tests and verify RED**
+- [ ] **Step 2: Verify RED**
 
 ```bash
 python -m unittest tests.test_item_filters -v
 ```
 
-Expected: import failure because `toram_data.item_filters` does not exist yet.
+Expected: import failure because `toram_data.item_filters` does not exist.
 
-- [ ] **Step 3: Move the filter dataclasses and catalog into `toram_data/item_filters.py`**
+- [ ] **Step 3: Build `toram_data/item_filters.py` from existing code**
 
-Build the module from the existing implementations in `toram_data/stat_query.py` and `search_items.py` using this dependency direction:
+Use this import boundary:
 
 ```python
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterable
 
 from toram_data.aliases import (
     ALL_CRYSTA_TYPES,
@@ -305,22 +265,21 @@ from toram_data.aliases import (
 )
 ```
 
-Move the following logic into this file with no semantic changes:
-- `ItemTypeFilter`
-- `ItemFilterPhrase`
-- filter text normalization
-- available-type normalization
-- configured filter phrase construction
-- `list_item_filter_phrases`
-- non-trailing filter extraction
-- trailing filter extraction
-- `resolve_item_filter`
+Move, without semantic changes, the current filter dataclasses and the shared logic for:
+- filter text normalization;
+- available-type normalization;
+- configured Weapon/Special/Armor/Additional crysta combinations;
+- colored enhancer filters;
+- `xtal`, `wp`, and `weapon` filters;
+- every `ITEM_TYPE_ALIASES` entry;
+- list/extract/resolve operations;
+- trailing-filter extraction used by stat expressions.
 
-The configured combined filters must include the current Weapon/Special/Armor/Additional crysta combinations, colored enhancers, `xtal`, `wp`/`weapon`, plus every `ITEM_TYPE_ALIASES` entry.
+There must be exactly one configured catalog implementation after this task.
 
 - [ ] **Step 4: Make `stat_query.py` consume the shared module**
 
-Replace its local filter dataclasses/catalog helpers with imports:
+Import:
 
 ```python
 from toram_data.item_filters import (
@@ -331,9 +290,9 @@ from toram_data.item_filters import (
 )
 ```
 
-Where the parser previously called its local `_extract_trailing_filter`, call `extract_trailing_item_filter` instead. Do not change expression grammar or ranking semantics.
+Delete its local filter dataclasses and configured catalog. Replace local trailing-filter calls with `extract_trailing_item_filter`. Do not change boolean/comparison/natural-language grammar.
 
-- [ ] **Step 5: Make `search_items.py` consume the same filter module**
+- [ ] **Step 5: Make `search_items.py` consume the shared module**
 
 Import:
 
@@ -346,24 +305,26 @@ from toram_data.item_filters import (
 )
 ```
 
-Delete the duplicate `_normalize_filter_text`, `_available_types_by_normalized`, `_existing_types`, `_find_phrase_tokens`, `_filter_candidates`, `extract_item_filter`, and `resolve_item_filter` implementations from `search_items.py` after all call sites use the shared functions.
+Delete its duplicate filter normalizer, type lookup helpers, phrase finder, configured catalog, extractor, and resolver.
 
-For the temporary `_build_fallback_service` still living in `search_items.py`, build prompt filter labels from the shared catalog:
+Until fallback construction moves in Task 7, build Qwen filter labels from:
 
 ```python
-filter_labels = tuple(
-    f"{row.phrase} -> {row.label}"
-    for row in list_item_filter_phrases(repository.list_item_types())
-)
+filter_labels = []
+seen_filter_labels = set()
+for row in list_item_filter_phrases(repository.list_item_types()):
+    rendered = f"{row.phrase} -> {row.label}"
+    if rendered in seen_filter_labels:
+        continue
+    seen_filter_labels.add(rendered)
+    filter_labels.append(rendered)
 ```
 
-Deduplicate while preserving catalog order before passing to `QwenFallbackService`.
+- [ ] **Step 6: Point understanding/reconstruction at the canonical filter module**
 
-- [ ] **Step 6: Update query-understanding imports**
+`toram_search/item_query_entities.py` and `toram_search/reconstruction.py` import `ItemFilterPhrase` / `list_item_filter_phrases` from `toram_data.item_filters`, not `toram_data.stat_query`.
 
-Change `toram_search/item_query_entities.py` and `toram_search/reconstruction.py` to import `ItemFilterPhrase` / `list_item_filter_phrases` from `toram_data.item_filters`, not `toram_data.stat_query`.
-
-- [ ] **Step 7: Run focused filter/parser/reconstruction tests**
+- [ ] **Step 7: Verify focused GREEN**
 
 ```bash
 python -m unittest \
@@ -376,17 +337,11 @@ python -m unittest \
 
 Expected: `OK`.
 
-- [ ] **Step 8: Run the full suite**
+- [ ] **Step 8: Verify full suite and commit**
 
 ```bash
 python -m unittest discover -s tests -v
-```
 
-Expected: `OK`.
-
-- [ ] **Step 9: Commit**
-
-```bash
 git add \
   toram_data/item_filters.py \
   toram_data/stat_query.py \
@@ -404,24 +359,17 @@ git commit -m "refactor: centralize item filter definitions"
 **Files:**
 - Create: `toram_data/models.py`
 - Create: `toram_data/repository.py`
+- Create: `tests/test_core_module_boundaries.py`
 - Modify: `search_items.py`
-- Create/Modify: `tests/test_core_module_boundaries.py`
 
-**Interfaces:**
-- `toram_data.models` produces the existing dataclasses with the same field names/types:
-  - `ItemSummary`
-  - `ItemDetail`
-  - `StatRow`
-  - `RankedStatItem`
-  - `ClauseMatch`
-  - `RankedExpressionItem`
-  - `UpgradeGraph`
-- `toram_data.repository` produces `ItemRepository` with the same constructor and public methods currently defined in `search_items.py`.
-- `search_items.py` re-exports these names for compatibility during the migration.
+**Produces:**
+- `toram_data.models`: `ItemSummary`, `ItemDetail`, `StatRow`, `RankedStatItem`, `ClauseMatch`, `RankedExpressionItem`, `UpgradeGraph`;
+- `toram_data.repository.ItemRepository` with the same constructor and public methods as today;
+- compatibility re-exports from `search_items.py`.
 
-- [ ] **Step 1: Write compatibility tests before moving code**
+- [ ] **Step 1: Write compatibility tests**
 
-Create `tests/test_core_module_boundaries.py` with the initial model/repository expectations:
+Create `tests/test_core_module_boundaries.py`:
 
 ```python
 import unittest
@@ -453,19 +401,17 @@ class CoreModuleBoundaryTests(unittest.TestCase):
         self.assertIs(search_items.ItemRepository, ItemRepository)
 ```
 
-- [ ] **Step 2: Run the compatibility tests and verify RED**
+- [ ] **Step 2: Verify RED**
 
 ```bash
 python -m unittest tests.test_core_module_boundaries -v
 ```
 
-Expected: import failures because the new modules do not exist yet.
+Expected: import failures because the new modules do not exist.
 
-- [ ] **Step 3: Move database/domain dataclasses into `toram_data/models.py`**
+- [ ] **Step 3: Move domain/database dataclasses into `toram_data/models.py`**
 
-Move the existing class definitions unchanged. Keep nested `stats`, `sources`, and `images` as their existing list/dict structures in this refactor; typed nested records are explicitly deferred.
-
-The module imports should be limited to:
+Use:
 
 ```python
 from __future__ import annotations
@@ -476,50 +422,31 @@ from typing import Any
 from toram_data.stat_query import ResolvedClause
 ```
 
-Do not move parser-only models such as `ParsedSearch`, `StatResolution`, or `DeterministicRoute` here.
+Move the seven existing class definitions unchanged. Keep `stats`, `sources`, and `images` in `ItemDetail` as their existing list/dictionary forms. Do not move `ParsedSearch`, `StatResolution`, `DeterministicRoute`, `RankedItem`, or presentation-only structures.
 
 - [ ] **Step 4: Move `ItemRepository` into `toram_data/repository.py`**
 
-Move the current `ItemRepository` implementation without SQL/query semantic changes. The repository module should import database/result models from `toram_data.models`, stat-expression types/helpers from `toram_data.stat_query`, and normalization helpers from `toram_data.aliases`.
+Move the class and its private helpers without changing SQL. Preserve public methods:
+- `close`;
+- `list_items`;
+- `list_upgrade_items`;
+- `exact_upgrade_name_matches`;
+- `list_item_types`;
+- `list_stat_names`;
+- `count_items_total`;
+- `count_items_by_types`;
+- `count_items_with_stat`;
+- `exact_name_matches`;
+- `get_item`;
+- `get_upgrade_predecessors`;
+- `get_upgrade_successors`;
+- `get_upgrade_component`;
+- `search_by_stat`;
+- `search_by_expression`.
 
-Preserve these public methods exactly:
+The module imports domain models from `toram_data.models`, normalization/crysta helpers from `toram_data.aliases`, and expression types/helpers from `toram_data.stat_query`.
 
-```python
-class ItemRepository:
-    def __init__(self, database_path: Path) -> None: ...
-    def close(self) -> None: ...
-    def list_items(self) -> list[ItemSummary]: ...
-    def list_upgrade_items(self) -> list[ItemSummary]: ...
-    def exact_upgrade_name_matches(self, query: str) -> list[ItemSummary]: ...
-    def list_item_types(self) -> set[str]: ...
-    def list_stat_names(self) -> list[str]: ...
-    def count_items_total(self) -> int: ...
-    def count_items_by_types(self, item_types: tuple[str, ...]) -> int: ...
-    def count_items_with_stat(self, stat_name: str) -> int: ...
-    def exact_name_matches(self, query: str) -> list[ItemSummary]: ...
-    def get_item(self, item_id: int) -> ItemDetail: ...
-    def get_upgrade_predecessors(self, item_id: int) -> list[ItemSummary]: ...
-    def get_upgrade_successors(self, item_id: int) -> list[ItemSummary]: ...
-    def get_upgrade_component(self, item_id: int) -> UpgradeGraph: ...
-    def search_by_stat(
-        self,
-        stat_name: str,
-        item_types: tuple[str, ...] | None,
-    ) -> list[RankedStatItem]: ...
-    def search_by_expression(
-        self,
-        expression: ResolvedStatExpression,
-        item_types: tuple[str, ...] | None,
-        *,
-        primary_sort_ascending: bool = False,
-    ) -> list[RankedExpressionItem]: ...
-```
-
-Private upgrade helpers move with the class.
-
-- [ ] **Step 5: Replace definitions in `search_items.py` with compatibility imports**
-
-At module import level, use:
+- [ ] **Step 5: Replace moved definitions in `search_items.py` with imports**
 
 ```python
 from toram_data.models import (
@@ -534,9 +461,9 @@ from toram_data.models import (
 from toram_data.repository import ItemRepository
 ```
 
-Delete the moved class definitions from `search_items.py`.
+Delete the original duplicate class definitions.
 
-- [ ] **Step 6: Run compatibility plus service/data tests**
+- [ ] **Step 6: Verify focused GREEN**
 
 ```bash
 python -m unittest \
@@ -548,7 +475,7 @@ python -m unittest \
 
 Expected: `OK`.
 
-- [ ] **Step 7: Run a real-database repository smoke test**
+- [ ] **Step 7: Run real-database repository smoke**
 
 ```bash
 python - <<'PY'
@@ -568,7 +495,7 @@ PY
 
 Expected: `repository smoke: OK`.
 
-- [ ] **Step 8: Run the full suite and commit**
+- [ ] **Step 8: Verify full suite and commit**
 
 ```bash
 python -m unittest discover -s tests -v
@@ -587,44 +514,25 @@ git commit -m "refactor: extract item repository and domain models"
 - Modify: `tests/test_core_module_boundaries.py`
 - Test: `tests/test_item_search_relevance.py`
 
-**Interfaces:**
-- Produces:
+**Produces:**
+- `RankedItem(item, score, match_kind)`;
+- `rank_items(query, items)`;
+- `page_results(results, page, page_size)`;
+- existing constants `MIN_QUERY_LENGTH` and `ITEM_FUZZY_RELEVANCE_THRESHOLD` owned by `toram_search.ranking`.
+
+- [ ] **Step 1: Add compatibility assertions**
+
+Inside `CoreModuleBoundaryTests`:
 
 ```python
-@dataclass(frozen=True)
-class RankedItem:
-    item: ItemSummary
-    score: float
-    match_kind: str
-
-
-def rank_items(query: str, items: Iterable[ItemSummary]) -> list[RankedItem]: ...
-
-def page_results(
-    results: list[RankedItem],
-    *,
-    page: int,
-    page_size: int = PAGE_SIZE,
-) -> list[RankedItem]: ...
-```
-
-- Keep constants `MIN_QUERY_LENGTH` and `ITEM_FUZZY_RELEVANCE_THRESHOLD` in the ranking module.
-- Preserve the exact current scoring algorithm and threshold; this is a move, not a relevance redesign.
-
-- [ ] **Step 1: Add direct-module compatibility assertions**
-
-Extend `tests/test_core_module_boundaries.py`:
-
-```python
-from toram_search.ranking import RankedItem, rank_items
-
-
 def test_search_items_reexports_ranking_symbols(self):
+    from toram_search.ranking import RankedItem, rank_items
+
     self.assertIs(search_items.RankedItem, RankedItem)
     self.assertIs(search_items.rank_items, rank_items)
 ```
 
-- [ ] **Step 2: Run the boundary test and verify RED**
+- [ ] **Step 2: Verify RED**
 
 ```bash
 python -m unittest tests.test_core_module_boundaries.CoreModuleBoundaryTests.test_search_items_reexports_ranking_symbols -v
@@ -632,16 +540,9 @@ python -m unittest tests.test_core_module_boundaries.CoreModuleBoundaryTests.tes
 
 Expected: import failure for `toram_search.ranking`.
 
-- [ ] **Step 3: Move ranking code into `toram_search/ranking.py`**
+- [ ] **Step 3: Move ranking code unchanged**
 
-Move unchanged:
-- `RankedItem`
-- `_score_item`
-- `_is_relevant_ranked_item`
-- `rank_items`
-- `page_results`
-
-Use these imports:
+Create `toram_search/ranking.py` with imports:
 
 ```python
 from __future__ import annotations
@@ -655,23 +556,25 @@ from toram_data.aliases import normalize_name
 from toram_data.models import ItemSummary
 ```
 
-- [ ] **Step 4: Re-export ranking from `search_items.py`**
+Move `RankedItem`, `_score_item`, `_is_relevant_ranked_item`, `rank_items`, and `page_results` unchanged. Preserve the threshold of `70.0` and all four current RapidFuzz score components.
+
+- [ ] **Step 4: Re-export from `search_items.py`**
 
 ```python
 from toram_search.ranking import RankedItem, page_results, rank_items
 ```
 
-Delete the moved definitions from `search_items.py`.
+Delete the original ranking definitions.
 
-- [ ] **Step 5: Run all relevance regressions**
+- [ ] **Step 5: Verify relevance suite**
 
 ```bash
 python -m unittest tests.test_item_search_relevance tests.test_core_module_boundaries -v
 ```
 
-Expected: `OK`, including the existing threshold tests at 69.999 and 70.0.
+Expected: `OK`, including existing 69.999/70.0 threshold tests.
 
-- [ ] **Step 6: Run full suite and commit**
+- [ ] **Step 6: Verify full suite and commit**
 
 ```bash
 python -m unittest discover -s tests -v
@@ -688,90 +591,22 @@ git commit -m "refactor: extract item name ranking"
 - Create: `toram_search/parser.py`
 - Modify: `search_items.py`
 - Modify: `tests/test_core_module_boundaries.py`
-- Test: existing parser/stat-query/structured-intent tests.
+- Test: existing stat-query, structured-intent, service, and reconstruction suites.
 
-**Interfaces:**
-- Produces parser models:
+**Produces:**
+- parser models `SearchIntent`, `StatResolution`, `ParsedSearch` with their current fields;
+- `SEARCH_ONLY_STAT_ALIASES`;
+- public functions `resolve_stat_choices`, `resolve_stat_name`, `parse_expression_request`, `parse_structured_search_request`, `format_structured_search_request`, `extract_natural_upgrade_target`, `parse_search_query`, `build_search_stat_terms`, and `find_non_overlapping_stat_terms`;
+- compatibility re-exports from `search_items.py`.
 
-```python
-SearchIntent = Literal[
-    "exact_item",
-    "item_search",
-    "stat_search",
-    "stat_choices",
-    "guided_stat",
-    "stat_expression",
-    "exact_upgrade",
-    "upgrade_search",
-]
+- [ ] **Step 1: Add parser compatibility assertions**
 
-@dataclass(frozen=True)
-class StatResolution:
-    stat_name: str
-    matched_text: str
-    confidence: float
-    requires_confirmation: bool
-
-@dataclass(frozen=True)
-class ParsedSearch:
-    intent: SearchIntent
-    raw_query: str
-    item_query: str | None = None
-    item_id: int | None = None
-    stat: StatResolution | None = None
-    stat_choices: tuple[str, ...] = ()
-    filter: ItemTypeFilter | None = None
-    requires_confirmation: bool = False
-    error: str | None = None
-    parsed_expression: ParsedStatExpression | None = None
-    resolved_expression: ResolvedStatExpression | None = None
-    primary_sort_ascending: bool = False
-```
-
-- Produces public parsing/validation functions:
+Inside `CoreModuleBoundaryTests`:
 
 ```python
-def resolve_stat_choices(text: str, available_stats: list[str]) -> tuple[str, ...]: ...
-
-def resolve_stat_name(
-    text: str,
-    available_stats: list[str],
-    *,
-    allow_fuzzy: bool = True,
-) -> StatResolution | None: ...
-
-def parse_expression_request(text: str, repository: ItemRepository) -> ParsedSearch: ...
-
-def parse_structured_search_request(
-    request: SearchIntentRequest,
-    repository: ItemRepository,
-    *,
-    raw_query: str = "",
-) -> ParsedSearch | None: ...
-
-def format_structured_search_request(request: SearchIntentRequest) -> str: ...
-
-def extract_natural_upgrade_target(text: str) -> str | None: ...
-
-def parse_search_query(query: str, repository: ItemRepository) -> ParsedSearch: ...
-
-def build_search_stat_terms(available_stats: list[str]) -> tuple[str, ...]: ...
-
-def find_non_overlapping_stat_terms(text: str, terms: tuple[str, ...]) -> tuple[str, ...]: ...
-```
-
-- The public constant `SEARCH_ONLY_STAT_ALIASES` moves with parser behavior.
-- Keep terminal-only prompting functions in `search_items.py` for now.
-
-- [ ] **Step 1: Add direct parser contract tests**
-
-Extend `tests/test_core_module_boundaries.py` with compatibility assertions:
-
-```python
-from toram_search import parser as parser_module
-
-
 def test_search_items_reexports_parser_symbols(self):
+    from toram_search import parser as parser_module
+
     self.assertIs(search_items.ParsedSearch, parser_module.ParsedSearch)
     self.assertIs(search_items.StatResolution, parser_module.StatResolution)
     self.assertIs(search_items.parse_search_query, parser_module.parse_search_query)
@@ -781,60 +616,36 @@ def test_search_items_reexports_parser_symbols(self):
     )
 ```
 
-Add a direct semantic test using a tiny repository fake already shaped like the service test repositories:
-
-```python
-class ParserRepository:
-    def list_stat_names(self):
-        return ["Critical Rate", "% stronger against earth"]
-
-    def list_item_types(self):
-        return {"Bow", "Usable"}
-
-    def exact_name_matches(self, query):
-        return []
-
-    def exact_upgrade_name_matches(self, query):
-        return []
-
-
-def test_consume_dte_parses_as_stat_search_over_usable(self):
-    parsed = parser_module.parse_search_query("consume dte", ParserRepository())
-
-    self.assertIn(parsed.intent, {"stat_search", "stat_expression"})
-    self.assertIsNotNone(parsed.filter)
-    self.assertEqual(parsed.filter.label, "Usable")
-```
-
-- [ ] **Step 2: Run the new parser boundary tests and verify RED**
+- [ ] **Step 2: Verify RED**
 
 ```bash
-python -m unittest tests.test_core_module_boundaries -v
+python -m unittest tests.test_core_module_boundaries.CoreModuleBoundaryTests.test_search_items_reexports_parser_symbols -v
 ```
 
 Expected: import failure for `toram_search.parser`.
 
-- [ ] **Step 3: Move noninteractive parser models/helpers into `toram_search/parser.py`**
+- [ ] **Step 3: Move noninteractive parser code into `toram_search/parser.py`**
 
-Move the current implementation from `search_items.py` without changing grammar. This includes:
-- `SearchIntent`
-- `StatResolution`
-- `ParsedSearch`
-- stat-choice/stat-name resolution
-- negative bare-expression parsing
-- expression parsing
-- structured-request validation
-- structured-request formatting (rename `_format_structured_search_request` to public `format_structured_search_request`)
-- natural-upgrade target extraction
-- bare `parse_search_query`
-- stat-term discovery helpers used by routing
+Move without grammar changes:
+- `SearchIntent`, `StatResolution`, `ParsedSearch`;
+- stat choice/name resolution;
+- negative bare-expression parsing;
+- expression request parsing;
+- structured request validation;
+- natural-upgrade target extraction;
+- base `parse_search_query`;
+- stat-term discovery helpers used by routing;
 - database stat/filter validation helpers used by structured requests.
 
-Use direct imports from `toram_data.aliases`, `toram_data.item_filters`, `toram_data.repository`, `toram_data.stat_query`, and `toram_search.fallback`. `parser.py` must not import `search_items`.
+Rename `_format_structured_search_request` to the public `format_structured_search_request` in the canonical module.
 
-- [ ] **Step 4: Keep compatibility names in `search_items.py`**
+The parser imports directly from `toram_data.aliases`, `toram_data.item_filters`, `toram_data.repository`, `toram_data.stat_query`, and `toram_search.fallback`. It must not import `search_items`.
 
-Import/re-export the public parser symbols. For existing private callers/tests that still reference `_format_structured_search_request`, retain a temporary compatibility alias:
+- [ ] **Step 4: Keep terminal interaction code in `search_items.py`**
+
+Interactive functions such as `resolve_expression_interactively`, `prompt_guided_stat`, result screens, and the terminal loop stay in `search_items.py`. Update them to consume the imported parser APIs.
+
+Retain temporary private-name compatibility:
 
 ```python
 from toram_search.parser import format_structured_search_request
@@ -842,26 +653,21 @@ from toram_search.parser import format_structured_search_request
 _format_structured_search_request = format_structured_search_request
 ```
 
-Do not duplicate implementation.
-
-- [ ] **Step 5: Keep terminal interaction helpers local but make them call parser APIs**
-
-Functions such as `resolve_expression_interactively`, `prompt_guided_stat`, and the terminal search loop remain in `search_items.py`; update their references so they consume the imported parser models/functions.
-
-- [ ] **Step 6: Run focused parsing tests**
+- [ ] **Step 5: Verify focused parser/service behavior**
 
 ```bash
 python -m unittest \
   tests.test_core_module_boundaries \
   tests.test_structured_fallback \
   tests.test_query_reconstruction \
+  tests.test_item_query_understanding \
   tests.test_search_service \
   -v
 ```
 
-Also run any existing stat-query/parser test modules found under `tests/` before committing.
+Also run every existing test module whose filename contains `stat_query`, `structured_intent`, or `natural` before committing.
 
-- [ ] **Step 7: Run full suite and commit**
+- [ ] **Step 6: Verify full suite and commit**
 
 ```bash
 python -m unittest discover -s tests -v
@@ -879,51 +685,26 @@ git commit -m "refactor: extract deterministic query parser"
 - Modify: `search_items.py`
 - Modify: `toram_search/service.py`
 - Modify: `tests/test_core_module_boundaries.py`
-- Test: `tests/test_search_service.py` and routing-focused regressions.
 
-**Interfaces:**
-- Produces:
-
-```python
-@dataclass(frozen=True)
-class DeterministicRoute:
-    kind: Literal["search", "help", "database", "fallback", "refuse"]
-    parsed: ParsedSearch | None = None
-    database_request: DatabaseActionRequest | None = None
-    help_text: str | None = None
-    record_failure: bool = False
-
-
-def make_database_question_service(
-    repository: ItemRepository,
-) -> DatabaseQuestionService: ...
-
-
-def route_deterministically(
-    query: str,
-    repository: ItemRepository,
-    all_items: list[ItemSummary],
-    help_service: HelpService,
-    database_service: DatabaseQuestionService,
-) -> DeterministicRoute: ...
-```
-
-- `route_deterministically` must retain its current precedence: parsed direct search -> simple ranking search -> direct help -> direct database question -> out-of-scope refusal -> assistant-question fallback -> failed-stat fallback -> ordinary item search.
+**Produces:**
+- `DeterministicRoute` with current fields;
+- `make_database_question_service(repository)`;
+- `route_deterministically(query, repository, all_items, help_service, database_service)`;
+- current route precedence unchanged.
 
 - [ ] **Step 1: Add routing compatibility assertions**
 
-Extend `tests/test_core_module_boundaries.py`:
+Inside `CoreModuleBoundaryTests`:
 
 ```python
-from toram_search.routing import DeterministicRoute, route_deterministically
-
-
 def test_search_items_reexports_routing_symbols(self):
+    from toram_search.routing import DeterministicRoute, route_deterministically
+
     self.assertIs(search_items.DeterministicRoute, DeterministicRoute)
     self.assertIs(search_items.route_deterministically, route_deterministically)
 ```
 
-- [ ] **Step 2: Run the boundary test and verify RED**
+- [ ] **Step 2: Verify RED**
 
 ```bash
 python -m unittest tests.test_core_module_boundaries.CoreModuleBoundaryTests.test_search_items_reexports_routing_symbols -v
@@ -934,18 +715,31 @@ Expected: import failure for `toram_search.routing`.
 - [ ] **Step 3: Move routing-only logic into `toram_search/routing.py`**
 
 Move unchanged:
-- `DeterministicRoute`
-- simple `highest`/`best` routing helper
-- unknown-stat detection used by routing
-- failed-stat query detection
-- out-of-scope build concept detection
-- assistant-question detection
-- `make_database_question_service`
-- `route_deterministically`
+- `DeterministicRoute`;
+- simple `highest`/`best` route helper;
+- parsed-expression unknown-stat detection used by routing;
+- failed-stat query detection;
+- out-of-scope build concept detection;
+- assistant-question detection;
+- database-question service factory;
+- `route_deterministically`.
 
-Use parser functions from `toram_search.parser` instead of local/top-level definitions.
+Use parser APIs from `toram_search.parser`; do not duplicate parsing logic.
 
-- [ ] **Step 4: Re-export routing from `search_items.py`**
+Preserve precedence exactly:
+
+```text
+parsed direct search
+-> simple ranking search
+-> direct help
+-> direct database question
+-> out-of-scope refusal
+-> assistant-question fallback
+-> failed-stat fallback
+-> ordinary item search
+```
+
+- [ ] **Step 4: Re-export routing from `search_items.py` and update service routing import**
 
 ```python
 from toram_search.routing import (
@@ -955,19 +749,9 @@ from toram_search.routing import (
 )
 ```
 
-Delete the moved routing implementations from `search_items.py`.
+In `toram_search/service.py`, import `route_deterministically` directly. The remaining `import search_items as core` is removed in Task 7, not here.
 
-- [ ] **Step 5: Update `SearchService` to import routing directly**
-
-Replace only routing references in this task:
-
-```python
-from toram_search.routing import route_deterministically
-```
-
-`service.py` may still temporarily import `search_items as core` for other symbols until Task 7. Do not perform the full dependency cleanup early.
-
-- [ ] **Step 6: Run service/routing regressions**
+- [ ] **Step 5: Verify focused GREEN**
 
 ```bash
 python -m unittest \
@@ -980,7 +764,7 @@ python -m unittest \
 
 Expected: `OK`.
 
-- [ ] **Step 7: Run full suite and commit**
+- [ ] **Step 6: Verify full suite and commit**
 
 ```bash
 python -m unittest discover -s tests -v
@@ -991,40 +775,32 @@ git commit -m "refactor: extract deterministic search routing"
 
 ---
 
-### Task 7: Extract Toram-Specific Fallback Construction and Decouple `SearchService`
+### Task 7: Extract Fallback Construction and Decouple `SearchService`
 
 **Files:**
 - Create: `toram_search/fallback_adapter.py`
 - Modify: `toram_search/service.py`
 - Modify: `search_items.py`
 - Modify: `tests/test_core_module_boundaries.py`
-- Test: `tests/test_search_service.py`, `tests/test_structured_fallback.py`.
 
-**Interfaces:**
-- Produces:
+**Produces:**
+- `build_fallback_service(repository, database_service, llm_client)`;
+- no `search_items` import anywhere under `toram_data/` or `toram_search/`.
 
-```python
-def build_fallback_service(
-    repository: ItemRepository,
-    database_service: DatabaseQuestionService,
-    llm_client: object,
-) -> QwenFallbackService: ...
-```
+- [ ] **Step 1: Add dependency-direction test**
 
-- After this task, `toram_search/service.py` has zero imports from `search_items`.
-
-- [ ] **Step 1: Add a dependency-direction test that is expected to fail before the refactor**
-
-Extend `tests/test_core_module_boundaries.py`:
+Add module imports at top of `tests/test_core_module_boundaries.py`:
 
 ```python
 import ast
 from pathlib import Path
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+```
 
+Add helper and test inside the module/class:
 
+```python
 def imported_module_names(path: Path) -> set[str]:
     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
     names: set[str] = set()
@@ -1036,17 +812,20 @@ def imported_module_names(path: Path) -> set[str]:
     return names
 
 
-def test_package_modules_do_not_import_top_level_search_items(self):
-    offenders = []
-    for package in ("toram_data", "toram_search"):
-        for path in sorted((PROJECT_ROOT / package).glob("*.py")):
-            if "search_items" in imported_module_names(path):
-                offenders.append(str(path.relative_to(PROJECT_ROOT)))
+class CoreModuleBoundaryTests(unittest.TestCase):
+    # keep existing tests above this method
 
-    self.assertEqual(offenders, [])
+    def test_package_modules_do_not_import_top_level_search_items(self):
+        offenders = []
+        for package in ("toram_data", "toram_search"):
+            for path in sorted((PROJECT_ROOT / package).glob("*.py")):
+                if "search_items" in imported_module_names(path):
+                    offenders.append(str(path.relative_to(PROJECT_ROOT)))
+
+        self.assertEqual(offenders, [])
 ```
 
-- [ ] **Step 2: Run only the dependency test and verify RED**
+- [ ] **Step 2: Verify RED**
 
 ```bash
 python -m unittest tests.test_core_module_boundaries.CoreModuleBoundaryTests.test_package_modules_do_not_import_top_level_search_items -v
@@ -1056,7 +835,7 @@ Expected: FAIL listing at least `toram_search/service.py`.
 
 - [ ] **Step 3: Create `toram_search/fallback_adapter.py`**
 
-Move Toram-specific fallback construction out of `search_items.py`. Build catalogs from the actual repository:
+Use canonical sources:
 
 ```python
 from toram_data.aliases import STAT_ALIASES, STAT_AMBIGUOUS_GROUPS
@@ -1069,7 +848,7 @@ from toram_search.parser import (
 )
 ```
 
-Construct aliases with the same textual format currently sent to Qwen:
+Build alias text exactly as today:
 
 ```python
 aliases: list[str] = []
@@ -1081,45 +860,27 @@ for alias, target in sorted(SEARCH_ONLY_STAT_ALIASES.items()):
     aliases.append(f"{alias} -> {target}")
 ```
 
-Build item filters from `list_item_filter_phrases(repository.list_item_types())`, deduplicating rendered `phrase -> label` strings while preserving order.
+Build deduplicated filter labels from `list_item_filter_phrases(repository.list_item_types())` and construct `QwenFallbackService` with:
+- repository-backed structured-search validation;
+- existing database action validation;
+- repository stat catalog;
+- alias catalog above;
+- canonical filter label catalog.
 
-Pass validators exactly as today:
+- [ ] **Step 4: Remove every `core.*` dependency from `toram_search/service.py`**
 
-```python
-return QwenFallbackService(
-    llm_client,
-    validate_search_request=lambda request: parse_structured_search_request(
-        request,
-        repository,
-    ) is not None,
-    validate_database_action=database_service.validate_request,
-    stat_catalog=tuple(repository.list_stat_names()),
-    alias_catalog=tuple(aliases),
-    item_filter_catalog=tuple(filter_labels),
-)
-```
+Replace `import search_items as core` with direct imports from:
+- `toram_data.aliases`;
+- `toram_data.models`;
+- `toram_data.repository`;
+- `toram_search.fallback_adapter`;
+- `toram_search.parser`;
+- `toram_search.ranking`;
+- `toram_search.routing`.
 
-- [ ] **Step 4: Replace every `core.*` dependency in `toram_search/service.py` with direct module imports**
+Keep `SearchService` decisions/materialization unchanged. This task changes ownership/imports, not search semantics.
 
-Import from the new owners:
-- models/results from `toram_data.models`
-- repository from `toram_data.repository`
-- normalization/stat resolution from `toram_data.aliases`
-- filter/crysta helpers from `toram_data.aliases` / `toram_data.item_filters`
-- parsed search and structured parsing from `toram_search.parser`
-- ranking from `toram_search.ranking`
-- routing from `toram_search.routing`
-- fallback construction from `toram_search.fallback_adapter`
-
-Delete:
-
-```python
-import search_items as core
-```
-
-Keep `SearchService` orchestration behavior unchanged.
-
-- [ ] **Step 5: Replace the CLI fallback builder with a compatibility alias**
+- [ ] **Step 5: Make the terminal frontend use the canonical fallback factory**
 
 In `search_items.py`:
 
@@ -1129,7 +890,7 @@ from toram_search.fallback_adapter import build_fallback_service
 _build_fallback_service = build_fallback_service
 ```
 
-Update terminal initialization calls to the new signature:
+Update its terminal initialization to:
 
 ```python
 fallback_service = build_fallback_service(
@@ -1139,9 +900,9 @@ fallback_service = build_fallback_service(
 )
 ```
 
-Do not maintain a second implementation.
+Delete the old local factory implementation.
 
-- [ ] **Step 6: Run the dependency-direction test again**
+- [ ] **Step 6: Verify dependency GREEN**
 
 ```bash
 python -m unittest tests.test_core_module_boundaries.CoreModuleBoundaryTests.test_package_modules_do_not_import_top_level_search_items -v
@@ -1149,7 +910,7 @@ python -m unittest tests.test_core_module_boundaries.CoreModuleBoundaryTests.tes
 
 Expected: `OK`.
 
-- [ ] **Step 7: Run service/fallback/query-understanding tests**
+- [ ] **Step 7: Verify focused behavior**
 
 ```bash
 python -m unittest \
@@ -1186,7 +947,7 @@ python -m py_compile \
   discord_bot.py
 ```
 
-Expected: no output and exit code 0.
+Expected: exit code 0 with no output.
 
 - [ ] **Step 9: Commit**
 
@@ -1206,47 +967,50 @@ git commit -m "refactor: decouple search service from cli module"
 **Files:**
 - Modify: `search_items.py`
 - Modify: `tests/test_core_module_boundaries.py`
-- Modify only other files required to remove now-dead duplicate imports/definitions.
+- Modify only other files needed to remove dead duplicate imports/definitions.
 
-**Interfaces:**
-- `search_items.py` remains a supported CLI entry point and compatibility import surface.
-- `toram_data/*` and `toram_search/*` contain the reusable implementation.
-- Discord is still allowed to import `search_items as core` during this plan because it is a frontend entry point; removing that dependency belongs to the later Discord modularization plan.
+**Produces:**
+- `search_items.py` remains the supported terminal entry point and compatibility surface;
+- reusable implementation lives under `toram_data` / `toram_search`;
+- Discord remains behaviorally unchanged.
 
-- [ ] **Step 1: Add final single-source assertions**
+- [ ] **Step 1: Add final canonical-export assertions**
 
-Extend `tests/test_core_module_boundaries.py`:
+Inside `CoreModuleBoundaryTests`:
 
 ```python
-from toram_data import item_filters
-from toram_search import parser as parser_module
-from toram_search import ranking as ranking_module
-from toram_search import routing as routing_module
+def test_search_items_exports_point_to_canonical_modules(self):
+    from toram_data import item_filters
+    from toram_data.repository import ItemRepository
+    from toram_search import parser as parser_module
+    from toram_search import ranking as ranking_module
+    from toram_search import routing as routing_module
 
-
-def test_search_items_compatibility_exports_point_to_canonical_modules(self):
     self.assertIs(search_items.extract_item_filter, item_filters.extract_item_filter)
     self.assertIs(search_items.resolve_item_filter, item_filters.resolve_item_filter)
     self.assertIs(search_items.ItemRepository, ItemRepository)
     self.assertIs(search_items.rank_items, ranking_module.rank_items)
     self.assertIs(search_items.parse_search_query, parser_module.parse_search_query)
-    self.assertIs(search_items.route_deterministically, routing_module.route_deterministically)
+    self.assertIs(
+        search_items.route_deterministically,
+        routing_module.route_deterministically,
+    )
 ```
 
-- [ ] **Step 2: Delete dead duplicate definitions/imports from `search_items.py`**
+- [ ] **Step 2: Remove dead duplicate core code from `search_items.py`**
 
-Keep only code still owned by the terminal frontend or temporary compatibility surface. In particular, there should be no second implementation of:
-- item-filter catalog/extraction
-- domain database models
-- `ItemRepository`
-- item-name ranking
-- deterministic parser
-- deterministic router
+There must be no second implementation of:
+- item-filter catalog/extraction;
+- domain/database models;
+- `ItemRepository`;
+- item-name ranking;
+- deterministic parser;
+- deterministic router;
 - fallback-service factory.
 
-Do not move terminal rendering/screens in this task; avoiding a second frontend refactor is intentional.
+Keep terminal rendering, terminal input loops, argument parsing, `main()`, and compatibility imports. Do not start the separate CLI extraction here.
 
-- [ ] **Step 3: Run the exact user-regression smoke cases against the checked-in database**
+- [ ] **Step 3: Run real-database regression smoke**
 
 ```bash
 python - <<'PY'
@@ -1291,9 +1055,9 @@ print("core modularization smoke: OK")
 PY
 ```
 
-Expected: `core modularization smoke: OK`, with no Qwen call on deterministic cases.
+Expected: `core modularization smoke: OK` and no Qwen call on deterministic cases.
 
-- [ ] **Step 4: Run the complete test suite fresh**
+- [ ] **Step 4: Run complete test suite**
 
 ```bash
 python -m unittest discover -s tests -v
@@ -1301,7 +1065,7 @@ python -m unittest discover -s tests -v
 
 Expected: full suite `OK` with zero known baseline failures.
 
-- [ ] **Step 5: Run compilation again**
+- [ ] **Step 5: Compile all relevant modules**
 
 ```bash
 python -m compileall -q toram_data toram_search search_items.py discord_bot.py
@@ -1309,7 +1073,7 @@ python -m compileall -q toram_data toram_search search_items.py discord_bot.py
 
 Expected: exit code 0.
 
-- [ ] **Step 6: Inspect the dependency direction mechanically**
+- [ ] **Step 6: Inspect dependency direction mechanically**
 
 ```bash
 python - <<'PY'
@@ -1337,16 +1101,16 @@ Expected: `dependency direction: OK`.
 
 - [ ] **Step 7: Review final diff for refactor-only scope**
 
-The final implementation diff should show:
-- one canonical filter module instead of duplicate catalogs,
-- reusable models/repository/ranking/parser/routing modules,
-- `SearchService` importing those modules directly,
-- `search_items.py` retaining frontend/compatibility code,
-- no Discord UX changes,
-- no DB/schema changes,
+The implementation diff must show:
+- one canonical filter module;
+- reusable models/repository/ranking/parser/routing modules;
+- `SearchService` importing package modules directly;
+- `search_items.py` retaining terminal/compatibility concerns;
+- no Discord UX changes;
+- no DB/schema changes;
 - no boss/skill abstractions.
 
-If behavior-changing features appear in the diff, remove them or split them into a separate PR before integration.
+Any behavior-changing feature found in review is removed or split into a separate PR.
 
 - [ ] **Step 8: Commit final cleanup**
 
@@ -1359,21 +1123,21 @@ git commit -m "refactor: finalize core search module boundaries"
 
 ## Completion Criteria
 
-The refactor is complete only when all of the following are true:
+The refactor is complete only when all are true:
 
 1. `python -m unittest discover -s tests -v` is fully green.
 2. `toram_data/` and `toram_search/` contain no import of top-level `search_items`.
 3. There is only one item-filter catalog/extraction implementation.
 4. `SearchService` depends directly on package modules, not CLI code.
 5. `search_items.py` still runs as the existing terminal entry point.
-6. Existing Discord behavior remains unchanged.
+6. Existing Discord behavior is unchanged.
 7. `consume dte`, `xtall cr weapon`, `crit xtal weapon`, exact item-name search, upgrade search, and structured Qwen confirmation remain covered by tests/smoke checks.
-8. No new dependency, DB migration, or cross-domain abstraction has been introduced.
+8. No new dependency, DB migration, or cross-domain abstraction was introduced.
 
-## Follow-Up Plans After This One
+## Follow-Up Plans
 
 Do not bundle these into the same implementation PR:
 
-1. **Discord lifecycle modularization:** split config/session/render/views/runtime and add bounded session expiration/cleanup.
-2. **Typed item-detail records:** replace nested stat/source/image dictionaries with explicit dataclasses after the core imports are stable.
-3. **CLI extraction:** move terminal rendering/screens into a `toram_cli` package if the CLI remains an actively maintained frontend.
+1. **Discord lifecycle modularization** — split config/session/render/views/runtime and add bounded session expiration/cleanup.
+2. **Typed item-detail records** — replace nested stat/source/image dictionaries with explicit dataclasses after core imports stabilize.
+3. **CLI extraction** — move terminal rendering/screens into a `toram_cli` package if the CLI remains actively maintained.
