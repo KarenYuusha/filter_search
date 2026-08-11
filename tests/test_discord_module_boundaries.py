@@ -36,6 +36,26 @@ class DiscordModuleBoundaryTests(unittest.TestCase):
         self.assertIs(discord_bot.DiscordSearchSession, DiscordSearchSession)
         self.assertIs(discord_bot.DiscordSessionManager, DiscordSessionManager)
 
+    def test_render_symbols_have_canonical_package_owner(self):
+        from toram_discord.render import (
+            PAGE_SIZE,
+            build_help_embed,
+            build_item_detail_embed,
+            build_search_results_embed,
+            truncate_discord_text,
+            valid_local_image_paths,
+            visible_attachment_name,
+        )
+
+        self.assertEqual(PAGE_SIZE, 5)
+        self.assertEqual(discord_bot.PAGE_SIZE, PAGE_SIZE)
+        self.assertIs(discord_bot.build_help_embed, build_help_embed)
+        self.assertIs(discord_bot.build_item_detail_embed, build_item_detail_embed)
+        self.assertIs(discord_bot.build_search_results_embed, build_search_results_embed)
+        self.assertIs(discord_bot.truncate_discord_text, truncate_discord_text)
+        self.assertIs(discord_bot.valid_local_image_paths, valid_local_image_paths)
+        self.assertIs(discord_bot.visible_attachment_name, visible_attachment_name)
+
 
 if __name__ == "__main__":
     unittest.main()
