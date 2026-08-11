@@ -84,6 +84,8 @@ ITEM_TYPE_ALIASES = {
     "useable": "Usable",
     "consumable": "Usable",
     "consumables": "Usable",
+    "consume": "Usable",
+    "consumes": "Usable",
     "consumable item": "Usable",
     "consumable items": "Usable",
     "consumalbe": "Usable",
