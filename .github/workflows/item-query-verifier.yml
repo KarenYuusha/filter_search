@@ -10,11 +10,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 2ae97c6c487ec90fec47983ea50b405f2873186c
+          ref: fccd9b70920330a17a93187bdc7aa8d26b2a6570
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - name: Install test dependencies
         run: python -m pip install --upgrade pip rapidfuzz discord.py python-dotenv ollama
-      - name: Task 3 GREEN retry
-        run: python -m unittest tests.test_item_query_entities tests.test_item_query_understanding tests.test_query_reconstruction -v
+      - name: Task 4 RED
+        run: python -m unittest tests.test_item_query_understanding tests.test_search_service -v
