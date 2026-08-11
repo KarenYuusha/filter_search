@@ -1,8 +1,8 @@
 name: Item query verifier
 
 on:
-  push:
-    branches: [verify/item-query-understanding]
+  pull_request:
+    branches: [feature/item-query-understanding]
 
 jobs:
   verify:
