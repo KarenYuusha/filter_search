@@ -101,6 +101,28 @@ class DatabaseQuestionGroundingTests(unittest.TestCase):
         self.assertEqual(self.repository.count_type_calls, [("Bow",)])
         self.assertEqual(context.snapshot(), ())
 
+    def test_item_action_must_be_grounded_in_query(self):
+        bow = DatabaseActionRequest("count_items_by_type", item_type="Bow")
+        armor = DatabaseActionRequest("count_items_by_type", item_type="Armor")
+        self.assertTrue(self.service.is_request_grounded(bow, "could you count bows for me"))
+        self.assertFalse(self.service.is_request_grounded(armor, "could you count bows for me"))
+
+    def test_stat_action_accepts_alias_but_rejects_unrelated_real_stat(self):
+        critical_rate = DatabaseActionRequest("count_items_with_stat", stat="Critical Rate")
+        dark = DatabaseActionRequest("count_items_with_stat", stat="% stronger against Dark")
+        self.assertTrue(self.service.is_request_grounded(critical_rate, "how many items have cr"))
+        self.assertFalse(self.service.is_request_grounded(dark, "how many bow do you have"))
+
+    def test_no_argument_actions_are_always_grounded(self):
+        for action in ("list_stats", "list_item_types", "count_items_total"):
+            with self.subTest(action=action):
+                self.assertTrue(
+                    self.service.is_request_grounded(
+                        DatabaseActionRequest(action),
+                        "natural wording",
+                    )
+                )
+
 
 if __name__ == "__main__":
     unittest.main()
