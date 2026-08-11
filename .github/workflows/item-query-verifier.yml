@@ -16,22 +16,55 @@ jobs:
           python-version: '3.12'
       - name: Install test dependencies
         run: python -m pip install --upgrade pip rapidfuzz discord.py python-dotenv ollama
-      - name: Verify fuzzy precedence green
-        run: python -m unittest tests.test_item_query_entities tests.test_item_query_understanding tests.test_item_query_safety -v
-      - name: Verify real partial and fuzzy behavior
+      - name: Focused item-query feature gate
+        run: |
+          python -m unittest \
+            tests.test_item_query_entities \
+            tests.test_item_query_understanding \
+            tests.test_query_reconstruction \
+            tests.test_search_service \
+            tests.test_discord_bot \
+            tests.test_discord_item_understanding \
+            tests.test_item_query_safety \
+            -v
+      - name: Compile modified modules
+        run: |
+          python -m py_compile \
+            toram_search/item_query_entities.py \
+            toram_search/understanding.py \
+            toram_search/reconstruction.py \
+            toram_search/session.py \
+            toram_search/service.py \
+            discord_bot.py
+      - name: Real database smoke checks
         run: |
           python - <<'PY'
           import search_items as core
-          from toram_search.service import SearchService
+          from toram_search.service import SearchService, StatClarificationPayload
           from toram_search.session import FailedQueryContext
 
           class MustNotCallLLM:
               def complete(self, *args, **kwargs):
-                  raise AssertionError("Qwen must not be called")
+                  raise AssertionError("Qwen must not be called for deterministic smoke cases")
 
           repository = core.ItemRepository(core.DEFAULT_DATABASE)
           try:
               service = SearchService(repository, llm_client=MustNotCallLLM())
+
+              context = FailedQueryContext(max_entries=3)
+              direct = service.handle_query("xtall cr weapon", context)
+              assert direct.kind == "search", direct
+              assert context.snapshot() == ()
+
+              context = FailedQueryContext(max_entries=3)
+              ambiguous = service.handle_query("crit xtal weapon", context)
+              assert ambiguous.kind == "search", ambiguous
+              assert isinstance(ambiguous.payload, StatClarificationPayload), ambiguous.payload
+              assert ambiguous.payload.clarification.candidates == (
+                  "Critical Rate",
+                  "Critical Damage",
+              )
+              assert context.snapshot() == ()
 
               context = FailedQueryContext(max_entries=3)
               partial = service.handle_query("highest xtall cr weapon", context)
@@ -47,6 +80,7 @@ jobs:
               assert fuzzy.kind == "item_understanding", fuzzy
               issue = fuzzy.pending_item_search.understanding.uncertainties[0]
               assert issue.reason == "FUZZY_FILTER", issue
+              assert context.snapshot() == ()
               confirmed = service.continue_item_understanding(
                   fuzzy.pending_item_search,
                   issue.issue_id,
@@ -57,4 +91,26 @@ jobs:
               assert context.snapshot() == ()
           finally:
               repository.close()
+          PY
+      - name: Full suite matches known baseline
+        run: |
+          python - <<'PY'
+          import subprocess
+          import sys
+
+          result = subprocess.run(
+              [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"],
+              text=True,
+              stdout=subprocess.PIPE,
+              stderr=subprocess.STDOUT,
+          )
+          print(result.stdout)
+          expected_test = (
+              "test_rejected_payload_is_logged_with_reason "
+              "(test_structured_fallback.StructuredFallbackTests.test_rejected_payload_is_logged_with_reason)"
+          )
+          assert result.returncode != 0, "full suite unexpectedly changed baseline to green; review baseline assertion"
+          assert expected_test in result.stdout, "known baseline failure was not present"
+          assert "FAILED (failures=1)" in result.stdout, "full suite has failures beyond the single known baseline"
+          assert "errors=" not in result.stdout.split("FAILED", 1)[-1], "full suite has unexpected errors"
           PY
