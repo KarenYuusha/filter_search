@@ -3,7 +3,12 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-SEARCH_MODELS = '''
+SEARCH_MODELS = '''from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any
+
+from toram_data.stat_query import ResolvedClause
 
 
 @dataclass(frozen=True)
@@ -71,7 +76,7 @@ class UpgradeGraph:
 BOUNDARY_TESTS = '''import unittest
 
 import search_items
-from toram_data.models import (
+from toram_data.search_models import (
     ClauseMatch,
     ItemDetail,
     ItemSummary,
@@ -80,7 +85,7 @@ from toram_data.models import (
     StatRow,
     UpgradeGraph,
 )
-from toram_data.repository import ItemRepository
+from toram_data.search_repository import ItemRepository
 
 
 class CoreModuleBoundaryTests(unittest.TestCase):
@@ -93,8 +98,13 @@ class CoreModuleBoundaryTests(unittest.TestCase):
         self.assertIs(search_items.RankedExpressionItem, RankedExpressionItem)
         self.assertIs(search_items.UpgradeGraph, UpgradeGraph)
 
-    def test_search_items_reexports_repository(self):
+    def test_search_items_reexports_search_repository(self):
         self.assertIs(search_items.ItemRepository, ItemRepository)
+
+    def test_editor_repository_stays_separate(self):
+        from toram_data.repository import ItemRepository as EditorItemRepository
+
+        self.assertIsNot(ItemRepository, EditorItemRepository)
 '''
 
 source_path = Path('search_items.py')
@@ -116,7 +126,7 @@ from pathlib import Path
 from typing import Any
 
 from toram_data.aliases import is_crysta_item_type, normalize_name, normalize_stat_text
-from toram_data.models import (
+from toram_data.search_models import (
     ClauseMatch,
     ItemDetail,
     ItemSummary,
@@ -130,19 +140,8 @@ from toram_data.stat_query import ResolvedStatExpression, compare_amount
 
 '''
 
-models_path = Path('toram_data/models.py')
-models_text = models_path.read_text()
-assert 'class ConditionDraft:' in models_text
-assert 'class ItemDraft:' in models_text
-assert 'class ItemSummary:' not in models_text
-models_text = models_text.replace(
-    'from typing import Literal\n',
-    'from typing import Any, Literal\n\nfrom toram_data.stat_query import ResolvedClause\n',
-    1,
-)
-models_path.write_text(models_text.rstrip() + SEARCH_MODELS + '\n')
-
-Path('toram_data/repository.py').write_text(repository_header + repo_segment + '\n')
+Path('toram_data/search_models.py').write_text(SEARCH_MODELS)
+Path('toram_data/search_repository.py').write_text(repository_header + repo_segment + '\n')
 Path('tests/test_core_module_boundaries.py').write_text(BOUNDARY_TESTS)
 
 moved_names = {
@@ -172,7 +171,7 @@ for node in sorted(remove_nodes, key=lambda value: value.lineno, reverse=True):
     del lines[start:end]
 source = ''.join(lines)
 
-imports = '''from toram_data.models import (
+imports = '''from toram_data.search_models import (
     ClauseMatch,
     ItemDetail,
     ItemSummary,
@@ -181,7 +180,7 @@ imports = '''from toram_data.models import (
     StatRow,
     UpgradeGraph,
 )
-from toram_data.repository import ItemRepository
+from toram_data.search_repository import ItemRepository
 
 '''
 marker = 'FilterResolution = ItemTypeFilter\n'
