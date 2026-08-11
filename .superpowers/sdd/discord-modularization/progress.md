@@ -10,4 +10,5 @@ Task 3: RED confirmed — canonical views/service-bridge module missing; all pri
 Task 3: implementation head 3d4edff8a0a61ab447d6fa081108618d6b4fb5c5.
 Task 3: complete (commits a717529..3d4edff, review clean; full suite 239 tests green).
 Task 4: RED confirmed — view constants/classes/outcome wiring still owned by discord_bot; all prior tests remained green.
-Task 4: implementation head 6715c0cf64ca04be70f72fd40d049629484b6199; GREEN/review pending.
+Task 4: implementation head 6715c0cf64ca04be70f72fd40d049629484b6199.
+Task 4: complete (commits 33d8ebd..6715c0c, review clean; full suite 240 tests green).
