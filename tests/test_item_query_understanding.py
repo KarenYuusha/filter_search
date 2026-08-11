@@ -1,6 +1,6 @@
 import unittest
 
-from toram_search.understanding import understand_item_query
+from toram_search.understanding import ConfirmedItemChoice, understand_item_query
 
 
 STATS = ["Critical Rate", "Critical Damage", "MaxHP", "Weapon ATK"]
@@ -84,6 +84,39 @@ class ItemQueryUnderstandingTests(unittest.TestCase):
             [issue.reason for issue in result.uncertainties],
             ["AMBIGUOUS_STAT", "FUZZY_FILTER"],
         )
+
+    def test_one_confirmed_fuzzy_filter_becomes_executable(self):
+        first = self.understand("cr wepon xtal")
+        issue = first.uncertainties[0]
+        second = self.understand(
+            "cr wepon xtal",
+            (ConfirmedItemChoice(issue.issue_id, issue.choices[0].value),),
+        )
+        self.assertEqual(second.decision, "execute")
+        self.assertEqual(second.uncertainties, ())
+        self.assertEqual(second.canonical_query, "cr wp xtal")
+
+    def test_two_confirmed_choices_require_final_confirmation(self):
+        first = self.understand("crit wepon xtal")
+        stat_issue = first.uncertainties[0]
+        after_stat = self.understand(
+            "crit wepon xtal",
+            (ConfirmedItemChoice(stat_issue.issue_id, "Critical Rate"),),
+        )
+        self.assertEqual(after_stat.decision, "confirm")
+        self.assertEqual(len(after_stat.uncertainties), 1)
+        filter_issue = after_stat.uncertainties[0]
+        final = self.understand(
+            "crit wepon xtal",
+            (
+                ConfirmedItemChoice(stat_issue.issue_id, "Critical Rate"),
+                ConfirmedItemChoice(filter_issue.issue_id, filter_issue.choices[0].value),
+            ),
+        )
+        self.assertEqual(final.decision, "confirm")
+        self.assertEqual(final.uncertainties, ())
+        self.assertEqual(final.canonical_query, "cr wp xtal")
+        self.assertIn("MULTIPLE_CORRECTIONS", final.reasons)
 
 
 if __name__ == "__main__":
