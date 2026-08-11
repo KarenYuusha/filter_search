@@ -30,7 +30,7 @@ This iteration does not add:
 
 - boss or skill search;
 - `tank`, `dps`, `mage build`, or similar semantic build-role interpretation;
-- broad new multi-stat natural-language syntax beyond what the current parser already supports;
+- new multi-stat Boolean/relation syntax beyond what the current parser already supports;
 - numeric confidence scoring;
 - fuzzy auto-execution;
 - LLM-generated database facts;
@@ -97,8 +97,7 @@ ItemQueryUnderstanding
 │   └── item_filter
 ├── uncertainties
 │   ├── ambiguity
-│   ├── fuzzy_match
-│   └── relation_choice
+│   └── fuzzy_match
 ├── unresolved_tokens
 ├── canonical_query
 ├── source
@@ -124,11 +123,12 @@ Resolved parts are entities whose meaning is deterministic. Examples:
 
 Uncertainties contain only cases where user input needs a decision before execution.
 
-Supported uncertainty classes in this iteration:
+Supported uncertainty classes in this iteration are:
 
 - known semantic ambiguity, such as `crit` -> `Critical Rate` or `Critical Damage`;
-- strong fuzzy match, such as `crtical rate` -> likely `Critical Rate`;
-- a relation choice when the parser detects multiple resolved stats but the required Boolean relation is not explicit and current parser semantics cannot safely infer it.
+- strong fuzzy match, such as `crtical rate` -> likely `Critical Rate`.
+
+If a query would require new Boolean/relation interpretation between multiple stats, it is not added by this feature. It remains governed by current parser behavior or falls through to the existing safe fallback/refusal path.
 
 ### Unresolved tokens
 
@@ -328,6 +328,8 @@ The final confirmation is required because multiple independent interpretation d
 
 When semantic ambiguity and fuzzy correction coexist, resolve semantic ambiguity first, then the remaining fuzzy correction if it is still relevant. If multiple independent decisions were required in total, require the final Search/Edit confirmation.
 
+This ordering applies only to uncertainty types already supported by the item parser/understanding layer; it does not add new multi-stat relation semantics.
+
 ## Pending Clarification State
 
 Use minimal structured state rather than a conversational transcript.
@@ -350,11 +352,15 @@ It should support deterministic continuation after the user chooses a clarificat
 Clear pending state when:
 
 - the search executes successfully;
-- the user cancels;
-- the user starts a clearly unrelated new search;
-- the pending interpretation becomes invalid.
+- the user explicitly cancels;
+- the user sends a new raw item-search query instead of responding through the pending clarification/confirmation interaction;
+- deterministic revalidation shows that the pending interpretation is no longer valid.
 
-The existing failed-query context remains separate and can continue to provide short context to Qwen. It should not be replaced by a long transcript of clarification interactions.
+A new raw item-search query supersedes the old pending query. The bot does not try to infer that two independent raw queries belong to the same clarification sequence.
+
+The existing failed-query context remains separate and can continue to provide short context to Qwen. Deterministic clarification, fuzzy confirmation, and safe-suggestion paths do not create failed-query history merely because they required user interaction. The failed query is recorded when the service actually enters Qwen fallback, matching the existing hybrid-search intent.
+
+The clarification state should not be replaced by a long transcript of user interactions.
 
 ## Human-Readable Presentation
 
@@ -452,6 +458,7 @@ Tests must enforce these guarantees:
 8. Successful completed searches clear pending clarification state.
 9. A parser-validated suggestion is guidance only and is not executed automatically.
 10. An oversized or computationally unsafe reconstruction still fails closed under the existing reconstruction budget/guard behavior.
+11. Deterministic clarification/confirmation paths do not pollute failed-query history; entering Qwen fallback does.
 
 ### Representative cases
 
@@ -540,6 +547,8 @@ The design is successfully implemented when:
 - Qwen is skipped when deterministic understanding can already safely handle or explain the query;
 - any Qwen-derived search requires deterministic validation and user confirmation;
 - unknown meaningful input cannot disappear on an auto-execution path;
-- pending clarification state is minimal, deterministic, and cleared after completion/cancellation/invalidation;
+- pending clarification state is minimal, deterministic, and cleared after completion/cancellation/supersession/invalidation;
+- deterministic clarification/confirmation does not create failed-query history unless Qwen fallback is entered;
 - regression tests demonstrate semantic equivalence between reconstructed/confirmed requests and canonical parser requests;
+- no new multi-stat relation semantics are introduced by this feature;
 - the existing known unrelated baseline test failure is not treated as a regression caused by this feature.
