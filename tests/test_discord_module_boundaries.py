@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from pathlib import Path
 
 import discord_bot
 
@@ -22,6 +23,12 @@ class DiscordModuleBoundaryTests(unittest.TestCase):
         self.assertIs(discord_bot.is_allowed_message, is_allowed_message)
         self.assertIs(discord_bot.load_config, load_config)
         self.assertIs(discord_bot.load_project_environment, load_project_environment)
+
+    def test_config_project_root_remains_repository_root(self):
+        from toram_discord.config import PROJECT_ROOT
+
+        self.assertEqual(PROJECT_ROOT, Path(discord_bot.__file__).resolve().parent)
+        self.assertEqual(discord_bot.PROJECT_ROOT, PROJECT_ROOT)
 
     def test_session_symbols_have_canonical_package_owner(self):
         from toram_discord.sessions import DiscordSearchSession, DiscordSessionManager
