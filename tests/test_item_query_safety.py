@@ -189,7 +189,7 @@ class ItemQuerySafetyTests(unittest.TestCase):
         service = SearchService(repository, llm_client=llm)
         context = FailedQueryContext(max_entries=3)
 
-        outcome = service.handle_query("find protective gear with mystery power", context)
+        outcome = service.handle_query("cr hp weapon xtal", context)
 
         self.assertEqual(outcome.kind, "failed")
         self.assertEqual(llm.calls, 1)
