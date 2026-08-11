@@ -1,33 +1,54 @@
-name: Core modularization Task 7 RED
+name: Core modularization Task 7 GREEN
 on:
   pull_request:
 
+permissions:
+  contents: write
+
 jobs:
-  red:
+  green:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: refactor/core-search-modularization
+          path: feature
+      - uses: actions/checkout@v4
+        with:
+          ref: verify/core-modularization-task1
+          path: verifier
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - run: pip install rapidfuzz python-dotenv ollama discord.py
-      - name: Verify package does not depend on CLI
+      - name: Apply Task 7
+        working-directory: feature
+        run: python ../verifier/.github/scripts/task7_patch.py
+      - name: Compile
+        working-directory: feature
+        run: python -m py_compile toram_search/fallback_adapter.py toram_search/service.py search_items.py
+      - name: Dependency boundary
+        working-directory: feature
+        run: python -m unittest tests.test_core_module_boundaries -v
+      - name: Focused tests
+        working-directory: feature
         run: |
-          python - <<'PY'
-          import ast
-          from pathlib import Path
-
-          offenders = []
-          for package in ('toram_data', 'toram_search'):
-              for path in sorted(Path(package).glob('*.py')):
-                  tree = ast.parse(path.read_text(), filename=str(path))
-                  for node in ast.walk(tree):
-                      if isinstance(node, ast.Import):
-                          if any(alias.name == 'search_items' for alias in node.names):
-                              offenders.append(str(path))
-                      elif isinstance(node, ast.ImportFrom) and node.module == 'search_items':
-                          offenders.append(str(path))
-          assert not offenders, offenders
-          PY
+          python -m unittest \
+            tests.test_search_service \
+            tests.test_structured_fallback \
+            tests.test_item_query_understanding \
+            tests.test_query_reconstruction \
+            tests.test_item_search_relevance \
+            tests.test_direct_structured_intent \
+            -v
+      - name: Full suite
+        working-directory: feature
+        run: python -m unittest discover -s tests -v
+      - name: Commit Task 7
+        working-directory: feature
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add toram_search/fallback_adapter.py toram_search/service.py search_items.py tests/test_core_module_boundaries.py
+          git commit -m "refactor: decouple search service from cli module"
+          git push origin HEAD:refactor/core-search-modularization
