@@ -10,11 +10,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 25e56bccfad238fb5e3572d326f5c7e6d99dce10
+          ref: 898848227317cc80e389e468632a5496bc4ea25b
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - name: Install test dependencies
         run: python -m pip install --upgrade pip rapidfuzz discord.py python-dotenv ollama
-      - name: Verify Task 5 final
-        run: python -m unittest tests.test_discord_bot tests.test_discord_item_understanding -v
+      - name: Verify Task 6 safety invariants
+        run: python -m unittest tests.test_item_query_safety -v
