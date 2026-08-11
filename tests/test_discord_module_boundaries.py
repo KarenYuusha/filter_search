@@ -80,6 +80,36 @@ class DiscordModuleBoundaryTests(unittest.TestCase):
         self.assertIs(discord_bot.run_upgrade_selection_sync, run_upgrade_selection_sync)
         self.assertIs(discord_bot.send_if_current, send_if_current)
 
+    def test_view_symbols_have_canonical_package_owner(self):
+        from toram_discord.views import (
+            VIEW_TIMEOUT_SECONDS,
+            ActionButton,
+            ActionSelect,
+            ItemDetailView,
+            ItemUnderstandingView,
+            QwenConfirmationView,
+            SearchResultsView,
+            SessionBoundView,
+            StatClarificationView,
+            build_item_detail_message,
+            build_service_outcome_message,
+            edit_service_outcome,
+        )
+
+        self.assertEqual(VIEW_TIMEOUT_SECONDS, 900)
+        self.assertEqual(discord_bot.VIEW_TIMEOUT_SECONDS, VIEW_TIMEOUT_SECONDS)
+        self.assertIs(discord_bot.SessionBoundView, SessionBoundView)
+        self.assertIs(discord_bot.ActionButton, ActionButton)
+        self.assertIs(discord_bot.ActionSelect, ActionSelect)
+        self.assertIs(discord_bot.SearchResultsView, SearchResultsView)
+        self.assertIs(discord_bot.ItemDetailView, ItemDetailView)
+        self.assertIs(discord_bot.StatClarificationView, StatClarificationView)
+        self.assertIs(discord_bot.ItemUnderstandingView, ItemUnderstandingView)
+        self.assertIs(discord_bot.QwenConfirmationView, QwenConfirmationView)
+        self.assertIs(discord_bot.build_item_detail_message, build_item_detail_message)
+        self.assertIs(discord_bot.build_service_outcome_message, build_service_outcome_message)
+        self.assertIs(discord_bot.edit_service_outcome, edit_service_outcome)
+
 
 if __name__ == "__main__":
     unittest.main()
