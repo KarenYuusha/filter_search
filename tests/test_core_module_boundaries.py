@@ -32,6 +32,17 @@ class CoreModuleBoundaryTests(unittest.TestCase):
         self.assertIs(search_items.RankedItem, RankedItem)
         self.assertIs(search_items.rank_items, rank_items)
 
+    def test_search_items_reexports_parser_symbols(self):
+        from toram_search import parser as parser_module
+
+        self.assertIs(search_items.ParsedSearch, parser_module.ParsedSearch)
+        self.assertIs(search_items.StatResolution, parser_module.StatResolution)
+        self.assertIs(search_items.parse_search_query, parser_module.parse_search_query)
+        self.assertIs(
+            search_items.parse_structured_search_request,
+            parser_module.parse_structured_search_request,
+        )
+
     def test_editor_repository_stays_separate(self):
         from toram_data.repository import ItemRepository as EditorItemRepository
 
