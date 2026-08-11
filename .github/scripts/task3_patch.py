@@ -3,12 +3,7 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-MODELS = '''from __future__ import annotations
-
-from dataclasses import dataclass
-from typing import Any
-
-from toram_data.stat_query import ResolvedClause
+SEARCH_MODELS = '''
 
 
 @dataclass(frozen=True)
@@ -134,7 +129,19 @@ from toram_data.stat_query import ResolvedStatExpression, compare_amount
 
 
 '''
-Path('toram_data/models.py').write_text(MODELS)
+
+models_path = Path('toram_data/models.py')
+models_text = models_path.read_text()
+assert 'class ConditionDraft:' in models_text
+assert 'class ItemDraft:' in models_text
+assert 'class ItemSummary:' not in models_text
+models_text = models_text.replace(
+    'from typing import Literal\n',
+    'from typing import Any, Literal\n\nfrom toram_data.stat_query import ResolvedClause\n',
+    1,
+)
+models_path.write_text(models_text.rstrip() + SEARCH_MODELS + '\n')
+
 Path('toram_data/repository.py').write_text(repository_header + repo_segment + '\n')
 Path('tests/test_core_module_boundaries.py').write_text(BOUNDARY_TESTS)
 
