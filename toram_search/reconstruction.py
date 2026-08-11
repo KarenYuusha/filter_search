@@ -10,7 +10,7 @@ from toram_data.aliases import (
     preferred_stat_alias,
     resolve_stat_term,
 )
-from toram_data.stat_query import ItemFilterPhrase
+from toram_data.item_filters import ItemFilterPhrase
 from toram_search.item_query_entities import (
     ITEM_QUERY_FILLERS,
     find_exact_item_filter_matches,

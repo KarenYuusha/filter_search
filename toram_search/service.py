@@ -3,9 +3,30 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import Literal, Mapping
 
-import search_items as core
+from toram_data.aliases import is_crysta_item_type, normalize_stat_text, resolve_stat_term
+from toram_data.search_models import (
+    ItemDetail,
+    ItemSummary,
+    RankedExpressionItem,
+    RankedStatItem,
+    UpgradeGraph,
+)
+from toram_data.search_repository import ItemRepository
+from toram_data.stat_query import ResolvedAndGroup, ResolvedClause, ResolvedStatExpression
+from toram_search.fallback_adapter import build_fallback_service
+from toram_search.help_db import HelpService
+from toram_search.llm import OllamaQwenClient
+from toram_search.parser import (
+    SEARCH_ONLY_STAT_ALIASES,
+    ParsedSearch,
+    StatResolution,
+    format_structured_search_request,
+    parse_structured_search_request,
+)
+from toram_search.ranking import RankedItem, rank_items
 from toram_search.fallback import SearchIntentRequest
 from toram_search.reconstruction import try_reconstruct_simple_search
+from toram_search.routing import make_database_question_service, route_deterministically
 from toram_search.session import FailedQueryContext, PendingItemSearch
 from toram_search.understanding import ConfirmedItemChoice, understand_item_query
 
@@ -37,25 +58,25 @@ class StatClarification:
 
 @dataclass(frozen=True)
 class ItemDetailPayload:
-    detail: core.ItemDetail
+    detail: ItemDetail
 
 
 @dataclass(frozen=True)
 class ItemResultsPayload:
     query: str
-    results: tuple[core.RankedItem, ...]
+    results: tuple[RankedItem, ...]
 
 
 @dataclass(frozen=True)
 class UpgradeDetailPayload:
-    graph: core.UpgradeGraph
+    graph: UpgradeGraph
     selected_item_id: int
 
 
 @dataclass(frozen=True)
 class UpgradeResultsPayload:
     query: str
-    results: tuple[core.RankedItem, ...]
+    results: tuple[RankedItem, ...]
 
 
 @dataclass(frozen=True)
@@ -65,21 +86,21 @@ class GuidedStatPayload:
 
 @dataclass(frozen=True)
 class StatClarificationPayload:
-    parsed: core.ParsedSearch
+    parsed: ParsedSearch
     clarification: StatClarification
     choices: tuple[tuple[ResolutionChoiceKey, str], ...] = ()
 
 
 @dataclass(frozen=True)
 class StatResultsPayload:
-    parsed: core.ParsedSearch
-    results: tuple[core.RankedStatItem, ...]
+    parsed: ParsedSearch
+    results: tuple[RankedStatItem, ...]
 
 
 @dataclass(frozen=True)
 class ExpressionResultsPayload:
-    parsed: core.ParsedSearch
-    results: tuple[core.RankedExpressionItem, ...]
+    parsed: ParsedSearch
+    results: tuple[RankedExpressionItem, ...]
 
 
 SearchPayload = (
@@ -105,10 +126,10 @@ class ServiceOutcome:
 
 
 def resolve_expression_noninteractively(
-    parsed: core.ParsedSearch,
-    repository: core.ItemRepository,
+    parsed: ParsedSearch,
+    repository: ItemRepository,
     choices: StatResolutionChoices,
-) -> core.ParsedSearch | StatClarification | None:
+) -> ParsedSearch | StatClarification | None:
     """Resolve a parsed stat expression without terminal input.
 
     Exact aliases resolve immediately. Ambiguous/fuzzy terms are returned as a
@@ -123,16 +144,16 @@ def resolve_expression_noninteractively(
         return None
 
     available_stats = repository.list_stat_names()
-    resolved_groups: list[core.ResolvedAndGroup] = []
+    resolved_groups: list[ResolvedAndGroup] = []
 
     for group_index, group in enumerate(parsed.parsed_expression.groups):
-        resolved_clauses: list[core.ResolvedClause] = []
+        resolved_clauses: list[ResolvedClause] = []
         for clause_index, clause in enumerate(group.clauses):
-            typed = core.SEARCH_ONLY_STAT_ALIASES.get(
-                core.normalize_stat_text(clause.typed_stat),
+            typed = SEARCH_ONLY_STAT_ALIASES.get(
+                normalize_stat_text(clause.typed_stat),
                 clause.typed_stat,
             )
-            resolution = core.resolve_stat_term(
+            resolution = resolve_stat_term(
                 typed,
                 available_stats,
                 allow_fuzzy=True,
@@ -173,18 +194,18 @@ def resolve_expression_noninteractively(
                 return None
 
             resolved_clauses.append(
-                core.ResolvedClause(
+                ResolvedClause(
                     typed_stat=clause.typed_stat,
                     stat_name=stat_name,
                     operator=clause.operator,
                     value=clause.value,
                 )
             )
-        resolved_groups.append(core.ResolvedAndGroup(tuple(resolved_clauses)))
+        resolved_groups.append(ResolvedAndGroup(tuple(resolved_clauses)))
 
     return replace(
         parsed,
-        resolved_expression=core.ResolvedStatExpression(tuple(resolved_groups)),
+        resolved_expression=ResolvedStatExpression(tuple(resolved_groups)),
     )
 
 
@@ -193,25 +214,23 @@ class SearchService:
 
     def __init__(
         self,
-        repository: core.ItemRepository,
+        repository: ItemRepository,
         *,
         llm_client: object | None = None,
     ) -> None:
         self.repository = repository
         self.all_items = repository.list_items()
-        self.help_service = core.HelpService()
-        self.database_service = core.make_database_question_service(repository)
-        self.llm_client = llm_client if llm_client is not None else core.OllamaQwenClient()
-        self.fallback_service = core._build_fallback_service(
+        self.help_service = HelpService()
+        self.database_service = make_database_question_service(repository)
+        self.llm_client = llm_client if llm_client is not None else OllamaQwenClient()
+        self.fallback_service = build_fallback_service(
             repository,
-            self.all_items,
-            self.help_service,
             self.database_service,
             self.llm_client,
         )
 
     def _execute_canonical_item_search(self, canonical_query: str) -> ServiceOutcome:
-        route = core.route_deterministically(
+        route = route_deterministically(
             canonical_query,
             self.repository,
             self.all_items,
@@ -227,7 +246,7 @@ class SearchService:
         query: str,
         context: FailedQueryContext,
     ) -> ServiceOutcome:
-        route = core.route_deterministically(
+        route = route_deterministically(
             query,
             self.repository,
             self.all_items,
@@ -279,7 +298,7 @@ class SearchService:
         fallback = self.fallback_service.interpret(query, context.snapshot())
         if fallback.kind == "search_requests" and fallback.search_requests:
             context.set_latest_suggestion(
-                core._format_structured_search_request(fallback.search_requests[0])
+                format_structured_search_request(fallback.search_requests[0])
             )
             return ServiceOutcome(
                 "confirm_search",
@@ -369,7 +388,7 @@ class SearchService:
         raw_query: str,
         context: FailedQueryContext,
     ) -> ServiceOutcome:
-        parsed = core.parse_structured_search_request(
+        parsed = parse_structured_search_request(
             request,
             self.repository,
             raw_query=raw_query,
@@ -383,17 +402,17 @@ class SearchService:
 
     def continue_clarification(
         self,
-        parsed: core.ParsedSearch,
+        parsed: ParsedSearch,
         choices: Mapping[ResolutionChoiceKey, str],
     ) -> ServiceOutcome:
         if parsed.intent == "stat_choices":
             selected = choices.get((-1, -1))
             if selected is None or selected not in parsed.stat_choices:
                 return ServiceOutcome("failed")
-            parsed = core.ParsedSearch(
+            parsed = ParsedSearch(
                 intent="stat_search",
                 raw_query=parsed.raw_query,
-                stat=core.StatResolution(selected, selected, 100.0, False),
+                stat=StatResolution(selected, selected, 100.0, False),
                 filter=parsed.filter,
             )
             return ServiceOutcome("search", payload=self._materialize(parsed, {}))
@@ -415,7 +434,7 @@ class SearchService:
         item_id: int,
         item_name: str,
     ) -> ServiceOutcome:
-        parsed = core.ParsedSearch(
+        parsed = ParsedSearch(
             intent="exact_upgrade",
             raw_query=f"upgrade {item_name}",
             item_id=item_id,
@@ -423,17 +442,17 @@ class SearchService:
         return ServiceOutcome("search", payload=self._materialize(parsed, {}))
 
     @staticmethod
-    def _rank_upgrade_successors(items: list[core.ItemSummary]) -> tuple[core.RankedItem, ...]:
-        unique: dict[int, core.ItemSummary] = {item.id: item for item in items}
+    def _rank_upgrade_successors(items: list[ItemSummary]) -> tuple[RankedItem, ...]:
+        unique: dict[int, ItemSummary] = {item.id: item for item in items}
         ordered = sorted(unique.values(), key=lambda item: (item.name.casefold(), item.id))
         return tuple(
-            core.RankedItem(item=item, score=100.0, match_kind="upgrade")
+            RankedItem(item=item, score=100.0, match_kind="upgrade")
             for item in ordered
         )
 
     def _materialize(
         self,
-        parsed: core.ParsedSearch,
+        parsed: ParsedSearch,
         choices: Mapping[ResolutionChoiceKey, str],
     ) -> SearchPayload:
         if parsed.intent == "exact_item":
@@ -445,9 +464,9 @@ class SearchService:
             if len(exact) == 1:
                 return ItemDetailPayload(self.repository.get_item(exact[0].id))
             results = (
-                [core.RankedItem(item=item, score=100.0, match_kind="exact") for item in exact]
+                [RankedItem(item=item, score=100.0, match_kind="exact") for item in exact]
                 if len(exact) > 1
-                else core.rank_items(query, self.all_items)
+                else rank_items(query, self.all_items)
             )
             if len(results) == 1:
                 return ItemDetailPayload(self.repository.get_item(results[0].item.id))
@@ -471,12 +490,12 @@ class SearchService:
                 )
             upgrade_items = [
                 item for item in self.all_items
-                if core.is_crysta_item_type(item.item_type)
+                if is_crysta_item_type(item.item_type)
             ]
             results = (
-                [core.RankedItem(item=item, score=100.0, match_kind="exact") for item in exact]
+                [RankedItem(item=item, score=100.0, match_kind="exact") for item in exact]
                 if len(exact) > 1
-                else core.rank_items(query, upgrade_items)
+                else rank_items(query, upgrade_items)
             )
             if len(results) == 1:
                 selected_id = results[0].item.id
@@ -548,7 +567,7 @@ class SearchService:
 
 
 def format_search_request(request: SearchIntentRequest) -> str:
-    return core._format_structured_search_request(request)
+    return format_structured_search_request(request)
 
 
 def item_id_from_payload(payload: SearchPayload, result_index: int) -> int | None:

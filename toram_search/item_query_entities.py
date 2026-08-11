@@ -8,7 +8,7 @@ from typing import Literal
 from rapidfuzz import fuzz
 
 from toram_data.aliases import ITEM_WORD_ALIASES, normalize_stat_text
-from toram_data.stat_query import ItemFilterPhrase, list_item_filter_phrases
+from toram_data.item_filters import ItemFilterPhrase, list_item_filter_phrases
 
 
 FilterMatchStatus = Literal["unique", "none", "ambiguous"]

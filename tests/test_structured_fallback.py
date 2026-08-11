@@ -226,6 +226,29 @@ class StructuredFallbackTests(unittest.TestCase):
         self.assertIn("missing or invalid search candidates", log_text)
         self.assertIn("{'intent': 'search'}", log_text)
 
+    def test_search_payload_with_candidates_and_extra_field_is_rejected_as_unexpected_fields(self):
+        fallback = service(
+            {
+                "intent": "search",
+                "candidates": [
+                    {
+                        "stats": [{"name": "Critical Rate"}],
+                        "item_filter": "bow",
+                    }
+                ],
+                "extra": True,
+            }
+        )
+
+        with self.assertLogs("toram_search.fallback", level="DEBUG") as captured:
+            outcome = fallback.interpret("cr bow", ())
+
+        self.assertEqual(outcome.kind, "failed")
+        self.assertIn(
+            "search payload has unexpected fields",
+            "\n".join(captured.output),
+        )
+
     def test_schema_is_sent_to_llm_client(self):
         llm = FakeLLM({"intent": "refuse"})
         fallback = QwenFallbackService(

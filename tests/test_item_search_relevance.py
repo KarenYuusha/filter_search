@@ -79,7 +79,7 @@ class ItemSearchRelevanceTests(unittest.TestCase):
         item = ITEMS[-1]
         ranked = core.RankedItem(item=item, score=69.999, match_kind="fuzzy")
 
-        with patch("search_items._score_item", return_value=ranked):
+        with patch("toram_search.ranking._score_item", return_value=ranked):
             results = core.rank_items("zz", [item])
 
         self.assertEqual(results, [])
@@ -88,7 +88,7 @@ class ItemSearchRelevanceTests(unittest.TestCase):
         item = ITEMS[-1]
         ranked = core.RankedItem(item=item, score=70.0, match_kind="fuzzy")
 
-        with patch("search_items._score_item", return_value=ranked):
+        with patch("toram_search.ranking._score_item", return_value=ranked):
             results = core.rank_items("zz", [item])
 
         self.assertEqual(results, [ranked])
@@ -97,7 +97,7 @@ class ItemSearchRelevanceTests(unittest.TestCase):
         item = ITEMS[-1]
         ranked = core.RankedItem(item=item, score=5.0, match_kind="substring")
 
-        with patch("search_items._score_item", return_value=ranked):
+        with patch("toram_search.ranking._score_item", return_value=ranked):
             results = core.rank_items("zz", [item])
 
         self.assertEqual(results, [ranked])

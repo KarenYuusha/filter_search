@@ -15,21 +15,15 @@ from toram_data.aliases import (
     normalize_stat_text,
 )
 
+from toram_data.item_filters import (
+    ItemFilterPhrase,
+    ItemTypeFilter,
+    extract_trailing_item_filter,
+    list_item_filter_phrases,
+    normalize_filter_text,
+)
+
 ComparisonOperator = Literal[">", ">=", "<", "<=", "=", "=="]
-
-
-@dataclass(frozen=True)
-class ItemTypeFilter:
-    label: str
-    item_types: tuple[str, ...]
-    consumed_text: str
-
-
-@dataclass(frozen=True)
-class ItemFilterPhrase:
-    phrase: str
-    label: str
-    item_types: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -130,142 +124,6 @@ def format_resolved_expression(expression: ResolvedStatExpression) -> str:
     return " OR ".join(rendered_groups)
 
 
-def _normalize_filter_text(value: str) -> str:
-    tokens = normalize_stat_text(value).split()
-    return " ".join(ITEM_WORD_ALIASES.get(token, token) for token in tokens)
-
-
-def _available_types_by_normalized(available_item_types: set[str]) -> dict[str, str]:
-    return {normalize_name(value): value for value in available_item_types}
-
-
-def _existing_types(
-    configured: tuple[str, ...],
-    available_item_types: set[str],
-) -> tuple[str, ...]:
-    by_normalized = _available_types_by_normalized(available_item_types)
-    output: list[str] = []
-    for configured_type in configured:
-        actual = by_normalized.get(normalize_name(configured_type))
-        if actual is not None and actual not in output:
-            output.append(actual)
-    return tuple(output)
-
-
-def _filter_candidates() -> list[tuple[str, str, tuple[str, ...]]]:
-    combinations = {
-        "wp xtal": (
-            "Weapon Crysta + Red Enhancer",
-            ("Weapon Crysta", "Enhancer Crysta (Red)"),
-        ),
-        "weapon xtal": (
-            "Weapon Crysta + Red Enhancer",
-            ("Weapon Crysta", "Enhancer Crysta (Red)"),
-        ),
-        "ring xtal": (
-            "Special Crysta + Purple Enhancer",
-            ("Special Crysta", "Enhancer Crysta (Purple)"),
-        ),
-        "rings xtal": (
-            "Special Crysta + Purple Enhancer",
-            ("Special Crysta", "Enhancer Crysta (Purple)"),
-        ),
-        "special xtal": (
-            "Special Crysta + Purple Enhancer",
-            ("Special Crysta", "Enhancer Crysta (Purple)"),
-        ),
-        "special gear xtal": (
-            "Special Crysta + Purple Enhancer",
-            ("Special Crysta", "Enhancer Crysta (Purple)"),
-        ),
-        "arm xtal": (
-            "Armor Crysta + Green Enhancer",
-            ("Armor Crysta", "Enhancer Crysta (Green)"),
-        ),
-        "armor xtal": (
-            "Armor Crysta + Green Enhancer",
-            ("Armor Crysta", "Enhancer Crysta (Green)"),
-        ),
-        "add xtal": (
-            "Additional Crysta + Yellow Enhancer",
-            ("Additional Crysta", "Enhancer Crysta (Yellow)"),
-        ),
-        "ad xtal": (
-            "Additional Crysta + Yellow Enhancer",
-            ("Additional Crysta", "Enhancer Crysta (Yellow)"),
-        ),
-        "hat xtal": (
-            "Additional Crysta + Yellow Enhancer",
-            ("Additional Crysta", "Enhancer Crysta (Yellow)"),
-        ),
-        "additional xtal": (
-            "Additional Crysta + Yellow Enhancer",
-            ("Additional Crysta", "Enhancer Crysta (Yellow)"),
-        ),
-        "red xtal": ("Enhancer Crysta (Red)", ("Enhancer Crysta (Red)",)),
-        "purple xtal": (
-            "Enhancer Crysta (Purple)",
-            ("Enhancer Crysta (Purple)",),
-        ),
-        "green xtal": (
-            "Enhancer Crysta (Green)",
-            ("Enhancer Crysta (Green)",),
-        ),
-        "yellow xtal": (
-            "Enhancer Crysta (Yellow)",
-            ("Enhancer Crysta (Yellow)",),
-        ),
-        "xtal": ("All Crysta", ALL_CRYSTA_TYPES),
-        "wp": ("Main Weapons", MAIN_WEAPON_TYPES),
-        "weapon": ("Main Weapons", MAIN_WEAPON_TYPES),
-    }
-    candidates = [
-        (_normalize_filter_text(phrase), label, tuple(types))
-        for phrase, (label, types) in combinations.items()
-    ]
-    for alias, item_type in ITEM_TYPE_ALIASES.items():
-        candidates.append((_normalize_filter_text(alias), item_type, (item_type,)))
-    candidates.sort(key=lambda row: (len(row[0].split()), len(row[0])), reverse=True)
-    return candidates
-
-
-def list_item_filter_phrases(
-    available_item_types: set[str],
-) -> tuple[ItemFilterPhrase, ...]:
-    output: list[ItemFilterPhrase] = []
-    seen: set[ItemFilterPhrase] = set()
-    for phrase, label, configured_types in _filter_candidates():
-        item_types = _existing_types(configured_types, available_item_types)
-        if not item_types:
-            continue
-        row = ItemFilterPhrase(phrase, label, item_types)
-        if row in seen:
-            continue
-        seen.add(row)
-        output.append(row)
-    return tuple(output)
-
-
-def _extract_trailing_filter(
-    text: str,
-    available_item_types: set[str],
-) -> tuple[ItemTypeFilter | None, str]:
-    raw_tokens = text.strip().split()
-    for phrase, label, configured_types in _filter_candidates():
-        phrase_tokens = phrase.split()
-        if len(phrase_tokens) > len(raw_tokens):
-            continue
-        raw_suffix = " ".join(raw_tokens[-len(phrase_tokens) :])
-        if _normalize_filter_text(raw_suffix) != phrase:
-            continue
-        item_types = _existing_types(configured_types, available_item_types)
-        if not item_types:
-            continue
-        remaining = " ".join(raw_tokens[: -len(phrase_tokens)]).strip()
-        return ItemTypeFilter(label, item_types, phrase), remaining
-    return None, text.strip()
-
-
 def _first_clause_stat_text(text: str) -> str:
     boundaries = []
     comparison = _COMPARISON_RE.search(text)
@@ -292,20 +150,17 @@ def _extract_leading_filter(
     if first_stat in known_stats:
         return None, text.strip()
 
-    for phrase, label, configured_types in _filter_candidates():
-        phrase_tokens = phrase.split()
+    for row in list_item_filter_phrases(available_item_types):
+        phrase_tokens = row.phrase.split()
         if len(phrase_tokens) >= len(raw_tokens):
             continue
         raw_prefix = " ".join(raw_tokens[: len(phrase_tokens)])
-        if _normalize_filter_text(raw_prefix) != phrase:
-            continue
-        item_types = _existing_types(configured_types, available_item_types)
-        if not item_types:
+        if normalize_filter_text(raw_prefix) != row.phrase:
             continue
         remaining = " ".join(raw_tokens[len(phrase_tokens) :]).strip()
         if not remaining:
             continue
-        return ItemTypeFilter(label, item_types, phrase), remaining
+        return ItemTypeFilter(row.label, row.item_types, row.phrase), remaining
     return None, text.strip()
 
 
@@ -314,7 +169,7 @@ def _extract_edge_filter(
     available_item_types: set[str],
     available_stats: list[str],
 ) -> tuple[ItemTypeFilter | None, str]:
-    trailing, remaining = _extract_trailing_filter(text, available_item_types)
+    trailing, remaining = extract_trailing_item_filter(text, available_item_types)
     if trailing is not None:
         return trailing, remaining
     return _extract_leading_filter(text, available_item_types, available_stats)
@@ -328,14 +183,14 @@ def _complete_natural_item_filter_phrase(
     if not item_text:
         return None
 
-    item_filter, remaining = _extract_trailing_filter(item_text, available_item_types)
+    item_filter, remaining = extract_trailing_item_filter(item_text, available_item_types)
     if item_filter is not None and not remaining.strip():
         return item_filter.consumed_text
 
     normalized = normalize_name(item_text)
     if " " not in normalized and normalized.endswith("s") and len(normalized) > 1:
         singular = item_text.rstrip().rstrip("sS")
-        item_filter, remaining = _extract_trailing_filter(singular, available_item_types)
+        item_filter, remaining = extract_trailing_item_filter(singular, available_item_types)
         if item_filter is not None and not remaining.strip():
             return item_filter.consumed_text
     return None
@@ -408,7 +263,7 @@ def parse_stat_expression(
         raise StatQuerySyntaxError(f'Unsupported Boolean operator: "{word}".')
 
     if available_stats is None:
-        item_filter, expression_text = _extract_trailing_filter(
+        item_filter, expression_text = extract_trailing_item_filter(
             expression_text,
             available_item_types,
         )

@@ -402,11 +402,11 @@ class QwenFallbackService:
                 return self._failed("database action is invalid", payload)
             return FallbackOutcome("database_action", database_request=request)
         if intent == "search":
-            if set(payload) != {"intent", "candidates"}:
-                return self._failed("search payload has unexpected fields", payload)
             candidates_obj = payload.get("candidates")
             if not isinstance(candidates_obj, list) or not 1 <= len(candidates_obj) <= 3:
                 return self._failed("missing or invalid search candidates", payload)
+            if set(payload) != {"intent", "candidates"}:
+                return self._failed("search payload has unexpected fields", payload)
 
             valid: list[SearchIntentRequest] = []
             seen: set[SearchIntentRequest] = set()
