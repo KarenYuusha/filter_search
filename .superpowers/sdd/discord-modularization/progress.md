@@ -13,4 +13,6 @@ Task 4: RED confirmed — view constants/classes/outcome wiring still owned by d
 Task 4: implementation head 6715c0cf64ca04be70f72fd40d049629484b6199.
 Task 4: complete (commits 33d8ebd..6715c0c, review clean; full suite 240 tests green).
 Task 5: RED confirmed — canonical app module missing; all prior tests remained green.
-Task 5: implementation head ff2806bf8be4f3ba26c96ef35d00c8419a15f838; GREEN/review pending.
+Task 5: implementation head ff2806bf8be4f3ba26c96ef35d00c8419a15f838.
+Task 5: complete (commits 464dd76..ff2806b, review clean; full suite 241 tests green).
+Task 6: final architecture assertions, cleanup, and exact-head verification pending.
