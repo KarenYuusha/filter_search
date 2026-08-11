@@ -17,12 +17,18 @@ class FakeLLM:
         return self.payload
 
 
-def service(payload, validator=lambda request: True):
+def service(
+    payload,
+    validator=lambda request: True,
+    database_validator=lambda request: True,
+    database_grounder=lambda request, text: True,
+):
     return QwenFallbackService(
         FakeLLM(payload),
         validate_search_request=validator,
-        validate_database_action=lambda request: True,
-        stat_catalog=("Critical Rate", "Critical Damage", "MaxHP"),
+        validate_database_action=database_validator,
+        ground_database_action=database_grounder,
+        stat_catalog=("Critical Rate", "Critical Damage", "MaxHP", "% stronger against Dark"),
         alias_catalog=(
             "cr -> critical rate",
             "crit -> Critical Rate / Critical Damage",
@@ -255,6 +261,7 @@ class StructuredFallbackTests(unittest.TestCase):
             llm,
             validate_search_request=lambda request: True,
             validate_database_action=lambda request: True,
+            ground_database_action=lambda request, text: True,
             stat_catalog=("Critical Rate",),
             alias_catalog=(),
             item_filter_catalog=("bow -> Bow",),
@@ -269,6 +276,45 @@ class StructuredFallbackTests(unittest.TestCase):
             for branch in llm.schemas[0]["oneOf"]
         }
         self.assertTrue({"search", "database_action", "help", "refuse"}.issubset(intents))
+
+    def test_ungrounded_database_entity_is_rejected(self):
+        fallback = service(
+            {
+                "intent": "database_action",
+                "action": "count_items_with_stat",
+                "stat": "% stronger against Dark",
+            },
+            database_grounder=lambda request, text: False,
+        )
+
+        outcome = fallback.interpret("how many bow do you have", ())
+
+        self.assertEqual(outcome.kind, "failed")
+
+    def test_grounded_database_entity_is_accepted(self):
+        fallback = service(
+            {
+                "intent": "database_action",
+                "action": "count_items_by_type",
+                "item_type": "Bow",
+            },
+            database_grounder=lambda request, text: text == "how many bows do you have",
+        )
+
+        outcome = fallback.interpret("how many bows do you have", ())
+
+        self.assertEqual(outcome.kind, "database_action")
+        self.assertEqual(outcome.database_request.item_type, "Bow")
+
+    def test_no_argument_database_action_remains_accepted(self):
+        fallback = service(
+            {"intent": "database_action", "action": "list_stats"},
+            database_grounder=lambda request, text: True,
+        )
+
+        outcome = fallback.interpret("which stats can i search", ())
+
+        self.assertEqual(outcome.kind, "database_action")
 
 
 if __name__ == "__main__":
