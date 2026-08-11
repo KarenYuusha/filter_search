@@ -74,6 +74,7 @@ class QwenFallbackService:
         *,
         validate_search_request: Callable[[SearchIntentRequest], bool],
         validate_database_action: Callable[[DatabaseActionRequest], bool],
+        ground_database_action: Callable[[DatabaseActionRequest, str], bool],
         stat_catalog: tuple[str, ...],
         alias_catalog: tuple[str, ...],
         item_filter_catalog: tuple[str, ...],
@@ -81,6 +82,7 @@ class QwenFallbackService:
         self.llm_client = llm_client
         self.validate_search_request = validate_search_request
         self.validate_database_action = validate_database_action
+        self.ground_database_action = ground_database_action
         self.stat_catalog = stat_catalog
         self.alias_catalog = alias_catalog
         self.item_filter_catalog = item_filter_catalog
@@ -400,6 +402,8 @@ class QwenFallbackService:
             request = self._database_request_from_payload(payload)
             if request is None:
                 return self._failed("database action is invalid", payload)
+            if not self.ground_database_action(request, current_input):
+                return self._failed("database action is not grounded in current input", payload)
             return FallbackOutcome("database_action", database_request=request)
         if intent == "search":
             candidates_obj = payload.get("candidates")
