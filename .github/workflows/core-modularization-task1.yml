@@ -1,0 +1,28 @@
+name: Core modularization Task 1 RED
+on:
+  pull_request:
+
+jobs:
+  red:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/core-search-modularization
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - name: Verify current missing-candidates contract is RED
+        run: |
+          python - <<'PY'
+          import logging
+          from tests.test_structured_fallback import service
+
+          fallback = service({"intent": "search"})
+          with __import__('unittest').TestCase().assertLogs("toram_search.fallback", level="DEBUG") as captured:
+              outcome = fallback.interpret("which bow has the highest critical rate", ())
+          assert outcome.kind == "failed"
+          text = "\n".join(captured.output)
+          assert "missing or invalid search candidates" in text, text
+          PY
