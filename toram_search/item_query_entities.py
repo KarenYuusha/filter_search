@@ -163,10 +163,7 @@ def find_unique_fuzzy_item_filter_match(
         return None
     max_phrase_tokens = max(len(row.phrase.split()) for row in catalog)
 
-    best_by_semantic: dict[
-        tuple[str, tuple[str, ...]],
-        ItemFilterMatch,
-    ] = {}
+    candidates: list[ItemFilterMatch] = []
     for start in range(len(tokens)):
         max_length = min(max_phrase_tokens, len(tokens) - start)
         for length in range(1, max_length + 1):
@@ -184,33 +181,48 @@ def find_unique_fuzzy_item_filter_match(
                 score = min(weighted, token_score)
                 if score < fuzzy_threshold:
                     continue
-                match = ItemFilterMatch(
-                    typed_text=typed_text,
-                    token_indexes=indexes,
-                    phrase=row,
-                    canonical_phrase=canonical_filter_phrase(row, catalog),
-                    match_kind="fuzzy",
-                    score=score,
+                candidates.append(
+                    ItemFilterMatch(
+                        typed_text=typed_text,
+                        token_indexes=indexes,
+                        phrase=row,
+                        canonical_phrase=canonical_filter_phrase(row, catalog),
+                        match_kind="fuzzy",
+                        score=score,
+                    )
                 )
-                key = semantic_filter_key(row)
-                previous = best_by_semantic.get(key)
-                if previous is None or (
-                    match.score,
-                    len(match.token_indexes),
-                    -len(match.canonical_phrase),
-                ) > (
-                    previous.score,
-                    len(previous.token_indexes),
-                    -len(previous.canonical_phrase),
-                ):
-                    best_by_semantic[key] = match
+
+    if not candidates:
+        return None
+
+    max_fuzzy_size = max(len(match.token_indexes) for match in candidates)
+    if max_exact_size >= max_fuzzy_size:
+        return None
+    most_specific = [
+        match for match in candidates if len(match.token_indexes) == max_fuzzy_size
+    ]
+
+    best_by_semantic: dict[
+        tuple[str, tuple[str, ...]],
+        ItemFilterMatch,
+    ] = {}
+    for match in most_specific:
+        key = semantic_filter_key(match.phrase)
+        previous = best_by_semantic.get(key)
+        if previous is None or (
+            match.score,
+            -len(match.canonical_phrase),
+            match.canonical_phrase.casefold(),
+        ) > (
+            previous.score,
+            -len(previous.canonical_phrase),
+            previous.canonical_phrase.casefold(),
+        ):
+            best_by_semantic[key] = match
 
     if len(best_by_semantic) != 1:
         return None
-    match = next(iter(best_by_semantic.values()))
-    if max_exact_size >= len(match.token_indexes):
-        return None
-    return match
+    return next(iter(best_by_semantic.values()))
 
 
 def remaining_tokens(
