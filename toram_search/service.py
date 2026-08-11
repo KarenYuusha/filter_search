@@ -6,6 +6,7 @@ from typing import Literal, Mapping
 import search_items as core
 from toram_search.fallback import SearchIntentRequest
 from toram_search.reconstruction import try_reconstruct_simple_search
+from toram_search.routing import route_deterministically
 from toram_search.session import FailedQueryContext, PendingItemSearch
 from toram_search.understanding import ConfirmedItemChoice, understand_item_query
 
@@ -211,7 +212,7 @@ class SearchService:
         )
 
     def _execute_canonical_item_search(self, canonical_query: str) -> ServiceOutcome:
-        route = core.route_deterministically(
+        route = route_deterministically(
             canonical_query,
             self.repository,
             self.all_items,
@@ -227,7 +228,7 @@ class SearchService:
         query: str,
         context: FailedQueryContext,
     ) -> ServiceOutcome:
-        route = core.route_deterministically(
+        route = route_deterministically(
             query,
             self.repository,
             self.all_items,

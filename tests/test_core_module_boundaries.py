@@ -43,6 +43,12 @@ class CoreModuleBoundaryTests(unittest.TestCase):
             parser_module.parse_structured_search_request,
         )
 
+    def test_search_items_reexports_routing_symbols(self):
+        from toram_search.routing import DeterministicRoute, route_deterministically
+
+        self.assertIs(search_items.DeterministicRoute, DeterministicRoute)
+        self.assertIs(search_items.route_deterministically, route_deterministically)
+
     def test_editor_repository_stays_separate(self):
         from toram_data.repository import ItemRepository as EditorItemRepository
 
