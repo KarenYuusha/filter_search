@@ -11,6 +11,7 @@ from toram_data.aliases import (
     resolve_stat_term,
 )
 from toram_search.item_query_entities import (
+    ITEM_QUERY_FILLERS,
     ItemFilterMatch,
     QueryToken,
     find_exact_item_filter_matches,
@@ -18,7 +19,6 @@ from toram_search.item_query_entities import (
     remaining_tokens,
     tokenize_item_query,
 )
-from toram_search.reconstruction import _FILLERS
 
 
 UnderstandingDecision = Literal["execute", "clarify", "confirm", "suggest", "fallback"]
@@ -291,7 +291,7 @@ def _analyze_filter_match(
 ) -> tuple[_CoreOption | None, bool]:
     remaining = remaining_tokens(tokens, match.token_indexes)
     meaningful = tuple(
-        token for token in remaining if token.normalized not in _FILLERS
+        token for token in remaining if token.normalized not in ITEM_QUERY_FILLERS
     )
     if not meaningful:
         return None, False

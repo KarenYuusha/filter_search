@@ -12,6 +12,7 @@ from toram_data.aliases import (
 )
 from toram_data.stat_query import ItemFilterPhrase
 from toram_search.item_query_entities import (
+    ITEM_QUERY_FILLERS,
     find_exact_item_filter_matches,
     remaining_tokens,
     tokenize_item_query,
@@ -21,29 +22,6 @@ from toram_search.item_query_entities import (
 ReconstructionKind = Literal["success", "ambiguous", "no_match", "unsafe"]
 
 _MAX_RECONSTRUCTION_TOKENS = 24
-_FILLERS = frozenset(
-    {
-        "a",
-        "an",
-        "can",
-        "find",
-        "give",
-        "gives",
-        "has",
-        "have",
-        "having",
-        "i",
-        "me",
-        "show",
-        "some",
-        "that",
-        "the",
-        "want",
-        "which",
-        "with",
-        "you",
-    }
-)
 _RANK_WORDS = frozenset({"highest", "best", "most"})
 _COMPLEX_RE = re.compile(r"(>=|<=|==|>|<|=)|\b(?:and|or)\b", re.IGNORECASE)
 
@@ -92,7 +70,7 @@ def _recognize(
         stat_tokens = [
             token.normalized
             for token in remaining
-            if token.normalized not in _FILLERS
+            if token.normalized not in ITEM_QUERY_FILLERS
         ]
         if not stat_tokens:
             continue

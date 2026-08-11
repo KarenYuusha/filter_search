@@ -14,7 +14,7 @@ from toram_data.stat_query import ItemFilterPhrase, list_item_filter_phrases
 FilterMatchStatus = Literal["unique", "none", "ambiguous"]
 FilterMatchKind = Literal["exact", "fuzzy"]
 
-_FILTER_FUZZY_BOUNDARIES = frozenset(
+ITEM_QUERY_FILLERS = frozenset(
     {
         "a",
         "an",
@@ -37,6 +37,7 @@ _FILTER_FUZZY_BOUNDARIES = frozenset(
         "you",
     }
 )
+_FILTER_FUZZY_BOUNDARIES = ITEM_QUERY_FILLERS
 
 
 @dataclass(frozen=True)
