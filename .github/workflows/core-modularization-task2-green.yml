@@ -1,0 +1,43 @@
+name: Core modularization Task 2 GREEN runner
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  green:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/core-search-modularization
+          path: feature
+      - uses: actions/checkout@v4
+        with:
+          ref: verify/core-modularization-task1
+          path: verifier
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install rapidfuzz python-dotenv ollama discord.py
+      - name: Apply Task 2
+        working-directory: feature
+        run: python ../verifier/.github/scripts/task2_patch.py
+      - name: Compile
+        working-directory: feature
+        run: python -m py_compile toram_data/item_filters.py toram_data/stat_query.py search_items.py toram_search/item_query_entities.py toram_search/reconstruction.py
+      - name: Focused tests
+        working-directory: feature
+        run: python -m unittest tests.test_item_filters tests.test_item_query_entities tests.test_query_reconstruction tests.test_item_query_understanding -v
+      - name: Full suite
+        working-directory: feature
+        run: python -m unittest discover -s tests -v
+      - name: Commit Task 2
+        working-directory: feature
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add toram_data/item_filters.py toram_data/stat_query.py toram_search/item_query_entities.py toram_search/reconstruction.py search_items.py tests/test_item_filters.py
+          git commit -m "refactor: centralize item filter definitions"
+          git push origin HEAD:refactor/core-search-modularization
