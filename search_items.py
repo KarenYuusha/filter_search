@@ -14,6 +14,7 @@ from typing import Any, Callable, Iterable, Literal
 from rapidfuzz import fuzz
 
 from toram_search.help_db import DatabaseActionRequest, DatabaseQuestionService, HelpService
+from toram_search.fallback_adapter import build_fallback_service
 from toram_search.fallback import (
     FallbackOutcome,
     QwenFallbackService,
@@ -837,33 +838,7 @@ def _build_fallback_service(
     llm_client: object,
 ) -> QwenFallbackService:
     del all_items, help_service
-    aliases: list[str] = []
-    for alias, target in sorted(STAT_ALIASES.items()):
-        aliases.append(f"{alias} -> {target}")
-    for alias, targets in sorted(STAT_AMBIGUOUS_GROUPS.items()):
-        aliases.append(f"{alias} -> {' / '.join(targets)}")
-    for alias, target in sorted(SEARCH_ONLY_STAT_ALIASES.items()):
-        aliases.append(f"{alias} -> {target}")
-
-    filter_labels: list[str] = []
-    seen: set[str] = set()
-    for row in list_item_filter_phrases(repository.list_item_types()):
-        value = f"{row.phrase} -> {row.label}"
-        if value not in seen:
-            seen.add(value)
-            filter_labels.append(value)
-
-    return QwenFallbackService(
-        llm_client,
-        validate_search_request=lambda request: parse_structured_search_request(
-            request,
-            repository,
-        ) is not None,
-        validate_database_action=database_service.validate_request,
-        stat_catalog=tuple(repository.list_stat_names()),
-        alias_catalog=tuple(aliases),
-        item_filter_catalog=tuple(filter_labels),
-    )
+    return build_fallback_service(repository, database_service, llm_client)
 
 
 def _interactive_search_requests(

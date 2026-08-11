@@ -1,6 +1,11 @@
+import ast
+from pathlib import Path
+
 import unittest
 
 import search_items
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 from toram_data.search_models import (
     ClauseMatch,
     ItemDetail,
@@ -48,6 +53,20 @@ class CoreModuleBoundaryTests(unittest.TestCase):
 
         self.assertIs(search_items.DeterministicRoute, DeterministicRoute)
         self.assertIs(search_items.route_deterministically, route_deterministically)
+
+    def test_package_modules_do_not_import_top_level_search_items(self):
+        offenders = []
+        for package in ("toram_data", "toram_search"):
+            for path in sorted((PROJECT_ROOT / package).glob("*.py")):
+                tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.Import):
+                        if any(alias.name == "search_items" for alias in node.names):
+                            offenders.append(str(path.relative_to(PROJECT_ROOT)))
+                    elif isinstance(node, ast.ImportFrom) and node.module == "search_items":
+                        offenders.append(str(path.relative_to(PROJECT_ROOT)))
+
+        self.assertEqual(offenders, [])
 
     def test_editor_repository_stays_separate(self):
         from toram_data.repository import ItemRepository as EditorItemRepository
