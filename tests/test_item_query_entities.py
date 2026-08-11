@@ -1,5 +1,7 @@
 import unittest
+from unittest.mock import patch
 
+from toram_data.stat_query import ItemFilterPhrase
 from toram_search.item_query_entities import (
     find_exact_item_filter_matches,
     find_unique_fuzzy_item_filter_match,
@@ -54,6 +56,31 @@ class ItemQueryEntityTests(unittest.TestCase):
         )
         self.assertEqual(match.canonical_phrase, "wp xtal")
         self.assertEqual(match.match_kind, "fuzzy")
+
+    def test_fuzzy_same_semantic_filter_never_overrides_exact_match(self):
+        catalog = (
+            ItemFilterPhrase(
+                "weapon xtal",
+                "Weapon Crysta + Red Enhancer",
+                ("Weapon Crysta", "Enhancer Crysta (Red)"),
+            ),
+            ItemFilterPhrase(
+                "special gear xtal",
+                "Special Crysta",
+                ("Special Crysta",),
+            ),
+        )
+        tokens = tokenize_item_query("highest xtall cr weapon")
+        with patch(
+            "toram_search.item_query_entities.list_item_filter_phrases",
+            return_value=catalog,
+        ):
+            exact = find_exact_item_filter_matches(tokens, TYPES)
+            fuzzy = find_unique_fuzzy_item_filter_match(tokens, TYPES)
+
+        self.assertEqual(exact.status, "unique")
+        self.assertEqual(exact.matches[0].phrase.label, "Weapon Crysta + Red Enhancer")
+        self.assertIsNone(fuzzy)
 
 
 if __name__ == "__main__":
