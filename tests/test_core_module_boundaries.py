@@ -54,6 +54,16 @@ class CoreModuleBoundaryTests(unittest.TestCase):
         self.assertIs(search_items.DeterministicRoute, DeterministicRoute)
         self.assertIs(search_items.route_deterministically, route_deterministically)
 
+    def test_search_items_reexports_filter_symbols(self):
+        from toram_data import item_filters
+
+        self.assertIs(search_items.extract_item_filter, item_filters.extract_item_filter)
+        self.assertIs(search_items.resolve_item_filter, item_filters.resolve_item_filter)
+        self.assertIs(
+            search_items.list_item_filter_phrases,
+            item_filters.list_item_filter_phrases,
+        )
+
     def test_package_modules_do_not_import_top_level_search_items(self):
         offenders = []
         for package in ("toram_data", "toram_search"):
