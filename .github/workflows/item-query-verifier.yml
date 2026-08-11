@@ -10,11 +10,51 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 4dc98bbdf7e2f989a42a937363bf38b16a579210
+          ref: 1cf705cf4844515fa808d6628d890270b1f151ef
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - name: Install test dependencies
         run: python -m pip install --upgrade pip rapidfuzz discord.py python-dotenv ollama
-      - name: Task 6 fuzzy precedence RED
-        run: python -m unittest tests.test_item_query_entities.ItemQueryEntityTests.test_fuzzy_same_semantic_filter_never_overrides_exact_match -v
+      - name: Verify fuzzy precedence green
+        run: python -m unittest tests.test_item_query_entities tests.test_item_query_understanding tests.test_item_query_safety -v
+      - name: Verify real partial and fuzzy behavior
+        run: |
+          python - <<'PY'
+          import search_items as core
+          from toram_search.service import SearchService
+          from toram_search.session import FailedQueryContext
+
+          class MustNotCallLLM:
+              def complete(self, *args, **kwargs):
+                  raise AssertionError("Qwen must not be called")
+
+          repository = core.ItemRepository(core.DEFAULT_DATABASE)
+          try:
+              service = SearchService(repository, llm_client=MustNotCallLLM())
+
+              context = FailedQueryContext(max_entries=3)
+              partial = service.handle_query("highest xtall cr weapon", context)
+              assert partial.kind == "item_understanding", partial
+              understanding = partial.pending_item_search.understanding
+              assert understanding.decision == "suggest", understanding
+              assert understanding.suggested_query == "cr wp xtal", understanding
+              assert understanding.unresolved_tokens == ("highest",), understanding
+              assert context.snapshot() == ()
+
+              context = FailedQueryContext(max_entries=3)
+              fuzzy = service.handle_query("cr wepon xtal", context)
+              assert fuzzy.kind == "item_understanding", fuzzy
+              issue = fuzzy.pending_item_search.understanding.uncertainties[0]
+              assert issue.reason == "FUZZY_FILTER", issue
+              confirmed = service.continue_item_understanding(
+                  fuzzy.pending_item_search,
+                  issue.issue_id,
+                  issue.choices[0].value,
+                  context,
+              )
+              assert confirmed.kind == "search", confirmed
+              assert context.snapshot() == ()
+          finally:
+              repository.close()
+          PY
