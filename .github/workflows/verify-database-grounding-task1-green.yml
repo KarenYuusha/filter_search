@@ -1,0 +1,16 @@
+name: Verify database grounding task1 green
+
+on:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install rapidfuzz python-dotenv ollama discord.py
+      - run: python -m unittest tests.test_database_question_grounding -v
+      - run: python -m unittest tests.test_search_service -v
