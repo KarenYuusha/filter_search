@@ -22,7 +22,12 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           from toram_data.search_repository import ItemRepository
-          from toram_search.service import SearchService, StatClarificationPayload, StatResultsPayload
+          from toram_search.service import (
+              ExpressionResultsPayload,
+              SearchService,
+              StatClarificationPayload,
+              StatResultsPayload,
+          )
           from toram_search.session import FailedQueryContext
 
           class MustNotCallLLM:
@@ -35,11 +40,13 @@ jobs:
 
               consume = service.handle_query('consume dte', FailedQueryContext(max_entries=3))
               assert consume.kind == 'search', consume
-              assert isinstance(consume.payload, StatResultsPayload), consume.payload
+              assert isinstance(consume.payload, ExpressionResultsPayload), consume.payload
               assert consume.payload.parsed.filter is not None
               assert consume.payload.parsed.filter.label == 'Usable'
-              assert consume.payload.parsed.stat is not None
-              assert consume.payload.parsed.stat.stat_name == '% stronger against earth'
+              expression = consume.payload.parsed.resolved_expression
+              assert expression is not None
+              clause = expression.groups[0].clauses[0]
+              assert clause.stat_name.casefold() == '% stronger against earth'
 
               reconstructed = service.handle_query('xtall cr weapon', FailedQueryContext(max_entries=3))
               assert reconstructed.kind == 'search', reconstructed
