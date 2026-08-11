@@ -136,6 +136,41 @@ class DatabaseQuestionService:
                 return stat
         return None
 
+    def _input_phrases(self, text: str):
+        tokens = self._clean(text).split()
+        for width in range(len(tokens), 0, -1):
+            for start in range(len(tokens) - width + 1):
+                yield " ".join(tokens[start : start + width])
+
+    def is_request_grounded(self, request: DatabaseActionRequest, text: str) -> bool:
+        if request.action in {"list_stats", "list_item_types", "count_items_total"}:
+            return True
+
+        if request.action in {"count_items_by_type", "item_type_exists"}:
+            if request.item_type is None:
+                return False
+            target = self._canonical_item_type(request.item_type)
+            if target is None:
+                return False
+            return any(
+                resolved is not None and resolved[1] == target[1]
+                for phrase in self._input_phrases(text)
+                for resolved in (self._canonical_item_type_count_phrase(phrase),)
+            )
+
+        if request.action in {"count_items_with_stat", "stat_exists"}:
+            if request.stat is None:
+                return False
+            target = self._canonical_stat(request.stat)
+            if target is None:
+                return False
+            return any(
+                self._canonical_stat(phrase) == target
+                for phrase in self._input_phrases(text)
+            )
+
+        return False
+
     def match_direct(self, text: str) -> DatabaseActionRequest | None:
         raw = self._clean(text)
         q = raw.casefold()
