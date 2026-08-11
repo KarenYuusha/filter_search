@@ -1,54 +1,81 @@
-name: Core modularization Task 7 GREEN
+name: Core modularization final verification
 on:
   pull_request:
 
-permissions:
-  contents: write
-
 jobs:
-  green:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: refactor/core-search-modularization
-          path: feature
-      - uses: actions/checkout@v4
-        with:
-          ref: verify/core-modularization-task1
-          path: verifier
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - run: pip install rapidfuzz python-dotenv ollama discord.py
-      - name: Apply Task 7
-        working-directory: feature
-        run: python ../verifier/.github/scripts/task7_patch.py
-      - name: Compile
-        working-directory: feature
-        run: python -m py_compile toram_search/fallback_adapter.py toram_search/service.py search_items.py
-      - name: Dependency boundary
-        working-directory: feature
+      - name: Compile all core/frontends
+        run: python -m compileall -q toram_data toram_search search_items.py discord_bot.py
+      - name: Module boundary tests
         run: python -m unittest tests.test_core_module_boundaries -v
-      - name: Focused tests
-        working-directory: feature
+      - name: Real database smoke
         run: |
-          python -m unittest \
-            tests.test_search_service \
-            tests.test_structured_fallback \
-            tests.test_item_query_understanding \
-            tests.test_query_reconstruction \
-            tests.test_item_search_relevance \
-            tests.test_direct_structured_intent \
-            -v
+          python - <<'PY'
+          from pathlib import Path
+          from toram_data.search_repository import ItemRepository
+          from toram_search.service import SearchService, StatClarificationPayload, StatResultsPayload
+          from toram_search.session import FailedQueryContext
+
+          class MustNotCallLLM:
+              def complete(self, *args, **kwargs):
+                  raise AssertionError('deterministic query unexpectedly called Qwen')
+
+          repo = ItemRepository(Path('coryn_data/database/items.sqlite'))
+          try:
+              service = SearchService(repo, llm_client=MustNotCallLLM())
+
+              consume = service.handle_query('consume dte', FailedQueryContext(max_entries=3))
+              assert consume.kind == 'search', consume
+              assert isinstance(consume.payload, StatResultsPayload), consume.payload
+              assert consume.payload.parsed.filter is not None
+              assert consume.payload.parsed.filter.label == 'Usable'
+              assert consume.payload.parsed.stat is not None
+              assert consume.payload.parsed.stat.stat_name == '% stronger against earth'
+
+              reconstructed = service.handle_query('xtall cr weapon', FailedQueryContext(max_entries=3))
+              assert reconstructed.kind == 'search', reconstructed
+              assert isinstance(reconstructed.payload, StatResultsPayload), reconstructed.payload
+              assert reconstructed.payload.parsed.stat is not None
+              assert reconstructed.payload.parsed.stat.stat_name == 'Critical Rate'
+
+              ambiguous = service.handle_query('crit xtal weapon', FailedQueryContext(max_entries=3))
+              assert ambiguous.kind == 'search', ambiguous
+              assert isinstance(ambiguous.payload, StatClarificationPayload), ambiguous.payload
+
+              exact_name = repo.list_items()[0].name
+              exact = service.handle_query(exact_name, FailedQueryContext(max_entries=3))
+              assert exact.kind == 'search', exact
+          finally:
+              repo.close()
+          print('real database smoke: OK')
+          PY
+      - name: Dependency direction
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+
+          offenders = []
+          for package in ('toram_data', 'toram_search'):
+              for path in sorted(Path(package).glob('*.py')):
+                  tree = ast.parse(path.read_text(encoding='utf-8'), filename=str(path))
+                  for node in ast.walk(tree):
+                      if isinstance(node, ast.Import):
+                          if any(alias.name == 'search_items' for alias in node.names):
+                              offenders.append(str(path))
+                      elif isinstance(node, ast.ImportFrom) and node.module == 'search_items':
+                          offenders.append(str(path))
+          assert not offenders, offenders
+          print('dependency direction: OK')
+          PY
       - name: Full suite
-        working-directory: feature
         run: python -m unittest discover -s tests -v
-      - name: Commit Task 7
-        working-directory: feature
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add toram_search/fallback_adapter.py toram_search/service.py search_items.py tests/test_core_module_boundaries.py
-          git commit -m "refactor: decouple search service from cli module"
-          git push origin HEAD:refactor/core-search-modularization
