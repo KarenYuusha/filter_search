@@ -29,7 +29,7 @@ from toram_search.service import (
     format_search_request,
     item_id_from_payload,
 )
-from toram_search.session import FailedQueryContext
+from toram_search.session import FailedQueryContext, PendingItemSearch
 
 
 logger = logging.getLogger(__name__)
@@ -67,6 +67,7 @@ class DiscordSearchSession:
     image_index: int = 0
     pending_requests: tuple[SearchIntentRequest, ...] = ()
     selected_request_index: int = 0
+    pending_item_search: PendingItemSearch | None = None
 
 
 class DiscordSessionManager:
@@ -544,6 +545,44 @@ def run_clarification_sync(
     try:
         service = SearchService(repository)
         return service.continue_clarification(parsed, choices)
+    finally:
+        repository.close()
+
+
+def run_item_understanding_choice_sync(
+    database_path: Path,
+    pending: PendingItemSearch,
+    issue_id: str,
+    selected_value: str,
+    context: FailedQueryContext,
+    *,
+    repository_factory=core.ItemRepository,
+) -> ServiceOutcome:
+    repository = repository_factory(database_path.resolve())
+    try:
+        return SearchService(repository).continue_item_understanding(
+            pending,
+            issue_id,
+            selected_value,
+            context,
+        )
+    finally:
+        repository.close()
+
+
+def run_pending_item_search_confirmation_sync(
+    database_path: Path,
+    pending: PendingItemSearch,
+    context: FailedQueryContext,
+    *,
+    repository_factory=core.ItemRepository,
+) -> ServiceOutcome:
+    repository = repository_factory(database_path.resolve())
+    try:
+        return SearchService(repository).confirm_pending_item_search(
+            pending,
+            context,
+        )
     finally:
         repository.close()
 
@@ -1088,6 +1127,238 @@ def build_clarification_embed(payload: StatClarificationPayload) -> discord.Embe
     )
 
 
+def build_item_understanding_embed(pending: PendingItemSearch) -> discord.Embed:
+    understanding = pending.understanding
+    first_issue = understanding.uncertainties[0] if understanding.uncertainties else None
+
+    if understanding.decision == "clarify" and first_issue is not None:
+        title = f'What does "{first_issue.typed_text}" mean?'
+        description = "\n".join(f"• {choice.value}" for choice in first_issue.choices)
+    elif understanding.decision == "confirm" and first_issue is not None:
+        title = "Confirm correction"
+        choice = first_issue.choices[0] if first_issue.choices else None
+        description = (
+            f'Did you mean **{choice.value}** for "{first_issue.typed_text}"?'
+            if choice is not None
+            else "Confirm the suggested correction."
+        )
+    elif understanding.decision == "suggest":
+        title = "I understood part of that search"
+        description = "I can offer one safe search without guessing about the unresolved wording."
+    else:
+        title = "Ready to search"
+        description = "The corrected search is fully resolved."
+
+    embed = discord.Embed(
+        title=truncate_discord_text(title, 256),
+        description=truncate_discord_text(description, 4096),
+    )
+    if understanding.resolved_parts:
+        _safe_field(
+            embed,
+            "I understood",
+            "\n".join(f"• {part.display_label}" for part in understanding.resolved_parts),
+        )
+    if understanding.unresolved_tokens:
+        _safe_field(
+            embed,
+            "I couldn't safely interpret",
+            "\n".join(f"• `{token}`" for token in understanding.unresolved_tokens),
+        )
+    if understanding.decision == "suggest" and understanding.suggested_query:
+        semantic = " + ".join(
+            part.display_label for part in understanding.resolved_parts
+        )
+        _safe_field(embed, "Suggested search", semantic or understanding.suggested_query)
+    elif understanding.decision == "confirm" and not understanding.uncertainties:
+        semantic = " + ".join(
+            part.display_label for part in understanding.resolved_parts
+        )
+        if semantic:
+            _safe_field(embed, "Search", semantic)
+    canonical = understanding.suggested_query or understanding.canonical_query
+    if canonical:
+        _safe_field(embed, "Search form", f"`{canonical}`")
+    return embed
+
+
+class ItemUnderstandingView(SessionBoundView):
+    def __init__(
+        self,
+        *,
+        sessions: DiscordSessionManager,
+        key: SessionKey,
+        generation: int,
+        database_path: Path,
+        pending: PendingItemSearch,
+    ) -> None:
+        super().__init__(
+            sessions=sessions,
+            key=key,
+            generation=generation,
+            owner_id=key[2],
+        )
+        self.database_path = database_path
+        self.pending = pending
+        understanding = pending.understanding
+
+        if understanding.uncertainties:
+            issue = understanding.uncertainties[0]
+            if issue.mode == "choose":
+                for choice in issue.choices:
+                    self.add_item(
+                        ActionButton(
+                            label=truncate_discord_text(choice.value, 80),
+                            style=discord.ButtonStyle.primary,
+                            handler=lambda interaction, value=choice.value: self._choose(
+                                interaction, value
+                            ),
+                        )
+                    )
+                self.add_item(
+                    ActionButton(
+                        label="Cancel",
+                        style=discord.ButtonStyle.secondary,
+                        handler=self._cancel,
+                    )
+                )
+            else:
+                choice = issue.choices[0]
+                self.add_item(
+                    ActionButton(
+                        label=truncate_discord_text(f"Use {choice.value}", 80),
+                        style=discord.ButtonStyle.success,
+                        handler=lambda interaction, value=choice.value: self._choose(
+                            interaction, value
+                        ),
+                    )
+                )
+                self.add_item(
+                    ActionButton(
+                        label="No",
+                        style=discord.ButtonStyle.secondary,
+                        handler=self._cancel,
+                    )
+                )
+        elif understanding.decision == "suggest":
+            self.add_item(
+                ActionButton(
+                    label="Use suggestion",
+                    style=discord.ButtonStyle.success,
+                    handler=self._confirm_pending,
+                )
+            )
+            self.add_item(
+                ActionButton(
+                    label="Cancel",
+                    style=discord.ButtonStyle.secondary,
+                    handler=self._cancel,
+                )
+            )
+        elif understanding.decision == "confirm":
+            self.add_item(
+                ActionButton(
+                    label="Search",
+                    style=discord.ButtonStyle.success,
+                    handler=self._confirm_pending,
+                )
+            )
+            self.add_item(
+                ActionButton(
+                    label="Edit",
+                    style=discord.ButtonStyle.secondary,
+                    handler=self._edit,
+                )
+            )
+
+    async def _choose(self, interaction: discord.Interaction, selected: str) -> None:
+        session = self.sessions.get(self.key)
+        if session is None or not self.pending.understanding.uncertainties:
+            return
+        issue = self.pending.understanding.uncertainties[0]
+        await interaction.response.defer()
+        outcome = await asyncio.to_thread(
+            run_item_understanding_choice_sync,
+            self.database_path,
+            self.pending,
+            issue.issue_id,
+            selected,
+            session.failed_context,
+        )
+        if not self.sessions.is_current(self.key, self.generation):
+            return
+        session = self.sessions.get(self.key)
+        if session is None:
+            return
+        if outcome.kind == "search":
+            session.pending_item_search = None
+            if not isinstance(outcome.payload, StatClarificationPayload):
+                session.failed_context.clear()
+        elif outcome.kind == "item_understanding":
+            session.pending_item_search = outcome.pending_item_search
+        await edit_service_outcome(
+            interaction,
+            outcome,
+            sessions=self.sessions,
+            key=self.key,
+            generation=self.generation,
+            database_path=self.database_path,
+        )
+
+    async def _confirm_pending(self, interaction: discord.Interaction) -> None:
+        session = self.sessions.get(self.key)
+        if session is None:
+            return
+        await interaction.response.defer()
+        outcome = await asyncio.to_thread(
+            run_pending_item_search_confirmation_sync,
+            self.database_path,
+            self.pending,
+            session.failed_context,
+        )
+        if not self.sessions.is_current(self.key, self.generation):
+            return
+        session = self.sessions.get(self.key)
+        if session is None:
+            return
+        if outcome.kind == "search":
+            session.pending_item_search = None
+            if not isinstance(outcome.payload, StatClarificationPayload):
+                session.failed_context.clear()
+        await edit_service_outcome(
+            interaction,
+            outcome,
+            sessions=self.sessions,
+            key=self.key,
+            generation=self.generation,
+            database_path=self.database_path,
+        )
+
+    async def _cancel(self, interaction: discord.Interaction) -> None:
+        session = self.sessions.get(self.key)
+        if session is not None:
+            session.pending_item_search = None
+        await interaction.response.edit_message(
+            embed=_build_text_embed("Search cancelled", "No search was executed."),
+            view=None,
+            attachments=[],
+        )
+
+    async def _edit(self, interaction: discord.Interaction) -> None:
+        session = self.sessions.get(self.key)
+        if session is not None:
+            session.pending_item_search = None
+        prefix = bot_example_prefix(interaction.guild, interaction.client.user)
+        await interaction.response.edit_message(
+            embed=_build_text_embed(
+                "Search not executed",
+                f"Send a new {prefix} query with the changes you want.",
+            ),
+            view=None,
+            attachments=[],
+        )
+
+
 class QwenConfirmationView(SessionBoundView):
     def __init__(
         self,
@@ -1312,6 +1583,24 @@ def build_service_outcome_message(
                 description,
             ),
             None,
+            None,
+        )
+
+    if outcome.kind == "item_understanding":
+        pending = outcome.pending_item_search
+        if pending is None:
+            return _build_text_embed("Search failed", "No item interpretation was produced."), None, None
+        if session is not None:
+            session.pending_item_search = pending
+        return (
+            build_item_understanding_embed(pending),
+            ItemUnderstandingView(
+                sessions=sessions,
+                key=key,
+                generation=generation,
+                database_path=database_path,
+                pending=pending,
+            ),
             None,
         )
 
