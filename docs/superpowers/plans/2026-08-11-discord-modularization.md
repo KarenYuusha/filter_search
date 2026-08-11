@@ -13,12 +13,13 @@
 - This is a structural refactor only; no intended Discord UX or search behavior changes.
 - Preserve `PAGE_SIZE = 5` and `VIEW_TIMEOUT_SECONDS = 900` exactly.
 - Preserve environment variables `DISCORD_BOT_TOKEN`, `DISCORD_GUILD_IDS`, and legacy `DISCORD_GUILD_ID` exactly.
+- Preserve the default `.env` lookup at the repository root exactly; moving config into a package must not change that path.
 - Preserve session generation semantics, failed-query-context cloning, pending clarification state, and per-guild/channel/user isolation.
 - Do not add session expiration, TTLs, cleanup tasks, background workers, or bounded caches.
 - Preserve all existing button/select labels, embed wording, image handling, Qwen invocation behavior, and repository open/close lifecycle.
 - `toram_search` and `toram_data` must not import `toram_discord` or `discord_bot`.
 - `toram_discord` must never import `discord_bot` to obtain implementation logic.
-- Keep `discord_bot.py` backward compatible for existing public imports used by the project.
+- Keep `discord_bot.py` backward compatible for existing public imports used by the project, including public constants already exposed by the module.
 - If an unrelated pre-existing bug is discovered, document it rather than changing behavior in this refactor unless it blocks the modularization.
 - No new runtime dependencies.
 
@@ -63,8 +64,8 @@
 **Interfaces:**
 - Consumes: `core.DEFAULT_DATABASE`, `SearchPayload`, `ItemDetailPayload`, `SearchIntentRequest`, `FailedQueryContext`, `PendingItemSearch`.
 - Produces from `toram_discord.config`:
-  - `DiscordBotConfig`
   - `PROJECT_ROOT`
+  - `DiscordBotConfig`
   - `load_project_environment(env_path: Path | None = None) -> Path`
   - `load_config(environ: Mapping[str, str] = os.environ) -> DiscordBotConfig`
   - `build_intents() -> discord.Intents`
@@ -79,7 +80,7 @@
 
 - [ ] **Step 1: Add RED ownership/compatibility tests**
 
-Create `tests/test_discord_module_boundaries.py` with the first boundary assertions:
+Create `tests/test_discord_module_boundaries.py`:
 
 ```python
 import unittest
@@ -91,6 +92,7 @@ class DiscordModuleBoundaryTests(unittest.TestCase):
     def test_config_symbols_have_canonical_package_owner(self):
         from toram_discord.config import (
             DiscordBotConfig,
+            PROJECT_ROOT,
             build_intents,
             extract_mentioned_query,
             is_allowed_message,
@@ -99,6 +101,7 @@ class DiscordModuleBoundaryTests(unittest.TestCase):
         )
 
         self.assertIs(discord_bot.DiscordBotConfig, DiscordBotConfig)
+        self.assertEqual(discord_bot.PROJECT_ROOT, PROJECT_ROOT)
         self.assertIs(discord_bot.build_intents, build_intents)
         self.assertIs(discord_bot.extract_mentioned_query, extract_mentioned_query)
         self.assertIs(discord_bot.is_allowed_message, is_allowed_message)
@@ -114,34 +117,21 @@ class DiscordModuleBoundaryTests(unittest.TestCase):
 
 - [ ] **Step 2: Run the new tests and verify RED**
 
-Run:
-
 ```bash
 python -m unittest tests.test_discord_module_boundaries -v
 ```
 
 Expected: FAIL because `toram_discord.config` and `toram_discord.sessions` do not exist yet.
 
-- [ ] **Step 3: Create the package and move config code verbatim**
+- [ ] **Step 3: Create the package and move config behavior**
 
-Create `toram_discord/__init__.py` as:
+Create `toram_discord/__init__.py`:
 
 ```python
 """Discord frontend package for Toram item search."""
 ```
 
-Create `toram_discord/config.py` by moving, without semantic edits:
-
-- `PROJECT_ROOT`
-- `DiscordBotConfig`
-- `load_project_environment`
-- `load_config`
-- `build_intents`
-- `is_allowed_message`
-- `extract_mentioned_query`
-- `bot_example_prefix`
-
-Use these imports:
+Create `toram_discord/config.py` with these imports:
 
 ```python
 from __future__ import annotations
@@ -156,13 +146,27 @@ import discord
 from dotenv import load_dotenv
 
 import search_items as core
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 ```
+
+The `parents[1]` form is required because `config.py` lives one directory below the old `discord_bot.py`; it preserves the existing repository-root `.env` lookup.
+
+Move without other semantic edits:
+
+- `DiscordBotConfig`
+- `load_project_environment`
+- `load_config`
+- `build_intents`
+- `is_allowed_message`
+- `extract_mentioned_query`
+- `bot_example_prefix`
 
 Keep `DiscordBotConfig.database_path: Path = core.DEFAULT_DATABASE` and preserve the existing legacy `guild_id` property exactly.
 
 - [ ] **Step 4: Move session code verbatim**
 
-Create `toram_discord/sessions.py` with:
+Create `toram_discord/sessions.py`:
 
 ```python
 from __future__ import annotations
@@ -176,7 +180,7 @@ from toram_search.session import FailedQueryContext, PendingItemSearch
 SessionKey = tuple[int, int, int]
 ```
 
-Then move `DiscordSearchSession` and `DiscordSessionManager` unchanged, including:
+Move `DiscordSearchSession` and `DiscordSessionManager` unchanged, including:
 
 ```python
 cloned = FailedQueryContext(max_entries=3)
@@ -186,10 +190,9 @@ and the existing generation increment behavior.
 
 - [ ] **Step 5: Replace local definitions in `discord_bot.py` with canonical imports**
 
-At the top of `discord_bot.py`, import:
-
 ```python
 from toram_discord.config import (
+    PROJECT_ROOT,
     DiscordBotConfig,
     bot_example_prefix,
     build_intents,
@@ -205,11 +208,9 @@ from toram_discord.sessions import (
 )
 ```
 
-Remove the local definitions that were moved. Do not change any later call sites yet.
+Remove the local definitions that were moved. Do not change later call sites yet.
 
 - [ ] **Step 6: Run focused config/session/gate tests**
-
-Run:
 
 ```bash
 python -m unittest \
@@ -235,7 +236,7 @@ git commit -m "refactor: extract Discord config and sessions"
 
 **Files:**
 - Create: `toram_discord/render.py`
-- Modify: `discord_bot.py` (remove local render/image implementations; re-export canonical names)
+- Modify: `discord_bot.py`
 - Modify: `tests/test_discord_module_boundaries.py`
 - Test: existing rendering/image/help/detail tests in `tests/test_discord_bot.py`
 
@@ -255,15 +256,15 @@ git commit -m "refactor: extract Discord config and sessions"
   - `build_item_understanding_embed`
   - `build_qwen_confirmation_embed`
   - package-private `_build_text_embed`, `_result_count`, `_result_item`
-- `views.py` will later consume `_build_text_embed`, `_result_count`, `_result_item`, and all public embed builders.
 
 - [ ] **Step 1: Add RED canonical-owner tests for rendering**
 
-Append to `DiscordModuleBoundaryTests`:
+Append:
 
 ```python
 def test_render_symbols_have_canonical_package_owner(self):
     from toram_discord.render import (
+        PAGE_SIZE,
         build_help_embed,
         build_item_detail_embed,
         build_search_results_embed,
@@ -272,6 +273,7 @@ def test_render_symbols_have_canonical_package_owner(self):
         visible_attachment_name,
     )
 
+    self.assertEqual(discord_bot.PAGE_SIZE, PAGE_SIZE)
     self.assertIs(discord_bot.build_help_embed, build_help_embed)
     self.assertIs(discord_bot.build_item_detail_embed, build_item_detail_embed)
     self.assertIs(discord_bot.build_search_results_embed, build_search_results_embed)
@@ -289,8 +291,6 @@ python -m unittest tests.test_discord_module_boundaries.DiscordModuleBoundaryTes
 Expected: FAIL because `toram_discord.render` does not exist.
 
 - [ ] **Step 3: Create `toram_discord/render.py` and move presentation code without wording changes**
-
-Use imports equivalent to the current module:
 
 ```python
 from __future__ import annotations
@@ -318,7 +318,7 @@ from toram_search.session import PendingItemSearch
 PAGE_SIZE = 5
 ```
 
-Move exactly these existing helpers/builders:
+Move exactly:
 
 ```text
 truncate_discord_text
@@ -342,11 +342,9 @@ build_item_understanding_embed
 build_qwen_confirmation_embed
 ```
 
-Do not change any strings, field sizes, page math, image suffix rules, source formatting, stat formatting, or result ordering.
+Do not change strings, field sizes, page math, image suffix rules, source formatting, stat formatting, or result ordering.
 
 - [ ] **Step 4: Re-export moved public names from `discord_bot.py`**
-
-Import the moved names from `toram_discord.render`. Also import private helpers needed by still-local view code:
 
 ```python
 from toram_discord.render import (
@@ -368,17 +366,11 @@ from toram_discord.render import (
 )
 ```
 
-Delete the moved implementations from `discord_bot.py` so there is one implementation owner.
+Private helpers are imported here only because still-local view code needs them during the staged refactor. They are not part of the final compatibility surface.
 
-- [ ] **Step 5: Run rendering-focused regression tests**
+Delete the moved implementations from `discord_bot.py`.
 
-First list the test methods if needed with:
-
-```bash
-python -m unittest tests.test_discord_bot -v
-```
-
-Then rerun the whole Discord test module after the move:
+- [ ] **Step 5: Run rendering and complete Discord tests**
 
 ```bash
 python -m unittest tests.test_discord_bot tests.test_discord_module_boundaries -v
@@ -401,17 +393,11 @@ git commit -m "refactor: extract Discord rendering"
 - Create: `toram_discord/views.py`
 - Modify: `discord_bot.py`
 - Modify: `tests/test_discord_module_boundaries.py`
-- Modify: `tests/test_discord_bot.py` only if existing mocks target `discord_bot.SearchService`, `discord_bot.run_query_sync`, or another implementation-local symbol that no longer controls the canonical function.
+- Modify: `tests/test_discord_bot.py` only when existing mocks target an implementation-local symbol that has moved.
 
 **Interfaces:**
-- Consumes:
-  - `DiscordSessionManager`, `SessionKey`
-  - `SearchService`
-  - `OllamaQwenClient`
-  - `SearchIntentRequest`
-  - `FailedQueryContext`, `PendingItemSearch`
-  - canonical search repository exposed through `core.ItemRepository`
-- Produces in `toram_discord.views`:
+- Consumes `DiscordSessionManager`, `SessionKey`, `SearchService`, `OllamaQwenClient`, `SearchIntentRequest`, `FailedQueryContext`, `PendingItemSearch`, and `core.ItemRepository`.
+- Produces:
   - `run_query_sync`
   - `run_confirmed_request_sync`
   - `run_clarification_sync`
@@ -420,11 +406,8 @@ git commit -m "refactor: extract Discord rendering"
   - `run_item_detail_sync`
   - `run_upgrade_selection_sync`
   - `send_if_current`
-- Later Task 4 extends this same module with view classes.
 
 - [ ] **Step 1: Add RED bridge ownership tests**
-
-Append:
 
 ```python
 def test_service_bridge_has_canonical_package_owner(self):
@@ -451,9 +434,7 @@ python -m unittest tests.test_discord_module_boundaries.DiscordModuleBoundaryTes
 
 Expected: FAIL because `toram_discord.views` does not exist.
 
-- [ ] **Step 3: Create `toram_discord/views.py` with only the bridge first**
-
-Start with:
+- [ ] **Step 3: Create `toram_discord/views.py` with the bridge first**
 
 ```python
 from __future__ import annotations
@@ -469,7 +450,7 @@ from toram_search.session import FailedQueryContext, PendingItemSearch
 from toram_discord.sessions import DiscordSessionManager, SessionKey
 ```
 
-Move the seven existing `run_*_sync` functions and `send_if_current` verbatim. Preserve the repository lifecycle pattern in every bridge function:
+Move the seven existing `run_*_sync` functions and `send_if_current` verbatim. Preserve every repository lifecycle:
 
 ```python
 repository = repository_factory(database_path.resolve())
@@ -479,20 +460,20 @@ finally:
     repository.close()
 ```
 
-Do not consolidate the bridge functions into a new abstraction during this refactor.
+Do not introduce a new bridge abstraction in this refactor.
 
 - [ ] **Step 4: Re-export bridge functions from `discord_bot.py`**
 
 Import them from `toram_discord.views` and remove their local definitions.
 
-If a test previously patches a local dependency used inside one of these functions, redirect the patch to the canonical module. Example:
+If a behavioral test patches an implementation dependency, redirect it to the canonical owner, for example:
 
 ```python
 with patch("toram_discord.views.SearchService", FakeSearchService):
     ...
 ```
 
-Do not preserve monkey-patch-by-alias behavior through wrappers; preserve callable import compatibility instead.
+Preserve import compatibility, not alias-based monkey-patching internals.
 
 - [ ] **Step 5: Run bridge and full Discord tests**
 
@@ -520,15 +501,8 @@ git commit -m "refactor: extract Discord service bridge"
 - Modify: `tests/test_discord_bot.py` only for canonical patch paths
 
 **Interfaces:**
-- Consumes from `toram_discord.sessions`:
-  - `DiscordSessionManager`
-  - `SessionKey`
-- Consumes from `toram_discord.render`:
-  - `PAGE_SIZE`
-  - `_build_text_embed`
-  - `_result_count`
-  - `_result_item`
-  - all existing embed/image helpers used by callbacks
+- Consumes from `toram_discord.sessions`: `DiscordSessionManager`, `SessionKey`.
+- Consumes from `toram_discord.render`: `PAGE_SIZE`, private presentation helpers, and embed/image builders.
 - Produces:
   - `VIEW_TIMEOUT_SECONDS = 900`
   - `SessionBoundView`
@@ -546,8 +520,6 @@ git commit -m "refactor: extract Discord service bridge"
 
 - [ ] **Step 1: Add RED view ownership tests**
 
-Append:
-
 ```python
 def test_view_symbols_have_canonical_package_owner(self):
     from toram_discord.views import (
@@ -557,9 +529,11 @@ def test_view_symbols_have_canonical_package_owner(self):
         SearchResultsView,
         SessionBoundView,
         StatClarificationView,
+        VIEW_TIMEOUT_SECONDS,
         build_service_outcome_message,
     )
 
+    self.assertEqual(discord_bot.VIEW_TIMEOUT_SECONDS, VIEW_TIMEOUT_SECONDS)
     self.assertIs(discord_bot.SessionBoundView, SessionBoundView)
     self.assertIs(discord_bot.SearchResultsView, SearchResultsView)
     self.assertIs(discord_bot.ItemDetailView, ItemDetailView)
@@ -577,9 +551,7 @@ python -m unittest tests.test_discord_module_boundaries.DiscordModuleBoundaryTes
 
 Expected: FAIL because those classes/functions are still defined in `discord_bot.py`.
 
-- [ ] **Step 3: Add the exact view imports/constants to `toram_discord/views.py`**
-
-Extend imports with:
+- [ ] **Step 3: Extend `toram_discord/views.py` imports/constants**
 
 ```python
 import asyncio
@@ -608,6 +580,7 @@ from toram_discord.render import (
     _result_count,
     _result_item,
     build_clarification_embed,
+    build_help_embed,
     build_item_detail_embed,
     build_item_understanding_embed,
     build_qwen_confirmation_embed,
@@ -622,9 +595,11 @@ from toram_discord.render import (
 VIEW_TIMEOUT_SECONDS = 900
 ```
 
-- [ ] **Step 4: Move the base components and result/detail views verbatim**
+Keep the Task 3 imports (`Path`, `core`, `SearchIntentRequest`, `OllamaQwenClient`, `SearchService`, `FailedQueryContext`, `PendingItemSearch`, `DiscordSessionManager`, `SessionKey`) as well.
 
-Move in this order so references are defined before use:
+- [ ] **Step 4: Move base components and result/detail views verbatim**
+
+Move in this order:
 
 ```text
 SessionBoundView
@@ -636,15 +611,7 @@ ItemDetailView
 build_item_detail_message
 ```
 
-Preserve:
-
-- owner-only interaction check wording
-- stale-generation interaction check wording
-- `asyncio.to_thread` calls
-- pagination clamping and page mutations
-- `selected_index`, `detail_payload`, and `image_index` mutations
-- upgrade-suggestion selection behavior
-- attachment replacement behavior
+Preserve owner/stale-generation messages, `asyncio.to_thread` boundaries, pagination clamping, session mutations, upgrade-suggestion selection behavior, and attachment replacement behavior exactly.
 
 - [ ] **Step 5: Move clarification/understanding/Qwen views verbatim**
 
@@ -656,20 +623,7 @@ ItemUnderstandingView
 QwenConfirmationView
 ```
 
-Preserve all current state transitions, especially:
-
-```python
-session.pending_item_search = None
-```
-
-on the same existing cancel/edit/search paths, and:
-
-```python
-if outcome.kind == "search" and not isinstance(outcome.payload, StatClarificationPayload):
-    session.failed_context.clear()
-```
-
-where it exists today.
+Preserve all current state transitions, especially the existing `pending_item_search` clears and failed-context clear conditions.
 
 - [ ] **Step 6: Move outcome-message composition/editing verbatim**
 
@@ -681,34 +635,19 @@ build_service_outcome_message
 edit_service_outcome
 ```
 
-Keep every existing `outcome.kind` branch and its exact text/controls:
-
-```text
-help
-database
-refuse
-unavailable
-failed
-item_understanding
-confirm_search
-payload/detail/search handling
-```
-
-No wording edits are allowed in this task.
+Keep every existing `outcome.kind` branch and exact text/controls: `help`, `database`, `refuse`, `unavailable`, `failed`, `item_understanding`, `confirm_search`, and payload/detail/search handling.
 
 - [ ] **Step 7: Re-export view symbols from `discord_bot.py` and delete local implementations**
 
-Import all moved public view symbols and any public message builders needed for compatibility from `toram_discord.views`.
+Import all moved public view symbols and `VIEW_TIMEOUT_SECONDS` from `toram_discord.views`. After removal, `discord_bot.py` must contain no `discord.ui.View`, `discord.ui.Button`, or `discord.ui.Select` subclass definitions.
 
-After removal, `discord_bot.py` should contain no `discord.ui.View`, `discord.ui.Button`, or `discord.ui.Select` subclass definitions.
-
-- [ ] **Step 8: Run the complete Discord behavior suite**
+- [ ] **Step 8: Run complete Discord behavior tests**
 
 ```bash
 python -m unittest tests.test_discord_bot tests.test_discord_module_boundaries -v
 ```
 
-Expected: PASS. Any failure in labels, view children, session state, pagination, or payload routing is a regression and must be fixed by restoring the old behavior rather than changing the expected tests.
+Expected: PASS. A failure in wording, view children, session state, pagination, or payload routing is a regression; restore old behavior rather than changing expected output.
 
 - [ ] **Step 9: Commit Task 4**
 
@@ -728,10 +667,7 @@ git commit -m "refactor: extract Discord interaction views"
 - Modify: `tests/test_discord_bot.py` only for canonical app patch targets
 
 **Interfaces:**
-- Consumes:
-  - `DiscordBotConfig`, config helpers from `toram_discord.config`
-  - `DiscordSessionManager`, `SessionKey`
-  - `run_query_sync`, `build_service_outcome_message` from `toram_discord.views`
+- Consumes config helpers, `DiscordSessionManager`, `SessionKey`, `run_query_sync`, and `build_service_outcome_message`.
 - Produces:
   - `process_tagged_query(message, *, bot_user, config, sessions) -> None`
   - `create_client(config: DiscordBotConfig) -> discord.Client`
@@ -740,13 +676,9 @@ git commit -m "refactor: extract Discord interaction views"
 
 - [ ] **Step 1: Add RED app ownership and facade-thinness tests**
 
-Append to `tests/test_discord_module_boundaries.py`:
+At module top add `ast` and `Path`, then append:
 
 ```python
-import ast
-from pathlib import Path
-
-
 def test_app_symbols_have_canonical_package_owner(self):
     from toram_discord.app import create_client, main, process_tagged_query
 
@@ -766,7 +698,7 @@ def test_discord_bot_facade_has_no_implementation_definitions(self):
     self.assertEqual(definitions, [])
 ```
 
-- [ ] **Step 2: Run those two tests and verify RED**
+- [ ] **Step 2: Run those tests and verify RED**
 
 ```bash
 python -m unittest \
@@ -777,8 +709,6 @@ python -m unittest \
 Expected: FAIL because `app.py` does not exist and `discord_bot.py` still defines app functions.
 
 - [ ] **Step 3: Create `toram_discord/app.py` and move application wiring verbatim**
-
-Use:
 
 ```python
 from __future__ import annotations
@@ -812,17 +742,7 @@ create_client
 main
 ```
 
-Preserve:
-
-- empty mention query becoming `"help"`
-- key construction `(guild.id, channel.id, author.id)`
-- stale generation early return
-- clearing failed context only after successful non-clarification search
-- `mention_author=False`
-- `discord.AllowedMentions.none()`
-- internal-error reply wording
-- `logging.basicConfig(level=logging.INFO)`
-- `client.run(config.token, log_handler=None)`
+Preserve empty mention query -> `"help"`, key construction, stale-generation returns, failed-context clear condition, allowed mentions, internal-error wording, logging setup, and `client.run(config.token, log_handler=None)`.
 
 - [ ] **Step 4: Replace `discord_bot.py` with a compatibility facade**
 
@@ -831,6 +751,7 @@ The final file should have this shape:
 ```python
 from toram_discord.app import create_client, main, process_tagged_query
 from toram_discord.config import (
+    PROJECT_ROOT,
     DiscordBotConfig,
     bot_example_prefix,
     build_intents,
@@ -840,6 +761,7 @@ from toram_discord.config import (
     load_project_environment,
 )
 from toram_discord.render import (
+    PAGE_SIZE,
     build_clarification_embed,
     build_help_embed,
     build_item_detail_embed,
@@ -854,6 +776,7 @@ from toram_discord.render import (
 )
 from toram_discord.sessions import DiscordSearchSession, DiscordSessionManager, SessionKey
 from toram_discord.views import (
+    VIEW_TIMEOUT_SECONDS,
     ActionButton,
     ActionSelect,
     ItemDetailView,
@@ -879,17 +802,17 @@ if __name__ == "__main__":
     main()
 ```
 
-Also re-export any additional pre-refactor **non-private** symbol actually imported by `tests/` or another repository module, as proven by repository search/test failure. Do not re-export private `_...` helpers merely for convenience.
+Also re-export any additional pre-refactor non-private symbol actually imported by `tests/` or another repository module, as proven by repository search/test failure. Do not re-export private `_...` helpers merely for convenience.
 
 - [ ] **Step 5: Redirect tests that intentionally monkey-patch app internals**
 
-If a test currently uses a patch like:
+For example, when invoking `toram_discord.app.process_tagged_query`, change:
 
 ```python
 patch("discord_bot.run_query_sync", ...)
 ```
 
-while invoking `toram_discord.app.process_tagged_query`, change it to:
+to:
 
 ```python
 patch("toram_discord.app.run_query_sync", ...)
@@ -918,22 +841,17 @@ git commit -m "refactor: extract Discord application wiring"
 
 **Files:**
 - Modify: `tests/test_discord_module_boundaries.py`
-- Modify production files only if a new boundary test exposes an actual dependency/duplication regression.
+- Modify production files only if a boundary test exposes a dependency/duplication regression.
 
 **Interfaces:**
-- Consumes: final package from Tasks 1-5.
-- Produces: permanent architectural regression tests and verification evidence for the final PR.
+- Consumes final package from Tasks 1-5.
+- Produces permanent architecture regression tests and final verification evidence.
 
 - [ ] **Step 1: Add dependency-direction/importability tests**
 
-Append:
+At module top ensure `ast`, `importlib`, and `Path` are imported, then add:
 
 ```python
-import ast
-import importlib
-from pathlib import Path
-
-
 def _imported_roots(path: Path) -> set[str]:
     tree = ast.parse(path.read_text(encoding="utf-8"))
     roots: set[str] = set()
@@ -971,7 +889,7 @@ def test_discord_modules_import_independently(self):
         self.assertIsNotNone(importlib.import_module(module_name))
 ```
 
-- [ ] **Step 2: Run boundary tests first**
+- [ ] **Step 2: Run boundary tests**
 
 ```bash
 python -m unittest tests.test_discord_module_boundaries -v
@@ -979,7 +897,7 @@ python -m unittest tests.test_discord_module_boundaries -v
 
 Expected: PASS.
 
-- [ ] **Step 3: Compile the changed frontend and existing core packages**
+- [ ] **Step 3: Compile changed frontend and existing core packages**
 
 ```bash
 python -m compileall -q toram_discord toram_search toram_data discord_bot.py search_items.py
@@ -1001,28 +919,15 @@ Expected: PASS.
 python -m unittest discover -s tests -v
 ```
 
-Expected: all tests PASS. The pre-refactor verified baseline is 234 tests; the final count should be **greater than 234** because `test_discord_module_boundaries.py` adds new tests.
+Expected: all tests PASS. The pre-refactor verified baseline is 234 tests; final count must be greater than 234 because the new boundary module adds tests.
 
-- [ ] **Step 6: Review the final diff for behavior-only accidents**
-
-Run:
+- [ ] **Step 6: Review final diff for behavior accidents**
 
 ```bash
 git diff main...HEAD -- discord_bot.py toram_discord tests/test_discord_bot.py tests/test_discord_module_boundaries.py
 ```
 
-Review specifically for:
-
-- changed user-facing strings
-- changed button/select labels
-- changed constants (`5`, `900`)
-- changed state-clearing conditions
-- changed `asyncio.to_thread` boundaries
-- changed repository `try/finally close()` behavior
-- duplicate implementations left in `discord_bot.py`
-- accidental Discord imports added to `toram_search`/`toram_data`
-
-If any are present, restore the pre-refactor behavior unless explicitly required by the approved design.
+Check specifically for changed user-facing strings, changed button/select labels, changed constants, changed state-clearing conditions, changed `asyncio.to_thread` boundaries, changed repository `try/finally close()` behavior, duplicate implementations in `discord_bot.py`, or Discord imports added to `toram_search`/`toram_data`. Restore pre-refactor behavior unless the approved design explicitly requires the difference.
 
 - [ ] **Step 7: Commit final boundary tests / verification cleanup**
 
@@ -1033,10 +938,10 @@ git commit -m "test: enforce Discord module boundaries"
 
 - [ ] **Step 8: Prepare the implementation PR without merging**
 
-Create a draft PR from the implementation branch to `main` with a body that records:
+Create a draft PR from the implementation branch to `main`. Record:
 
 - structural-only scope
-- files/modules created
+- modules created
 - Option A compatibility decision (`discord_bot.py` facade)
 - explicit no-TTL/no-UX-change boundary
 - exact final commit SHA
@@ -1045,4 +950,4 @@ Create a draft PR from the implementation branch to `main` with a body that reco
 - full-suite test count/result
 - confirmation that `toram_search`/`toram_data` do not import Discord modules
 
-Do not merge the PR until the user explicitly asks.
+Do not merge until the user explicitly asks.
