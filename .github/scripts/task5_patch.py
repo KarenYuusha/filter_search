@@ -32,6 +32,8 @@ for node in tree.body:
     if name in node_names:
         segment = ast.get_source_segment(source, node)
         assert segment is not None, name
+        if isinstance(node, ast.ClassDef) and node.decorator_list:
+            segment = '@dataclass(frozen=True)\n' + segment
         segments[name] = segment
 assert node_names == set(segments), node_names - set(segments)
 
@@ -131,13 +133,11 @@ parser_parts.append(segments['extract_natural_upgrade_target'] + '\n\n\n')
 parser_parts.append(segments['parse_search_query'] + '\n')
 Path('toram_search/parser.py').write_text(''.join(parser_parts))
 
-# Remove the moved classes/functions and their decorators from search_items.py.
 remove_nodes = [
     node for node in tree.body
     if isinstance(node, (ast.ClassDef, ast.FunctionDef))
     and getattr(node, 'name', None) in node_names
 ]
-# Also remove the SearchIntent alias and natural-upgrade pattern assignment.
 for node in tree.body:
     if isinstance(node, ast.Assign):
         assigned = {
@@ -194,7 +194,6 @@ index = source.index(marker)
 source = source[:index] + parser_import + source[index:]
 source_path.write_text(source)
 
-# Boundary tests verify canonical parser ownership while preserving compatibility.
 test_path = Path('tests/test_core_module_boundaries.py')
 test_text = test_path.read_text()
 anchor = '    def test_editor_repository_stays_separate(self):\n'
