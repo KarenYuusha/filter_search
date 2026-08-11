@@ -136,3 +136,11 @@ addition = '''    def test_search_items_reexports_ranking_symbols(self):
 assert anchor in test_text
 assert 'test_search_items_reexports_ranking_symbols' not in test_text
 test_path.write_text(test_text.replace(anchor, addition + anchor, 1))
+
+relevance_path = Path('tests/test_item_search_relevance.py')
+relevance_text = relevance_path.read_text()
+old = 'patch("search_items._score_item", return_value=ranked)'
+assert relevance_text.count(old) == 3
+relevance_path.write_text(
+    relevance_text.replace(old, 'patch("toram_search.ranking._score_item", return_value=ranked)')
+)
