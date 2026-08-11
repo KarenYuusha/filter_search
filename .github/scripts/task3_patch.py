@@ -162,7 +162,10 @@ remove_nodes = [
 ]
 lines = source.splitlines(keepends=True)
 for node in sorted(remove_nodes, key=lambda value: value.lineno, reverse=True):
-    start = node.lineno - 1
+    start_line = min(
+        [node.lineno, *(decorator.lineno for decorator in node.decorator_list)]
+    )
+    start = start_line - 1
     end = node.end_lineno
     while end < len(lines) and lines[end].strip() == '':
         end += 1
