@@ -203,79 +203,67 @@ One-Handed Sword penalty: Critical Rate boost for the second skill is halved
 One-Handed Sword penalty: Critical Rate boost for the third skill is halved
 This skill cannot be used as the first skill of a combo
 
-Strike Stab
-Lv 3 Skill; One-Handed Sword/Halberd only
-MP Cost: 200
-Damage Type: Physical
-Base Skill Multiplier: 1.9 + 0.01 * Skill Level + total STR/500; multiplier for each hit
-Ailment Bonus Skill Additional Multiplier: 0.1 * Skill Level
-Base Skill Constant: 100; constant for each hit
-Hit Count: 3 hits; damage calculation is done once then copied to the other hits
-Maximum Cast Range: Defaults to the weapon's Auto Attack Max Range
-Skill Effect:
-- This skill has a base Crit Rate penalty of (5 * Skill Level)%;
-the penalty is applied as follows:
-Strike Stab Crit Rate = (25 + CRT/3.4) * (1 - base Crit Rate penalty/100) * (1 + Crit Rate%/100) + Flat Crit Rate
-- If this skill hits a target with an ailment, the Ailment Bonus Skill Multiplier is added to the Base Skill Multiplier
-Game Description: "Thrust an enemy with a quick movement. The damage increases if the target has a status ailment. Have a low chance to deal critical."
-Halberd bonus: Ailment Bonus Skill Multiplier is doubled
-Halberd bonus: Skill Constant +100
-One-Handed Sword penalty: Base Crit Rate is halved, changing the penalty formula to:
-
-
 ==================================================
-SKILL: CHRONOS DRIVE
+SKILL: STRIKE STAB
 ==================================================
 
 Category: Halberd Skills
-Tier: IV
-Required Level: Level 150
+Tier: III
+Required Level: Level 70
 
 Source Details:
-Lv 4 Skill; Halberd only
-MP Cost: 400
+Lv 3 Skill; One-Handed Sword/Halberd only
+MP Cost: 200
 Damage Type: Physical
-Base Skill Multiplier: 1 + 0.5 * Skill Level; total multiplier of all hits
-Base Skill Constant: 40 * Skill Level
-Hit Count: 3 hits; damage calculation is done once then spread evenly between the hits
-Maximum Cast Range: Defaults to the weapon's Auto Attack Max Range
+
+Base Skill Multiplier:
+1.9 + 0.01 * Skill Level + Total STR/500; multiplier for each hit
+
+Ailment Bonus Skill Additional Multiplier:
+0.1 * Skill Level
+
+Base Skill Constant:
+100; constant for each hit
+
+Hit Count:
+3 hits; damage calculation is done once then copied to the other hits
+
+Maximum Cast Range:
+Defaults to the weapon's Auto Attack Max Range
 
 Skill Effect:
-The target gets inflicted additional hits over time.
 
-Skill Effect Duration:
-5 seconds (levels 1 and 2); 6 seconds (levels 3 and 4); 7 seconds (levels 5 and 6); 8 seconds (levels 7 and 8); 9 seconds (level 9); 10 seconds (level 10)
+* This skill has a Base Critical Rate penalty of:
 
-Chronos Drive Additional Damage Type:
-Physical/Magic
+(5 * Skill Level)%
 
-Chronos Drive Additional Skill Multiplier:
-0.4 + 0.01 * Skill Level + Total INT/500
+The penalty is applied as follows:
 
-Chronos Drive Additional Skill Constant:
-250 + 25 * Skill Level
+Strike Stab Critical Rate =
+(25 + CRT/3.4) * (1 - Base Critical Rate Penalty/100) * (1 + Critical Rate%/100) + Flat Critical Rate
 
-Chronos Drive Additional Hit Count:
+* If this skill hits a target with an ailment, the Ailment Bonus Skill Multiplier is added to the Base Skill Multiplier.
 
-Delay between hits =
-Auto attack delay + 1.5 * Animation Time Modifier of Chronos Drive/100
+Halberd Bonus:
 
-Hit Count =
-Skill Effect Duration/Delay between hits
+* Ailment Bonus Skill Multiplier is doubled.
+* Skill Constant +100.
 
-* Hit/miss, Evasion, Graze and Critical checks are copied from the skill for all hits; the rest of the damage calculation is done for each hit.
-* Chronos Drive Additional Hit can recover 30 MP every 1 hit.
-* The delay isn't affected by Motion Speed modifiers on Chronos Drive.
-* The extra hits use Magic Proration, meaning damage is based on Magic Proration but does not inflict Magic Proration; the rest of the damage calculation is done as if they were Physical skills.
-* The extra hits are unaffected by Combo Tags, Whack and Short Range Damage/Long Range Damage modifiers.
+One-Handed Sword Penalty:
+Base Critical Rate is halved, changing the Critical Rate formula to:
+
+Strike Stab Critical Rate =
+(25 + CRT/3.4) * (1 - Base Critical Rate Penalty/100) * (1 + Critical Rate%/100)/2 + Flat Critical Rate
 
 Game Description:
-"Repeat the fact that you penetrated a target. Add an effect that you deal additional damage for a few seconds."
+"Thrust an enemy with a quick movement. The damage increases if the target has a status ailment. Have a low chance to deal critical."
+
+
 
 
 ==================================================
 SKILL: CHRONOS DRIVE
-====================
+==================================================
 
 Category: Halberd Skills
 Tier: IV
