@@ -6,6 +6,8 @@ from statistics import median
 from time import perf_counter
 from typing import Iterable, Protocol, Sequence
 
+from .hybrid_search import FusionConfig
+
 
 @dataclass(frozen=True)
 class RetrievalCase:
@@ -115,10 +117,29 @@ def select_embedding_model(
     )
 
 
+def render_retrieval_config(
+    selected_model: str,
+    fusion: FusionConfig,
+) -> str:
+    model = selected_model.strip()
+    if not model:
+        raise ValueError("selected_model must not be empty")
+    return (
+        "from toram_skills.hybrid_search import FusionConfig\n\n"
+        f"DEFAULT_EMBEDDING_MODEL = {model!r}\n"
+        "DEFAULT_FUSION_CONFIG = FusionConfig(\n"
+        f"    rrf_k={fusion.rrf_k},\n"
+        f"    lexical_weight={fusion.lexical_weight!r},\n"
+        f"    semantic_weight={fusion.semantic_weight!r},\n"
+        ")\n"
+    )
+
+
 __all__ = [
     "ModelBenchmarkResult",
     "RetrievalCase",
     "RetrievalMetrics",
     "evaluate_semantic_cases",
+    "render_retrieval_config",
     "select_embedding_model",
 ]
