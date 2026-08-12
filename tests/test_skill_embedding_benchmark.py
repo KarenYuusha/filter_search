@@ -9,9 +9,11 @@ import httpx
 import ollama
 
 from toram_skill_embeddings.ollama_provider import OllamaEmbeddingProvider
+from toram_skills.hybrid_search import FusionConfig
 from toram_skills.retrieval_benchmark import (
     ModelBenchmarkResult,
     RetrievalMetrics,
+    render_retrieval_config,
     select_embedding_model,
 )
 from toram_skills.semantic_search import EmbeddingIndexError, EmbeddingUnavailable
@@ -123,6 +125,22 @@ class EmbeddingBenchmarkSelectionTests(unittest.TestCase):
     def test_empty_results_are_rejected(self):
         with self.assertRaises(ValueError):
             select_embedding_model(())
+
+    def test_retrieval_config_is_rendered_from_selected_values(self):
+        text = render_retrieval_config(
+            "qwen3-embedding:0.6b",
+            FusionConfig(rrf_k=20, lexical_weight=1.5, semantic_weight=0.5),
+        )
+        self.assertEqual(
+            text,
+            "from toram_skills.hybrid_search import FusionConfig\n\n"
+            "DEFAULT_EMBEDDING_MODEL = 'qwen3-embedding:0.6b'\n"
+            "DEFAULT_FUSION_CONFIG = FusionConfig(\n"
+            "    rrf_k=20,\n"
+            "    lexical_weight=1.5,\n"
+            "    semantic_weight=0.5,\n"
+            ")\n",
+        )
 
 
 if __name__ == "__main__":
