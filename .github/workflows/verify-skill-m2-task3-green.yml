@@ -1,0 +1,33 @@
+name: Verify Skill M2 Task3 GREEN
+
+on:
+  pull_request:
+    branches:
+      - feat/skill-hybrid-retrieval
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install rapidfuzz python-dotenv ollama discord.py
+      - run: python -m compileall -q toram_skills build_skills.py
+      - run: python build_skills.py --source raw_skills --database coryn_data/database/skills.sqlite --json-report /tmp/skill-import.json
+      - name: Verify search document and FTS metadata
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from toram_skills.repository import SkillRepository
+          with SkillRepository(Path('coryn_data/database/skills.sqlite')) as repo:
+              document_count = repo.connection.execute('SELECT COUNT(*) FROM skill_search_documents').fetchone()[0]
+              fts_count = repo.connection.execute('SELECT COUNT(*) FROM skill_fts').fetchone()[0]
+              manifest = repo.get_metadata('search_document_manifest_hash')
+              assert document_count > 0
+              assert fts_count == document_count
+              assert manifest is not None and len(manifest) == 64
+          PY
+      - run: python -m unittest tests.test_skill_lexical_search tests.test_skill_importer tests.test_skill_repository -v
+      - run: python -m unittest discover -s tests -v
