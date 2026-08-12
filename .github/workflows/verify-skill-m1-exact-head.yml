@@ -1,0 +1,57 @@
+name: Verify Skill Milestone 1 Exact Head
+on: pull_request
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install regression dependencies
+        run: pip install rapidfuzz python-dotenv ollama discord.py
+      - name: Compile
+        run: python -m compileall -q toram_skills build_skills.py
+      - name: Verify checked-in database provenance
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from toram_skills.repository import SkillRepository
+          from toram_skills.source_inventory import discover_skill_sources, source_manifest_hash
+          expected = source_manifest_hash(discover_skill_sources(Path('raw_skills')))
+          with SkillRepository(Path('coryn_data/database/skills.sqlite')) as repo:
+              print('CHECKED_IN_TREES', repo.count_trees())
+              print('CHECKED_IN_SKILLS', repo.count_skills())
+              print('CHECKED_IN_MANIFEST', repo.get_metadata('source_manifest_hash'))
+              assert repo.count_trees() == 34
+              assert repo.count_skills() == 481
+              assert repo.get_metadata('source_manifest_hash') == expected
+          PY
+      - name: Rebuild corpus independently
+        run: python build_skills.py --source raw_skills --database /tmp/skills-rebuilt.sqlite --json-report /tmp/skills-report.json
+      - name: Compare rebuilt logical provenance
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          from toram_skills.repository import SkillRepository
+          report = json.loads(Path('/tmp/skills-report.json').read_text(encoding='utf-8'))
+          with SkillRepository(Path('coryn_data/database/skills.sqlite')) as checked, SkillRepository(Path('/tmp/skills-rebuilt.sqlite')) as rebuilt:
+              assert report['errors'] == 0
+              assert report['trees_created'] == checked.count_trees() == rebuilt.count_trees() == 34
+              assert report['skills_created'] == checked.count_skills() == rebuilt.count_skills() == 481
+              assert checked.get_metadata('source_manifest_hash') == rebuilt.get_metadata('source_manifest_hash') == report['manifest_hash']
+              for skill_id in (
+                  'weapon_class_skills/magic_skills/magic-finale',
+                  'sub_weapon_skills/assassin_skills/assassin-stab',
+                  'assist_skills/minstrel_skills/healing-song',
+                  'other_skill_trees/alchemist_skills/process-material',
+              ):
+                  assert checked.get_skill(skill_id) == rebuilt.get_skill(skill_id)
+          PY
+      - name: Focused skill tests
+        run: |
+          python -m unittest tests.test_skill_source_inventory tests.test_skill_parsing tests.test_skill_field_normalization tests.test_skill_repository tests.test_skill_importer tests.test_core_module_boundaries -v
+      - name: Full regression suite
+        run: python -m unittest discover -s tests -v
