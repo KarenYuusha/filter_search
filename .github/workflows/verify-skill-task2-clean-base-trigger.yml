@@ -1,0 +1,7 @@
+name: Verify Skill Task 2 Clean Base Trigger
+on: pull_request
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo trigger
