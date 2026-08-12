@@ -7,12 +7,30 @@ import unittest
 from toram_skills.semantic_search import EmbeddingIndexError, EmbeddingUnavailable
 
 
+APPROVED_SYMMETRIC_MODELS = (
+    "sentence-transformers/all-MiniLM-L6-v2",
+    "Alibaba-NLP/gte-multilingual-base",
+    "BAAI/bge-m3",
+)
+
+
 class FakeSentenceTransformer:
     def __init__(self, *, error: Exception | None = None, malformed: bool = False):
         self.error = error
         self.malformed = malformed
+        self.encode_calls = []
         self.document_calls = []
         self.query_calls = []
+
+    def encode(self, texts, **kwargs):
+        values = list(texts)
+        self.encode_calls.append((values, dict(kwargs)))
+        if self.error is not None:
+            raise self.error
+        if self.malformed:
+            return [["bad", 1.0] for _ in values]
+        vectors = [[1.0, 0.0], [0.0, 1.0]]
+        return vectors[: len(values)]
 
     def encode_document(self, texts, **kwargs):
         self.document_calls.append((list(texts), dict(kwargs)))
@@ -51,7 +69,7 @@ class SentenceTransformerEmbeddingProviderTests(unittest.TestCase):
         )
         self.assertNotIn("sentence_transformers", sys.modules)
         self.assertEqual(provider.provider_name, "sentence-transformers")
-        self.assertEqual(provider.config_id, "ir-default")
+        self.assertEqual(provider.config_id, "symmetric-encode-v1")
 
     def test_gte_multilingual_loader_enables_trust_remote_code(self):
         calls = []
@@ -75,18 +93,46 @@ class SentenceTransformerEmbeddingProviderTests(unittest.TestCase):
             ],
         )
 
-    def test_document_and_query_encoders_use_ir_specific_public_methods(self):
+    def test_approved_models_use_symmetric_encode_for_documents_and_queries(self):
+        expected_kwargs = {
+            "convert_to_numpy": True,
+            "normalize_embeddings": False,
+        }
+        for model_name in APPROVED_SYMMETRIC_MODELS:
+            with self.subTest(model_name=model_name):
+                fake = FakeSentenceTransformer()
+                provider = self._provider_class()(model_name, model=fake)
+
+                self.assertEqual(provider.config_id, "symmetric-encode-v1")
+                self.assertEqual(
+                    provider.embed_documents(("alpha", "beta")),
+                    ((1.0, 0.0), (0.0, 1.0)),
+                )
+                self.assertEqual(provider.embed_query("question"), (1.0, 0.0))
+                self.assertEqual(
+                    fake.encode_calls,
+                    [
+                        (["alpha", "beta"], expected_kwargs),
+                        (["question"], expected_kwargs),
+                    ],
+                )
+                self.assertEqual(fake.document_calls, [])
+                self.assertEqual(fake.query_calls, [])
+
+    def test_unlisted_model_keeps_distinct_query_document_encoding(self):
         fake = FakeSentenceTransformer()
         provider = self._provider_class()(
-            "sentence-transformers/all-MiniLM-L6-v2",
+            "example/asymmetric-retrieval-model",
             model=fake,
         )
 
+        self.assertEqual(provider.config_id, "ir-query-document-v1")
         self.assertEqual(
             provider.embed_documents(("alpha", "beta")),
             ((1.0, 0.0), (0.0, 1.0)),
         )
         self.assertEqual(provider.embed_query("question"), (0.5, 0.5))
+        self.assertEqual(fake.encode_calls, [])
         self.assertEqual(
             fake.document_calls,
             [
