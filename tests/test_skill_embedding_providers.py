@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import importlib
 import sys
-from types import SimpleNamespace
 import unittest
 
 from toram_skills.semantic_search import EmbeddingIndexError, EmbeddingUnavailable
@@ -53,6 +52,28 @@ class SentenceTransformerEmbeddingProviderTests(unittest.TestCase):
         self.assertNotIn("sentence_transformers", sys.modules)
         self.assertEqual(provider.provider_name, "sentence-transformers")
         self.assertEqual(provider.config_id, "ir-default")
+
+    def test_gte_multilingual_loader_enables_trust_remote_code(self):
+        calls = []
+        fake = FakeSentenceTransformer()
+
+        def factory(*args, **kwargs):
+            calls.append((args, kwargs))
+            return fake
+
+        self._provider_class()(
+            "Alibaba-NLP/gte-multilingual-base",
+            model_factory=factory,
+        )
+        self.assertEqual(
+            calls,
+            [
+                (
+                    ("Alibaba-NLP/gte-multilingual-base",),
+                    {"trust_remote_code": True},
+                )
+            ],
+        )
 
     def test_document_and_query_encoders_use_ir_specific_public_methods(self):
         fake = FakeSentenceTransformer()
