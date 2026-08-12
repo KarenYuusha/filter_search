@@ -1,0 +1,360 @@
+Category: Necromancer Skills
+
+GENERAL INFORMATION
+
+Tier Requirements:
+- Tier I: None
+- Tier II: Level 205
+- Tier III: Level 260
+
+
+==================================================
+SKILL: GRAVE DIGGER
+==================================================
+
+Category: Necromancer Skills
+Tier: I
+Required Level: None
+
+T1; [Active] All Weapons
+MP Cost: 100
+Time needed for 1 stack gain:
+Staff: 1 second
+Other Weapons: (11 - Skill Level) seconds
+Maximum Cast Range: Any Distance
+Graveyard Radius: 3m
+-When you step outside of the graveyard, 1 spirit stack disappears every 20 seconds.
+-You can use other necromancer's Graveyard (following their Graveyard and Fine Shovel level).
+Spirit Stack Buff (Staff only):
+Attack MP Recovery: 0.1 * Skill Level * Stack% * Character's Total Attack MP Recovery
+Grave Digger Ailment Resistance: 0.05 * Skill Level * Stack%
+-Grave Digger Ailment Resistance is applied multiplicatively with character's Ailment Resistance status and Immunity buff.
+Game Description: Deploys a conceptual graveyard to prepare for necromancy. Spirit Stacks are gained while in the graveyard. Spirit slowly returns if you leave the graveyard.
+Staff Bonus: Gains 1 Spirit Stack per second regardless of skill level. Attack MP Recovery increases based on the Spirit stacks gained. Gains resistance to status ailments. Both Attack MP Recovery per Spirit stack and resistance to status ailments increases with skill level.
+
+
+==================================================
+SKILL: PHANTOM MISSILE
+==================================================
+
+Category: Necromancer Skills
+Tier: I
+Required Level: None
+
+T1; [Active] Staff Only
+MP Cost: 500
+Damage Type: Magic
+Base Skill Multiplier (each hit): 1
+Base Skill Constant (each hit): 500
+Maximum Cast Range: 24m
+Hit Count: Spirit Stack(s) consumed
+Base Cast Time: 0.5 seconds
+This skill uses physical critical rate, but uses magic properties for the rest of damage calculation.
+Each time this skill deals a critical hit, it adds +(0.1 * Skill Level) base skill multiplier for all of the following hits. This bonus multiplier can be stacked; which means, max multiplier for 10th hit is 10 multiplier, and max skill multiplier if all hits are combined is 55.
+Each of Phantom Missile hits adds Chain Cast stack.
+This skill is not affected by short/long range damage; not affected by long range skill; affected by magic critical damage, spell burst, concentrate; uses and deals magic proration (following hits uses the same proration value as first hit).
+Game Description: Sends forth evil spirits to attack. Performs a magic attack on the target by consuming spirit stacks (max 10). Consuming more spirit increases it's duration (number of hits), and it's power increases with each critical hit (physical).
+
+
+==================================================
+SKILL: BLOOD SIPHON
+==================================================
+
+Category: Necromancer Skills
+Tier: II
+Required Level: Level 205
+
+T2; [Active] Staff Only
+MP Cost: 400
+Maximum Cast Range: Weapon Range
+Ailment: Flinch
+Base Ailment Chance: MIN(20 * INT(Base VIT/50); 100)%
+Buff Effect: 10% of your effective damage to enemy is absorbed as your HP (any attacks except for demon's attacks). This hp absorb effect can be used multiple times until the buff duration ends. Using ailment dealing skills (including immobilization skills) to absorb HP might get you absorb the ailment to yourself.
+Buff Duration: 12 seconds * Skill Level
+Buff Range: 7m (just below 8m)
+-Being out of range only changes buff duration; the buff effect stays. Buff ends when the target dies.
+-Changes Time Left to (Time Left/10) beyond Buff Range
+-Changes Time Left to (Time Left * 10) re-entering Buff Range
+This skill does not generate proration.
+Game Description: Puts a blood-sucking curse on the target. A portion of the damage dealt is absorbed as HP. Warning: Low chance to absorb status ailments too. Chance to inflict [Flinch] if VIT is 50 or higher. The curse is instantly removed when the target is too far.
+
+
+==================================================
+SKILL: SOUL STREAM
+==================================================
+
+Category: Necromancer Skills
+Tier: III
+Required Level: Level 260
+
+T3; [Active] Staff Only
+MP Cost: 900
+Damage Type: Magic
+Base Skill Multiplier: Skill Level + Base INT/100 + 0.75 * Spirit Stack Consumed
+Base Skill Constant: 450 + 45 * Skill Level
+Maximum Cast Range: 12m
+Base Cast Time: 1.5 seconds
+Spirit Stack Usage: MIN(INT(Max MP - Current MP)/100); Available Spirit Stack)
+-Spirit Stack usage calculation is done after this skill's MP consumption.
+Ailment: Lethargy
+Base Ailment Chance: MIN(10 * Spirit Stack used, 100)%
+Restores your MP by: Spirit Stack used * 100 MP
+This skill is affected by short/long range damage; affected by long range skill; affected by concentrate; uses and deals magic proration.
+Game Description: Unleashes a spiritual particle beam. Performs a magic attack. Restores MP and raises the chance to inflict [Lethargy] based on spirit stacks used. The number of spirit stacks used depends on the amount of MP consumed when the skill is activated. (max 20)
+
+
+==================================================
+SKILL: SKELETON CALL
+==================================================
+
+Category: Necromancer Skills
+Tier: II
+Required Level: Level 205
+
+T2; [Active] All Weapons
+MP Cost: 0 MP
+Maximum Cast Range: infinite
+Skill Effect:
+Summon Cost: 3 spirit stacks.
+Summons from the center of your graveyard or from your left side if you are using other necromancer's graveyard.
+Skeleton begins to follow the player once the distance between them reaches 5 meters.
+Skeleton stands still once they reach 0.75 meter distance from player.
+Skeleton only attacks enemies within 12 meters.
+Skeleton warps to player if it is >20 meters away.
+Skeleton's movement speed = 4 meters per second.
+Skeleton's Basic Attack
+Damage Type: Physical (uses ATK or MATK; whichever higher is chosen)
+Base Skill Multiplier: 0.1 * Skill Level
+Base Skill Constant: 0
+Hit Range: 2m
+-This attack is always stronger element against the enemy.
+-This attack is forced to be and affected by short range damage; not affected by Long Range Skill; affected by whack; uses physical proration and deals no proration.
+Skeleton Explosion
+Damage Type: Magic (uses ATK or MATK; whichever higher is chosen)
+Base Skill Multiplier: 1 * Skill Level
+Base Skill Constant: Total STR + Total INT
+Hit Range: 1 + (Skill Level - 1)/6 m radius AOE
+-This attack is always stronger element against the enemy.
+-Explosion is triggered by resummon and if the skeleton takes damage; but explosion attack only happens if you are engaging a target.
+-This attack is forced to be and affected by short range damage; not affected by Long Range Skill; affected by concentrate; uses and deals normal proration.
+Game Description: Uses 3 spirit stacks to summon a skeleton soldier. (max 3 on the field) The soldier performs close-range attack. It explodes and disappears when caught in an AoE. Attack power is based on ATK or MATK, whichever is higher.
+
+
+==================================================
+SKILL: DEMONIC PACT
+==================================================
+
+Category: Necromancer Skills
+Tier: III
+Required Level: Level 260
+
+T3; [Ex Skill] All Weapons
+MP Cost: MIN(ROUNDDOWN(Current MP;-2); 2000)
+Damage Type: Physical (Uses ATK+MATK)
+Base Cast Time: 2 seconds
+-The number of Demon summoned in a party is limited to 1 Demon.
+-There is a chance to get stunned when aggro switches to you in a party. Stun Chance: (Character's HP% Missing^2/200)%.
+Demon's Attacks (Basic and Beam) Properties:
+-Each time your Demon attacks, you pay a certain amount of your HP (based on your Max HP, so Sacred Teachings is not included in the cost calculations, but can be used to pay HP). If you don't have enough HP to pay for the attacks, you will die.
+-Demon Beam Activation Rate: (5 + Summon MP Cost/100)%. Each Demon's Basic Attack doubles the chance (max 100%). Each Demon Beam halves the chance (no minimum).
+-Maximum Attack Range: 7m.
+-Unaffected by buffs: Twin Storm, Knife Combat, Shukuchi, Storm Reaper, Asura Aura.
+-Follows main weapon's element.
+-Unaffected by character's motion speed.
+-Affected by short/long range damage; not affected by whack/concentrate; not affected by Long Range Skill; uses and deals normal proration.
+Demon's Basic Attack
+Base Skill Multiplier: 1 + Summon MP Cost/2000
+Base Skill Constant: Summon MP Cost/2
+HP Consumption: MAX(3% * Character's Max HP; 300)
+-Basic Attack Modifier such as Mana Thrash regislet, Power Wave Modifier regislet, etc, affects this attack's damage.
+Demon Beam
+Base Skill Multiplier: 2 + TRUNC(0.009 * Summon MP Cost)
+Base Skill Constant: Summon MP Cost
+HP Consumption: MAX(12% * Character's Max HP; 1200)
+Demonic Pact Settings
+Pact Count: Skill Level
+Mana Slash: Turns into a magic attack with extended range. [Cost: 1 Pact]
+Changes Demon's Attacks Damage Type to Magic Damage. Special traits like ATK+MATK usage and use/deals normal proration remains, but the remaining of damage calculation components like INT DTE, Magic Critical Rate/Damage, Magic Stability, Enemy's MDEF/M.res follows magic damage calculations.
+Doubles the Maximum Attack Range.
+Dark Strike: Interrupts the enemy and performs a powerful attack. [Cost: 2 Pacts]
+Demon will only and always perform "Demon Beam" when the target is interrupted by Flinch/Tumble/Stun.
+Hollow Strike: Becomes an attack with the element the enemy is weak to. [Cost: 2 Pacts]
+Demon's Basic Attack and Demon Beam becomes always stronger element against the enemy.
+Demon King Revelation: Adapts to action speed. [Cost: 4 Pacts]
+Demon's motion speed follows Character's motion speed. (Freeze and Paralyzed are excluded)
+Substitute Contract: Depending on the situation, you may survive. [Cost: 4 Pacts]
+Prevents you from dying if you take high damage or can't pay for Demon's Attacks. Desummons the demon (can't resummon) and restores HP.
+HP Restored: Character's Attack MP Recovery * MIN(Total Demon's Attacks During Summon;99)
+Activates before Saber Aura, after Magic Skin.
+Anchor of Life: HP consumption by the demon will not knock you out. [Cost: 1 Pact]
+When you have not enough HP to pay for Demon's Attacks, you are left with 1 HP while the Demon continues to attack the enemy. Everytime the Demon attacks, it's damage Multiplier and Constant drops by 200 initial Summon MP Cost (stops dropping once it is left with 100 Summon MP Cost).
+Activates before "Substitute Contract".
+Blood Contract: Reduces MP, but reduces Max HP. [Cost: 2 Pacts]
+Restores half of Summon MP Cost without reducing Demon's Attacks Damage.
+HP Penalty: Max HP -50% (Equivalent to Max HP from equipments)
+Demonic Pact Settings: Barrier
+Barrier Damage Reduction: (15 + TRUNC(Base VIT/50))%
+Demonic Barrier: Reduces damage when nearby. [Cost: 1 Pact]
+Barrier Range: 7m from Demon
+Only reduces Magical and Physical Damage
+Doubles Damage Reduction
+Barrier Expansion: Reduces the damage even when far away. [Cost: 2 Pact]
+Range: 21m from demon
+Only reduces Magical and Physical Damage
+Spirit Distortion: Reduces fractional damage when nearby. [Cost: 2 Pacts]
+Range: 7m from demon
+Only reduces Fractional Damage
+Note: Selecting multiple barrier pacts will activate the best effects only.
+Example:
+Activates Demonic Barrier, Barrier Expansion, Spirit Distortion..
+Range: 21m from demon
+Reduces Magical, Physical, and Fractional Damage
+Doubles Damage Reduction.
+Game Description: A contract with a demon. The ability changes based on the amount of MP offered when forming the contract. Each attack by the demon costs the caster some HP. Reusing the skill will terminate the contract. The Demon may betray you if things turn bad (when all party members dies, except for you, you will be killed by the Demon).
+
+
+==================================================
+SKILL: FINE SHOVEL
+==================================================
+
+Category: Necromancer Skills
+Tier: II
+Required Level: Level 205
+
+T2; [Passive] Staff Only
+Passive Effect:
+Initial Spirit Stack: Skill Level + Total Necromancer Skills Points/10
+Grave Digger Range: +0.6 * Skill Level meter
+Game Description: Gains additional spirit stacks when deploying "Grave Digger" for the first time. You can now continue gaining spirit stacks even when wlightly away from the graveyard.
+
+
+==================================================
+SKILL: HARVEST
+==================================================
+
+Category: Necromancer Skills
+Tier: II
+Required Level: Level 205
+
+T2; [Passive] Staff Only
+Skill Effect:
+HP & MP recovery upon activation:
+HP Recovery: Character's Max HP * Skill Level%
+MP Recovery: 10 * Skill Level
+Summons a skeleton from your left side if there are not 3 skeletons already deployed.
+Summoned Skeleton Level: Skeleton Call Skill Level
+Game Description: Recovers a small amount of HP and MP instantly when a monster is killed. (activates only once per second.) A skeleton soldier will be summoned upon recovery if "Skeleton Call" has been acquired. (There can't be more than 3 skeleton soldiers on the field).
+
+
+==================================================
+SKILL: OPPORTUNIST
+==================================================
+
+Category: Necromancer Skills
+Tier: III
+Required Level: Level 260
+
+T3; [Passive] Staff Only
+Skill Effect: Activates "Harvest" when a skeleton explodes due to monsters attacks (take damage). Harvest Level: Harvest Skill Level.
+Activation Rate: 8% * Skill Level??
+(not confirmed, need more testings)
+Game Description: The effect of "Harvest" may still be applied even when a skeleton soldier explodes and disappears.
+
+
+==================================================
+SKILL: TOMB
+==================================================
+
+Category: Necromancer Skills
+Tier: I
+Required Level: None
+
+T1; [Active] All Weapons
+MP Cost: 300
+Damage Type: Physical
+Summons a Tomb that damages the target. Consuming Spirit Stacks adds additional hits to the same tomb animation.
+Base Skill Multiplier (Main Hit): 2.5
+Base Skill Constant (Main Hit): 300
+Maximum Cast Range: 7m
+Hit Count: 1 Hit single-target
+Main Hit Ailment: Tumble
+Ailment Chance: MIN(20 * INT(Base VIT/50); 100)%
+Additional Hit
+Base Skill Multiplier (Additional Hit): 1.5 + 0.1 * Skill Level
+Base Skill Constant (Additional Hit): 30 * Skill Level
+-Formula for 1 additional hit. All additional hits damage is calculated separately.
+Additional Hit Count: MIN(Spirit Stacks used/3; 3)
+Hit Range: 3m radius AOE
+This skill is affected by short range damage; affected by whack; uses and deals physical proration.
+Game Description: Summons tombstones that spike out of the ground. Performs a physical attack on the target. Chance to inflict [Tumble] if VIT is 50 or higher. Using 3 spirit stacks adds an AoE attack, activating up to 3 times at once.
+
+
+==================================================
+SKILL: SKULL SHAKER
+==================================================
+
+Category: Necromancer Skills
+Tier: II
+Required Level: Level 205
+
+T2; [Active] Staff/Halberd Only
+MP Cost: 200
+Damage Type: Physical
+Skill Effect:
+Each time you use this skill, you get Skull Shaker Stack up to 10 stacks. The stack affects all of your party members.
+If Skull Shaker damage is not Graze, you can cancel the skill motion with Evasion.
+Base Skill Multiplier:
+Halberd: 7.5 + 0.075 * Skill Level * Stack
+Staff: 10 + 0.075 * Skill Level * Stack + 0.25 * Stack
+Base Skill Constant: 200
+Maximum Cast Range: Weapon Range
+Ailment: Dizzy
+Ailment Chance: MIN(Base STR/5 + 5 * Skill Level; 100)%
+Ailment Resistance: 10 seconds
+Ailment: Stun
+Ailment Chance: 10% * Stack
+Ailment Resistance: 30 seconds
+-If Stun is inflicted, stacks are reset to 0 (includes fail Stun because of cooldown).
+This skill is affected by short range damage; affected by whack; uses and deals physical proration.
+Game Description: Delivers a heavy blow to the top of the head with a staff. Performs a physical attack to the target. Chance to inflict [Dizzy]. Each successful hit increases the power and may inflict [Stun] on the target. The effect resets upon inflicting [Stun],
+
+
+==================================================
+SKILL: HAZARD STRIKE
+==================================================
+
+Category: Necromancer Skills
+Tier: III
+Required Level: Level 260
+
+T3; [Active] Staff/Halberd Only
+MP Cost: 100 MP (Main Hit) + 100 MP (Additional hit)
+Damage Type: Physical
+Maximum Cast Range: Weapon Range
+Main Hit
+Base Skill Multiplier:
+Halberd: 7.5 + Base STR/200
+Staff: 10 + Base STR/200
+Base Skill Constant: 100
+-Performs [Guard] during the attack animation.
+Using the key input after main hit triggers an additional hit by consuming 100 MP.
+Additional Hit (Up )
+Base Skill Multiplier:
+Halberd: 7.5 + 0.25 * Skill Level + Total STR/100
+Staff: 12.5 + 0.25 * Skill Level + Total STR/100
+Base Skill Constant: 100
+-This attack has Absolute Critical.
+-Applies Hazard Strike Buff: next skill's motion speed is set to max.
+Additional Hit (Left/Right )
+Base Skill Multiplier:
+Halberd: 5 + 0.25 * Skill Level
+Staff: 10 + 0.25 * Skill Level
+Base Skill Constant: 100
+-Nullify damage taken to 0 once during this additional hit animation. Nullifying damage using this move will remove area buffs, godspeed wield, and such.
+Additional Hit (Down )
+Base Skill Multiplier: 2.5 + 0.25 * Skill Level
+Staff: 7.5 + 0.25 * Skill Level
+Base Skill Constant: 100
+-Performs backstep as an attack animation.
+This skill is affected by short range damage; affected by whack; uses and deals physical proration.
+Game Description: A versatile staff technique that changes according to the situation. A physical attack that can trigger a follow-up move by consuming an additional 100 MP depending on the key input. Up (high power), Left/Right (damage reduction), Down (backstep).

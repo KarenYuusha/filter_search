@@ -1,0 +1,285 @@
+Category: Dagger Skills
+
+GENERAL INFORMATION
+
+Tier Requirements:
+- Tier I: Level 5
+- Tier II: Level 20
+- Tier III: Level 50
+- Tier IV: Level 110
+
+
+==================================================
+SKILL: THROWING KNIFE
+==================================================
+
+Category: Dagger Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Limitation: Dagger only
+Active Skill (Single Target)
+MP Cost: 100MP (0MP if Lvl10)
+Skill Multiplier: 0.1 + 0.04*Lvl
+Action Range: 12m
+NOTES:-
+--This skill can not be added as a combo opener.
+--The Dagger WeaponATK stat is added at the very end of the damage calculation ignoring all boss defenses except guard.
+--This skill at lv10 gets normal proration instead of physical and MP cost becomes 0
+
+
+==================================================
+SKILL: SPIKE DART
+==================================================
+
+Category: Dagger Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Limitation: Dagger only
+Active Skill (Single Target)
+MP Cost: 100MP
+Action Range: 8m
+Hit Count: 1 + Floor(SkillLvl/2)
+Skill Multiplier: (0.75 + 0.075 * SkillLvl)/Hit Count (this is estimated formula for each hit)
+0.75 (lv1); 0.42 (lv2); 0.47 (lv3); 0.34 (lv4); 0.37 (lv5); 0.30 (lv6); 0.32 (lv7); 0.27 (lv8); 0.29 (lv9); 0.25 (lv10)
+Bonus Skill Multiplier: (BaseDex/100) / (20 - SkillLvl)
+Skill Constant: 10 + SkillLvl + DaggerWeaponATK/5
+Ailment Inflict: SLOW
+Chance to ailment inflict: 50 + 5*SkillLvl %
+NOTES:
+--If the enemy dies before all the hits take place the leftover hits are not shown.
+--Bonus multiplier from BaseDEX does not include DEX+ and DEX+% stats from equipment.
+
+
+==================================================
+SKILL: GATTLING KNIFE
+==================================================
+
+Category: Dagger Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Limitation: Dagger only
+Active Skill (Single Target)
+MP Cost: 300MP
+Action Range: 8m
+Skill Multiplier: 0.4 + 0.1 * [(Lvl-1) * 0.75] + (BaseSTR + BaseDEX + BaseAGI)/3000
+Skill Constant: 20 + Lvl * 2 + DaggerWeaponATK
+--This rate and constant gives the damage dealt by 1 hit. This skill hits multiple times depending on the damage count.
+Damage Count: 5 + Floor(2 + Lvl)/4
+NOTES:
+--This skill can get element bonus from main weapon.
+--If the enemy dies before all the hits take place the leftover hits are not shown.
+--Bonus multiplier from BaseDEX, BaseSTR and BaseAGI does not include DEX+/STR+/AGI+ and DEX+%/STR+%/AGI+% stats from equipment. The skill godspeed AGI bonus is also not applied.
+
+
+==================================================
+SKILL: AMAZING THROW
+==================================================
+
+Category: Dagger Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Limitation: Dagger only
+Passive Skill
+Effect: Any action involving a dagger (including Double Throw, Evasion Attack and Hidden Arm) can deal double the total amount of hits if activated
+Activation Rate: Lvl*3 % on any dagger action
+
+
+==================================================
+SKILL: POISON DAGGER
+==================================================
+
+Category: Dagger Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Limitation: Dagger only
+Active Skill (Single Target)
+MP Cost: 200MP
+Action Range: 8m
+Skill Multiplier: 0.5 + Lvl * 0.025 + BaseINT/[(11-Lvl) * 100]
+Skill Constant: 100 + 10 * Lvl + PlayerLVL + TotalAGI * 2 + TotalDEX/2
+Ailment Inflict: Poison
+Chance to ailment inflict: 75 + 2.5 * Lvl %
+NOTES:
+--This skill can get element bonus from main weapon.
+--Bonus multiplier from BaseINT does not include INT+ and INT+% equipment
+
+
+==================================================
+SKILL: DOUBLE STAB
+==================================================
+
+Category: Dagger Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Limitation: Dagger only
+Passive Skill
+Effect: When Evasion Attack occurs, it gives buff that doubles the damage of Dagger Skill Tree once. After this effect is used, this skill will enter a cooldown. During cooldown, you cannot use this effect
+Cooldown = (30 - Lvl) seconds
+NOTES:
+-- Skill that doesn't consume MP Cost(include combo tags) will not receive this skill effect and will not waste/use this effect
+
+
+==================================================
+SKILL: HIDDEN ARM & INTENSIVE KNIFE
+==================================================
+
+Category: Dagger Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Limitation: Dagger only
+Passive Skill
+Effect: Get a chance to deal additional damage on an auto attack.
+Activation Rate: 5 * (HiddenArmLvl) + 5 * (IntensiveKnifeLvl) %
+SkillRate: 0.25 for Hidden arm only (+0.25 bonus if both skills taken)
+
+NOTES:
+--This extra damage cannot crit.
+--This extra damage calculation is based on BaseDamage, EnemyDEF and PlayerStability. The DaggerWeaponATK is added at the end after these parameters are applied, just like Throwing Knife = DaggerWeaponATK ignoring all boss defenses except guard.
+--The additional damage takes Normal Auto Attack proration multiplier but does not affect proration change itself.
+
+
+==================================================
+SKILL: MAIL BREAKER
+==================================================
+
+Category: Dagger Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Limitation: Dagger only
+Passive skill
+Effect: Give certain amount of physical pierce % to the Hidden Arm damage. Also give a chance to activate a buff that increases the critical rate of your next auto attack by +75 and AMPR by +100%
+- Amount of physical pierce to hidden arm: 10 + 4 * Lvl %
+- Activation rate for the buff everytime Hidden arm procs: 1 * Lvl %
+- Amount of Ampr = 100% of Base Ampr
+- Amount of Critical rate = +75 flat
+
+
+==================================================
+SKILL: KNIFE COMBAT
+==================================================
+
+Category: Dagger Skills
+Tier: III
+Required Level: Level 50
+
+T3; Dagger Only
+MP Cost: 0
+Base Skill Multiplier: 1 + DaggerATK/100
+Base Skill Constant: 0
+Hit Count: 1 hit
+Maximum Cast Range: 4m
+-This first hit has absolute critical.
+Increase Auto Attacks Skill Multiplier by +(1.5 + 0.2 * Skill Level)
+Auto Attacks Skill Constant +0
+Auto Attacks Hit Count: 6 hits; damage calculation is done once, then divided between the hits
+Knife Combat Mode Buff Effect:
+Changes auto attack to dagger auto attacks; these auto attacks have a fixed maximum range of 4m regardless of weapon, but do not prorate. Dagger auto attacks have very long motion time but can be cancelled with Manual Evasion (which will also cancel the damage of any remaining hits)
+Increase Critical Rate of auto attack by (25 + 5 * Skill Level).
+Increase AMPR by (10 * Skill Level)
+Reduce Evasion consumption of auto attack cancelling by (7.5 * Skill Level)%
+Buff Duration: until you use any skill
+Cannot be activated while another auto attack motion change buff (Rampage, Twin Storm, Dual Shields, Minstrel Songs) is active
+New Passive during Knife Combat Mode Buff Effect: as of 18 April 2024
+The more additional hits you proc(Hidden Arm & Aggravate only, not Additional Melee/Magic), then the higher Knife Combat Auto Attack AMPR multiplier will have. It is 1x AMPR multiplier for every 2 additional hits (still 1x AMPR multiplier if no additional hit proc btw).
+For example:
+- Proc Hidden arm or Aggravate = both each have 6 hits so.. (6 hits / 2)x = 3x AMPR multiplier.
+- However if you proc both(Hidden Arm + Aggravate at same time), then you will get 6+6 add hits count => 7x(for some reason, when it is supposedly 6x tho??) AMPR multiplier.
+- Hold on, it is not over yet… we have Amazing Throw which doubles dagger total hits count, so that means you can pair it with Hidden Arm + Aggravate, and you will get 12+6 add hits count => 9x AMPR multiplier. AMPR OVERKILL lmao
+- And… lastly without Aggravate proc, so just Hidden Arm + Amazing Throw proc = 12 add hits => 6x AMPR multiplier..
+Game Description: “Normal attacks turn into Dagger attacks. Increases Critical Rate and Attack MP Recovery. Reduces Evasion consumption during normal attack. Removes "normal attack proration". The effect ends when you use another skill.”
+Dagger bonus(?): The normal attacks during Knife Combat are enhanced by Hidden Arm, Intensive Knife, and Mail Breaker. [Misleading? Either way in investigating]
+
+
+==================================================
+SKILL: FLINCHER KNIFE
+==================================================
+
+Category: Dagger Skills
+Tier: IV
+Required Level: Level 110
+
+T4; Dagger Only
+MP Cost: 300
+Base Skill Multiplier: 2 + 0.2 * Skill Level + DaggerATK/200
+Base Skill Constant: 30 * Skill Level
+Enhanced Base Skill Multiplier: 4 + 0.4 * Skill Level + DaggerATK/100
+Enhanced Base Skill Constant: 30 * Skill Level
+Hit Count: 1 hit
+Maximum Cast Range: 4m
+Ailment: Flinch
+Base Ailment Chance: [20 * Skill Level]%, max 100%
+Ailment Duration: 2 seconds
+Ailment Resistance: 1 second (Easy and Normal); 3 seconds (Hard); 6 seconds (Nightmare); 9 seconds (Ultimate)
+Skill Effect:
+After using this skill, you will enter Knife Combat mode.
+If you’re being targeted by your target, this skill have a chance to inflict [Flinch]
+If you’re not being targeted by your target, this skill will be enhanced: its multiplier is doubled than usual, and it gains [Skill Level * Skill Level]% Physical Pierce
+This skill has absolute critical
+Reduces Double Stab cooldown by 10 seconds upon successful hit (not graze) regardless of level
+Unaffected by Double Stab and Amazing Throw
+Game Description: “Chance to inflict "Flinch" to a foe targeting you. and turns into Knife Combat mode. Increases damage and Physical Pierce when not being targeted.”
+
+
+==================================================
+SKILL: MAD DAGGER
+==================================================
+
+Category: Dagger Skills
+Tier: V
+Required Level: Not explicitly specified in source
+
+T5; [Active] Dagger Only
+MP Cost: 200 MP
+Damage Type: Physical
+Maximum Cast Range: 16m
+Main Attack:
+Base Skill Multiplier: (0.5 + 0.15 * Skill Level + MIN[0.5; INT(Dagger WATK/10)/100]) * Hit Count
+Base Skill Constant: 200
+-If Main Weapon is OHS/Knuckles/Barehand, gets +0.5 Base Skill Multiplier bonus.
+-Damage calculation is done once, then spread evenly between the hits in the same attack group.
+-Main attack behavior: assigns dagger(s) to main target > assigns other dagger(s) to other mobs in battle within the range randomly > if there is dagger(s) left, repeat the same random order (this has strange behavior if the main target dies early).
+-A knife which hit was guarded will be destroyed (Absolute Guard and Guard Break will not destroy knives). If the user got immobilized (Flinch/Tumble/Stun), all the knives will be destroyed.
+-This attack is affected by short/long range damage; affected by long range skill; affected by Amazing Throw; uses and deals physical proration.
+Follow-up Attack:
+Base Skill Multiplier: MIN[Dagger WATK/(15 - INT(Base DEX/100)) + 50; 100]/100 * Hit Count
+Base Skill Constant: 0
+-If Main Weapon is OHS/Knuckles/Barehand, gets +0.5 Base Skill Multiplier bonus.
+-Damage calculation is done once, then spread evenly between the hits.
+-Targets only the main target.
+-Maximum Attack Range: 7m.
+-This attack is affected by short range damage; affected by long range skill; uses normal proration and deals no proration.
+Game Description: Summons and controls a levitating dagger. Hurls the dagger at the target or a different target in combat to deal damage. After using the skill, the dagger follows you and delivers follow-up attacks in tandem with your normal attacks.
+After Activating Mad Dagger, using Dagger Skills (excluding certain skills such as passives) will increase the number of levitating daggers. (Max 5)
+The number of daggers decreases if you are immobilized (Flinch, Tumble, etc.) or if the enemy successfully performs Guard on daggers launched by the skill.
+
+
+==================================================
+SKILL: ROLLING BITE
+==================================================
+
+Category: Dagger Skills
+Tier: V
+Required Level: Not explicitly specified in source
+
+T5; [Active] Dagger Only
+MP Cost: 400 MP
+Damage Type: Physical
+Maximum Cast Range: 14m
+Base Skill Multiplier: 7.5 + 0.25 * Skill Level
+Base Skill Constant: 400
+-Damage calculation is done once, then spread evenly between 2 hits.
+-No MP is refunded when you cancel the skill or get immobilized while casting the skill.
+When Damage Reduction successfully activates:
+Grants damage reduction 10% * Skill Level (parry at Skill Level 10; takes 0 damage, counts as taking damage [can still get ailment/immobilized/lose some buffs]). Grants 2s invincibility after damage reduction happens.
+Grants damage boost to Rolling Bite skill: Absolute Critical, Ignore Enemy DEF/MDEF (-pierce% does not affect this), Bonus Base Skill Multiplier + MIN[10, Dagger WATK * 2%].
+This skill is affected by short/long range damage; affected by long range skill; uses and deals physical proration proration.
+Game Description: A dagger technique blending evasive maneuvers with surprise attacks. Reduces damage taken while moving. Closes in to deal damage and enters Knife Combat state. Pressing the directional key opposite to the direction the character is facing will cancel the attack.
+Halberd Only: Invincibility is no longer granted upon successful damage reduction. (Damage boost remains in effect.)

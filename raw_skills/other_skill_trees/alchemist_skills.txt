@@ -1,0 +1,379 @@
+Category: Alchemy Skills
+
+GENERAL INFORMATION
+
+Tier Requirements:
+- Tier I: Level 25
+- Tier II: Level 50
+- Tier III: Level 100
+- Tier IV: Level 200
+- Tier V: Level 250
+
+
+==================================================
+SKILL: PROCESS MATERIAL
+==================================================
+
+Category: Alchemy Skills
+Tier: I
+Required Level: 25
+Type: Utility
+
+Description:
+Allows the player to process items in the inventory and convert them into material points without spending Spina.
+
+Material Point Result:
+Items processed through this skill give material points at random, but provide at least:
+
+Minimum Material Points =
+(80 + SkillLvl)% of the normal material point amount
+
+Game Description:
+Process materials by yourself. The success rate increases as the skill levels up. It is a common skill in Smith and Alchemy Skills.
+
+Notes:
+- This skill's level is shared with Process Material in the Smith Skills tree.
+
+
+==================================================
+SKILL: ITEM SYNTHESIS
+==================================================
+
+Category: Alchemy Skills
+Tier: I
+Required Level: 25
+Type: Crafting / Synthesis
+
+Description:
+Allows the player to create potions, ores, and gems without spending Spina.
+
+Difficulty Limit:
+SynthesisProficiencyLvl + TEC / 2 + TotalDEX / 6
+
+Synthesis Success Rate:
+(
+SynthesisProficiency
++ TEC / 2
++ DEX / 6
++ INT / 10
+- ItemDifficulty
++ MidClassSynthesisSkillLvl
++ HighClassSynthesisSkillLvl
++ ExpertsSynthesisSkillLvl
++ ExpertsSynthesisIISkillLvl
+)
+* (0.5 + 0.05 * ItemSynthesisSkillLvl)
+
+Game Description:
+You can synthesize items by yourself. The success rate is lower than the synthesists but you don't need Spina.
+
+
+==================================================
+SKILL: NOVICE'S BOTTLE
+==================================================
+
+Category: Alchemy Skills
+Tier: I
+Required Level: 25
+Type: Passive
+
+Description:
+Increases the maximum Synthesis Proficiency Level.
+
+Synthesis Proficiency Limit Increase:
+5 * SkillLvl
+
+Base Synthesis Proficiency Limit:
+50
+
+Game Description:
+Increases the limit of synthesis proficiency level. You can level up the proficiency up to Lv50 without this skill.
+
+
+==================================================
+SKILL: MID-CLASS SYNTHESIS
+==================================================
+
+Category: Alchemy Skills
+Tier: II
+Required Level: 50
+Type: Passive
+
+Description:
+Increases the chance of successful Item Synthesis and reduces synthesis material consumption.
+
+Synthesis Success Effect:
+Full effect is unknown in the source.
+
+Synthesis Material Consumption Reduction:
+SkillLvl %
+
+Game Description:
+Increases the success rate of Item Synthesis a little.
+
+
+==================================================
+SKILL: CRAFTSMAN'S BOTTLE
+==================================================
+
+Category: Alchemy Skills
+Tier: II
+Required Level: 50
+Type: Passive
+
+Description:
+Increases the maximum Synthesis Proficiency Level.
+
+Synthesis Proficiency Limit Increase:
+5 * SkillLvl
+
+Game Description:
+Increases the limit of proficiency level by 5 per skill level.
+
+
+==================================================
+SKILL: SYNTHESIZE EQUIPMENT
+==================================================
+
+Category: Alchemy Skills
+Tier: II
+Required Level: 50
+Type: Equipment Synthesis
+
+Description:
+Allows the player to synthesize equipment characteristics without spending Spina or Orbs.
+
+Equipment Requirements:
+Two pieces of equipment of the same type are selected as synthesis materials.
+
+Selectable Characteristics:
+- Appearance
+- Dyes
+- Stats
+
+Stats Characteristic Includes:
+- ATK or DEF
+- Weapon Stability
+- Equipment stats
+- Number of slots
+- Crystas attached to slots
+- Refine level
+- Armor remodel
+
+Notes:
+- The individual properties inside the Stats characteristic cannot be selected separately.
+- Unlocked characteristics are selected randomly between the two source equipment pieces.
+- A characteristic can be locked to ensure the resulting equipment keeps it.
+- The player starts with 1 available lock.
+
+Additional Locks from Synthesis Proficiency:
+- Level 50: +1 lock
+- Level 100: +1 lock
+- Level 150: +1 lock
+- Level 200: +1 lock
+
+Failure:
+On failure, some locked characteristics may not take effect.
+
+Equipment Synthesis Lock Penalty:
+NumberOfLockedCharacteristics^2 / 2
+
+Minimum Lock Penalty:
+1
+
+Equipment Synthesis Success Rate:
+(50 + SkillEquipSynthesisBoost + 2 * TEC)
+/
+EquipSynthesisLockPenalty
+
+Base Skill Equip Synthesis Boost:
+0
+
+Passive Skill Equip Synthesis Boost:
+10 * SkillLvl
+
+Game Description:
+You can synthesize items by yourself. The success rate is lower than the synthesis but you don't need Spina.
+
+
+==================================================
+SKILL: HIGH-CLASS SYNTHESIS
+==================================================
+
+Category: Alchemy Skills
+Tier: III
+Required Level: 100
+Type: Passive
+
+Description:
+Increases the chance of successful Item Synthesis and reduces synthesis material consumption.
+
+Synthesis Success Effect:
+Full effect is unknown in the source.
+
+Synthesis Material Consumption Reduction:
+SkillLvl %
+
+Game Description:
+Increases the success rate of Item Synthesis.
+
+
+==================================================
+SKILL: SYNTHESIST'S BOTTLE
+==================================================
+
+Category: Alchemy Skills
+Tier: III
+Required Level: 100
+Type: Passive
+
+Description:
+Increases the maximum Synthesis Proficiency Level.
+
+Synthesis Proficiency Limit Increase:
+5 * SkillLvl
+
+Game Description:
+Increases the limit of proficiency level by 5 per skill level.
+
+
+==================================================
+SKILL: TECHNICAL SYNTHESIS
+==================================================
+
+Category: Alchemy Skills
+Tier: III
+Required Level: 100
+Type: Passive
+
+Description:
+Increases the success rate of Synthesize Equipment.
+
+Skill Equip Synthesis Boost:
+15 * SkillLvl
+
+Game Description:
+Increases the success rates of Synthesize Equipment.
+
+
+==================================================
+SKILL: EXPERT'S SYNTHESIS
+==================================================
+
+Category: Alchemy Skills
+Tier: IV
+Required Level: 200
+Type: Passive
+
+Description:
+Increases the chance of successful Item Synthesis and reduces synthesis material consumption.
+
+Synthesis Success Effect:
+Full effect is unknown in the source.
+
+Synthesis Material Consumption Reduction:
+SkillLvl %
+
+Game Description:
+Increases the success rate of Item Synthesis more.
+
+
+==================================================
+SKILL: MASTER'S BOTTLE
+==================================================
+
+Category: Alchemy Skills
+Tier: IV
+Required Level: 200
+Type: Passive
+
+Description:
+Increases the maximum Synthesis Proficiency Level.
+
+Synthesis Proficiency Limit Increase:
+5 * SkillLvl
+
+Game Description:
+Increases the limit of proficiency level by 5 per skill level.
+
+
+==================================================
+SKILL: TECHNICAL SYNTHESIS II
+==================================================
+
+Category: Alchemy Skills
+Tier: IV
+Required Level: 200
+Type: Passive
+
+Description:
+Increases the success rate of Synthesize Equipment.
+
+Skill Equip Synthesis Boost:
+20 * SkillLvl
+
+Game Description:
+Increases the success rates of Synthesize Equipment.
+
+
+==================================================
+SKILL: EXPERT'S SYNTHESIS II
+==================================================
+
+Category: Alchemy Skills
+Tier: V
+Required Level: 250
+Type: Passive
+
+Description:
+Increases the chance of successful Item Synthesis and reduces synthesis material consumption.
+
+Synthesis Success Effect:
+Full effect is unknown in the source.
+
+Synthesis Material Consumption Reduction:
+SkillLvl %
+
+Game Description:
+Moderately increases the success rate of Item Synthesis more.
+
+
+==================================================
+SKILL: MASTER'S BOTTLE II
+==================================================
+
+Category: Alchemy Skills
+Tier: V
+Required Level: 250
+Type: Passive
+
+Description:
+Increases the maximum Synthesis Proficiency Level.
+
+Synthesis Proficiency Limit Increase:
+5 * SkillLvl
+
+Game Description:
+Increases the limit of proficiency level by 5 per skill level.
+
+Special Note:
+If all Bottle skills reach Level 10, proficiency increases to the current level cap.
+
+
+==================================================
+SKILL: TECHNICAL SYNTHESIS III
+==================================================
+
+Category: Alchemy Skills
+Tier: V
+Required Level: 250
+Type: Passive
+
+Description:
+Increases the success rate of Synthesize Equipment.
+
+Skill Equip Synthesis Boost:
+20 * SkillLvl
+
+Game Description:
+Increases the success rates of Synthesize Equipment.

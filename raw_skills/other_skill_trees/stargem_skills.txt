@@ -1,0 +1,173 @@
+Category: Stargem Skills
+
+GENERAL INFORMATION
+
+Source Group:
+2024 Halloween Stargem
+
+Weapon Restrictions:
+All listed Stargem skills can be used with all weapons.
+
+
+==================================================
+SKILL: IRON PIPE
+==================================================
+
+Category: Stargem Skills
+Source: 2024 Halloween Stargem
+Type: Active
+Allowed Weapons: All Weapons
+
+MP Cost: 0
+Damage Type: Physical
+Element: Fixed Neutral
+Hit Count: 1
+Maximum Cast Range: 4 m
+AoE Radius: 1 m around the target
+Ailment: Flinch
+
+Description:
+Performs a narrow AoE physical attack. The skill has reduced Critical Rate, but a successful critical hit can inflict Flinch.
+
+Base Skill Multiplier:
+0.5 + 0.05 * SkillLvl + STR / 250
+
+Base Skill Constant:
+0
+
+Base Ailment Chance:
+100%
+
+Ailment Condition:
+Flinch is inflicted only when the attack deals a critical hit.
+
+Ailment Duration:
+2 seconds
+
+Ailment Resistance:
+- Easy: 4 seconds
+- Normal: 4 seconds
+- Hard: 4 seconds
+- Nightmare: 5 seconds
+- Ultimate: 8 seconds
+
+Critical Rate:
+FinalSkillCriticalRate =
+5% * SkillLvl of the character's total Critical Rate
+
+Range Modifier:
+Affected by Short Range Damage.
+
+Proration:
+- Uses Physical Proration.
+- Deals Physical Proration.
+
+Motion:
+Fixed Motion Speed.
+
+Game Description:
+It's good enough to kill zombies. Performs a narrow AoE attack. It lowers Critical Rate, but a successful critical hit will make the enemy flinch.
+
+
+==================================================
+SKILL: RETRO BOWGUN
+==================================================
+
+Category: Stargem Skills
+Source: 2024 Halloween Stargem
+Type: Active
+Allowed Weapons: All Weapons
+
+MP Cost: 100
+Damage Type: Physical
+Element: Fixed Neutral
+Hit Count: 1
+Maximum Cast Range: 12 m
+
+Description:
+Attacks the target and generates additional Aggro based on distance. Greater distance produces more Aggro.
+
+Base Skill Multiplier:
+0.5 + 0.05 * SkillLvl + DEX / 250
+
+Base Skill Constant:
+100
+
+Additional Aggro by Distance:
+- 0 to 5 m: 0 Aggro
+- 6 to 8 m: 250 * SkillLvl Aggro
+- 9 to 12 m: 750 * SkillLvl Aggro
+
+Aggro Notes:
+- These values use actual Aggro units and do not include base MP-cost Aggro.
+- The source states that the final value gains 1000 additional Aggro from the 100 MP base cost.
+- Only the Aggro holder gains the additional distance-based Aggro.
+- Battle initiation is included for the Aggro holder.
+- A non-Aggro holder generates only the MP-cost base Aggro.
+- Additional Aggro is affected by Aggro+% equipment and buffs.
+
+Range Modifiers:
+Affected by both Short Range Damage and Long Range Damage.
+
+Proration:
+- Uses Physical Proration.
+- Deals Physical Proration.
+
+Motion:
+Fixed Motion Speed.
+
+Game Description:
+A bowgun that is not very powerful and is mainly for display. Attacks the target to pull aggro. The greater the distance, the greater the effect. The distance thresholds are 6 m or more and 9 m or more.
+
+
+==================================================
+SKILL: MAGNUM
+==================================================
+
+Category: Stargem Skills
+Source: 2024 Halloween Stargem
+Type: Active
+Allowed Weapons: All Weapons
+
+MP Cost: 400
+Damage Type: Physical
+Element: Fixed Fire
+Hit Count: 1
+Maximum Cast Range: 18 m
+
+Description:
+Fires a guaranteed critical attack using a regenerating bullet resource. The skill has an Accuracy penalty and is treated as Long Range Damage.
+
+Base Skill Multiplier:
+CharacterLvl / 100 + SkillLvl
+
+Base Skill Constant:
+40 * SkillLvl
+
+Bullet Requirement:
+One bullet is required per shot.
+
+Bullet Regeneration Interval:
+20 - SkillLvl seconds
+
+Maximum Bullet Stacks:
+99
+
+Critical Property:
+Absolute Critical.
+
+Accuracy Penalty:
+35% at all skill levels.
+
+Range Property:
+Forced Long Range Damage.
+
+Proration:
+- Uses Magic Proration.
+- Deals Magic Proration.
+
+Motion:
+Fixed Motion Speed.
+
+Game Description:
+A weapon from another world modified and loaded with magic. Attacks with a guaranteed critical hit, but the high recoil makes it hard to hit the target. The ability to use it accumulates as the battle goes on.

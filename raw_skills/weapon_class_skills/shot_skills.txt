@@ -1,0 +1,713 @@
+Category: Shot Skills
+
+GENERAL INFORMATION
+
+Tier Requirements:
+- Tier I: None
+- Tier II: Level 30
+- Tier III: Level 70
+- Tier IV: Level 150
+- Tier V: Level 240
+
+Shared Rules and Notes:
+Power Shot
+Lv 1 Skill; Bow/Bowgun/Arrow only
+MP Cost: 100
+Damage Type: Physical
+Base Skill Multiplier: 1.25 + 0.05 * Skill Level
+Base Skill Constant: 50 + 8 * Skill Level
+Hit Count: 1 hit
+Maximum Cast Range: 16m
+Skill Effect:
+- This skill has an innate Motion Speed penalty of (155 - 10.5 * Skill Level)%; the penalty is applied as follows:
+
+
+==================================================
+SKILL: POWER SHOT ANIMATION TIME MODIFIER = ANIMATION TIME MODIFIER * (1 + MOTION SPEED PENALTY/100)
+==================================================
+
+Category: Shot Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Source Details:
+- This skill gains Critical Rate +(5* Skill Level) if your target got Slow Ailments
+Ailment: Tumble
+Base Ailment Chance: 20% + (3 * Skill Level)%
+Ailment Duration: 3 seconds
+Ailment Resistance: 3 seconds (Easy and Normal); 6 seconds (Hard); 12 seconds (Nightmare); 18 seconds (Ultimate)
+Game Description: "Shoot the target with stronger power. The charge time reduces as the skill levels up. Chance to inflict [Tumble] on the target. Critical rate increases on Slowed targets."
+Bow bonus: Tumble chance +40%
+Bowgun bonus: Motion Speed penalty -50%
+Bowgun penalty: Tumble chance -40%
+
+
+==================================================
+SKILL: BULLSEYE
+==================================================
+
+Category: Shot Skills
+Tier: I
+Required Level: None
+
+Source Details:
+Lv 1 Skill; Bow/Bowgun/Arrow only
+MP Cost: 200
+Damage Type: Physical
+Base Skill Multiplier: 0.25 + 0.05 * Skill Level; multiplier for each hit
+Base Skill Constant: 30 + 4 * Skill Level; constant for each hit
+Hit Count: 3 hits; dodge, Evasion, Guard, Anticipate, Guard Break and critical calculations are done for the first hit, then copied for the other hits; the rest of damage calculation is done for each hit
+Skill Effect:
+This skill has Physical Pierce +(4 * Skill Level)% on the second hit
+Physical Pierce +(8 * Skill Level)% on the third hit
+Maximum Cast Range: 12m
+Game Description: "Consecutively shoot at a point. The damage dealt increases attack by attack."
+Bow bonus: Skill Multiplier +0.25
+Bowgun bonus: Second hit's Physical Pierce +10%; third hit's Physical Pierce +20%
+
+
+==================================================
+SKILL: ARROW RAIN
+==================================================
+
+Category: Shot Skills
+Tier: II
+Required Level: Level 30
+
+Source Details:
+Lv 2 Skill; Bow/Bowgun/Arrow only
+MP Cost: 300
+Damage Type: Physical
+Base Skill Multiplier: 1 + Floor(Skill Level / 2) * 0.06; multiplier for each hit
+Base Skill Constant: 50 + Floor((Skill Level + 1)/2) * 10; constant for each hit
+Hit Count: 1 hit (levels 1 and 2); 2 hits (levels 3 to 5); 3 hits (levels 6 to 8); 4 hits (levels 9 and 10){damage calculation is done for each hit}
+Maximum Cast Range: 12m
+Hit Range(Radius): around position of target when the skill is cast, 1.5m (levels 1 to 3); 2m (levels 4 to 6); 2.5m (levels 7 to 9); 3m (level 10)
+Game Description: "Shoot a lot of arrows to the sky. The arrows fall down at intervals and deal damage."
+Bow bonus: Hit Range +2m
+Bow bonus: Hit Count is doubled
+Bowgun bonus: Skill Multiplier +0.7
+This skill is unaffected by Whack, Long Range and Short Range Damage/Long Range Damage stats
+Triple Thrust's Skill Constant buff is divided by the Hit Count
+
+Snipe
+Lv 3 Skill; Bow/Bowgun/Arrow only
+MP Cost: 400
+Damage Type: Physical
+Base Skill Multiplier: 7 + 0.1 * Skill Level
+Base Skill Constant: 300 + 10 * Skill Level
+Hit Count: 1 hit
+Maximum Cast Range: 16m
+Charge Time: 5 seconds (levels 1 and 2); 4 seconds (levels 3 and 4); 3 seconds (levels 5 to 7); 2 seconds (levels 8 and 9); 1 second (level 10)
+Skill Effect:
+- This skill gains the Perfect Aim attribute when the target has the Blind ailment
+- This skill has a total Critical Rate penalty of (25 - floor(Skill Level/2)%;the penalty is applied as follows:
+
+
+==================================================
+SKILL: SNIPE CRITICAL RATE = TOTAL CRITICAL RATE * (1 - CRITICAL RATE PENALTY/100)
+==================================================
+
+Category: Shot Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Source Details:
+Ailment: Armor Break
+Base Ailment Chance: 50% + (2 * Skill Level)%
+Ailment Duration: 5 seconds
+Ailment Resistance: None
+Game Description: "Snipe a weak point. The charge time decreases as the skill levels up. Chance to inflict [Armor Break]. 100% chance to hit Blind targets."
+Bow bonus: Skill Multiplier +2
+Bow bonus: Armor Break chance +30%
+Bow bonus: Total Critical Rate penalty become this (10 - Skill Level)%
+Bowgun bonus: Skill Multiplier +3
+Bowgun bonus: Charge Time -0.5 seconds
+Bowgun bonus: Stability of this skill increased by +20%
+Bowgun penalty: Armor Break chance -60%
+
+Cross Fire
+Lv 4 Skill; Bow/Bowgun only
+MP Cost: 400 (buff cast) / 0 (attack cast)
+Damage Type: Physical
+Main Hit Skill Multiplier: (4 + 0.5 * Skill Level) * number of charges
+Additional Hits Skill Multiplier: 2; skill multiplier for each hit
+Decoy Hit Skill Multiplier: (0.8 + 0.1 * Skill Level) * number of charges
+Main Hit Skill Constant: 300 + 10 * Skill Level
+Additional Hits Skill Constant: 300 + 10 * Skill Level; constant for each hit
+Decoy Hit Skill Constant: 60 + 2 * Skill Level
+Hit Count: 1 hit (Main Hit and Decoy Hit); number of charges - 1 (Additional Hits); damage calculation is done for each hit
+Maximum Cast Range: Buff cast-Unlimited; Attack cast-12m
+Hit Range: Length of 100m and radius of 1m; from the caster's position (Main Hit)/ main target (Additional Hits)/ length of 100m and radius of 1m; from the decoy's position (Decoy Hit)
+Skill Effect:
+If you use the attack cast while you have no charges, it will fizzle (and your avatar will look puzzled)
+This skill will add an additional hit if a decoy from Decoy Shot is active
+If the attack cast has the same Combo Tag as the buff cast did, the Combo Tag of the attack cast will be ignored
+The Combo Multiplier carries over from the buff cast; this takes into account if the attack cast's Combo Tag is ignored; the total Combo Multiplier is calculated as follows:
+
+
+==================================================
+SKILL: CROSSFIRE TOTAL COMBO MULTIPLIER = ATTACK CAST COMBO MULTIPLIER + BUFF CAST COMBO MULTIPLIER - 100
+==================================================
+
+Category: Shot Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Source Details:
+Remember! Out of all combo tags, Only Bloodsucker(lifesteal) and Mind’s eye(always graze/no miss) tags cannot apply on buff(Charge) cast, but Bloodsucker after-effect(Spirit = boost dmg), Smite, Save and the rest can apply on buff cast.
+Buff Effect:
+The next cast of Cross Fire becomes 0 MP
+Gains charges over time, starting at 0 charges
+Maximum charge limit: 2 (levels 1 to 3); 3 (levels 4 to 6); 4 (levels 7 to 9); 5 (level 10)
+Time for each charge: 1second (first charge); 2 seconds (second charge); 5 seconds (third charge); 10 seconds (fourth charge); 17 seconds (fifth charge) [the current charge must be completed before proceeding to the next charge]
+If you get hit, the skill will stop charging; if you get hit while you have no charges, the buff is removed
+Buff Duration: Until you cast Cross Fire(attack cast) again OR until you get hit if you have no charges
+Note: The charge animation of this skill is not affected by motion speed from character's status, but can use "swift" combo tag's motion speed modifier.
+Game Description: "Charge Skill (5 Levels). Attack toward a target and deal damage in a straight line. Power increases as the charge level increases and adds an attack. Add another attack by meeting certain conditions."
+Bow bonus: Main Hit Skill Multiplier +((baseDex/500 + 0.5) * number of charges)
+Bow bonus: Radius of Main Hit +1m
+Bowgun bonus: Additional Hits Skill Multiplier +1
+Bowgun bonus: Additional Hits Physical Pierce +(baseDex/10)%
+Only Main Hit and Decoy Hits are affected by Whack, Long Range and Short Range Damage/Long Range Damage stats. Meanwhile Additional Hits are only affected by Whack
+
+
+==================================================
+SKILL: MOEBA SHOT
+==================================================
+
+Category: Shot Skills
+Tier: I
+Required Level: None
+
+Source Details:
+Lv 1 Skill; Bow/Bowgun/Arrow only
+MP Cost: 100
+Damage Type: Physical
+Element: Water; has Dual Element attribute (gets extra element from Arrow sub)
+Base Skill Multiplier: 1 + 0.05 * Skill Level
+Base Skill Constant: 50 + 5 * Skill Level
+Hit Count: 1 hit
+Maximum Cast Range: 14m
+If enemy got Slow ailments by using this skill, the skill multiplier and constant will increase for that hit only
+Bonus Base Skill Multiplier +(0.5 + baseDex/100)
+Ailment: Slow
+Base Ailment Chance: 50% + (2 * Skill Level)%
+Ailment Duration: 10 seconds
+Ailment Resistance: None
+Game Description: "Shoot with sticky liquid. Water element attack. Dual Element with Arrow. Chance to inflict [Slow Down] on the target."
+Bow bonus: Slow chance +30%
+Bowgun bonus: Skill Multiplier +0.5
+Bowgun penalty: Slow chance -30%
+
+
+==================================================
+SKILL: PARALYSIS SHOT
+==================================================
+
+Category: Shot Skills
+Tier: II
+Required Level: Level 30
+
+Source Details:
+Lv 2 Skill; Bow/Bowgun/Arrow only
+MP Cost: 300
+Damage Type: Physical
+Element: Wind; has Dual Element attribute (gets extra element from Arrow sub)
+Base Skill Multiplier: 1.1 + 0.05 * Skill Level
+Base Skill Constant: 100 + 20 * Skill Level
+Hit Count: 1 hit
+Maximum Cast Range: 14m
+If enemy got Paralysis ailments by using this skill, the skill multiplier and constant will increase for that hit only
+Bonus Base Skill Multiplier +(1 + baseDex/100)
+Buff Effect: Increase Stability by +(Skill Level)%
+Buff Duration: 10 seconds
+Ailment: Paralysis
+Base Ailment Chance: 50% + (2 * Skill Level)%
+Ailment Duration: 10 seconds
+Ailment Resistance: None
+Game Description: "Shoot the target with a paralysis poison. Wind element attack. Dual Element with Arrow. Chance to inflict [Paralysis] on the target. Increase your Stability for a while."
+Bow bonus: Skill Multiplier +1
+Bow bonus: Paralysis Rate +20%
+Bowgun bonus: Skill Multiplier +1.5
+Bowgun penalty: Paralysis Rate -20%
+Arrow bonus: Paralysis Rate +20%
+
+
+==================================================
+SKILL: SMOKE DUST
+==================================================
+
+Category: Shot Skills
+Tier: III
+Required Level: Level 70
+
+Source Details:
+Lv 3 Skill; Bow/Bowgun/Arrow only
+MP Cost: 500
+Damage Type: Physical
+Element: Dark; has Dual Element attribute (gets extra element from Arrow sub)
+Base Skill Multiplier: 1.2 + 0.05 * Skill Level
+Base Skill Constant: 200 + 30 * Skill Level
+Hit Count: 1 hit
+Maximum Cast Range: 14m
+If enemy got Blind ailments by using this skill, the skill multiplier and constant will increase for that hit only
+Bonus Base Skill Multiplier +(2 + baseDex/100)
+Buff Effect: Increase Accuracy by +(Skill Level²/2 + 5 * Skill Level)
+Buff Duration: 10 seconds
+Ailment: Blind
+Base Ailment Chance: 50% + (2 * Skill Level)%
+Ailment Duration: 10 seconds
+Ailment Resistance: None
+Game Description: "An attack with a smokescreen. Dark element attack. Dual Element with Arrow. Chance to inflict [Blind] on the target. Increases accuracy rate for a while."
+Bow bonus: Skill Multiplier +2
+Bow bonus: Blind Rate +20%
+Bowgun bonus: Skill Multiplier +2.5
+Bowgun penalty: Blind Rate -20%
+Arrow bonus: Blind Rate +20%
+
+
+==================================================
+SKILL: ARM BREAK
+==================================================
+
+Category: Shot Skills
+Tier: IV
+Required Level: Level 150
+
+Source Details:
+Lv 4 Skill; Bow/Bowgun/Arrow only
+MP Cost: 700
+Damage Type: Physical
+Element: Neutral; has Dual Element attribute (gets extra element from Arrow sub)
+Base Skill Multiplier: 3 + 0.05 * Skill Level
+Base Skill Constant: 300 + 40 * Skill Level
+Hit Count: 1 hit
+Maximum Cast Range: 14m
+If enemy got Lethargy ailments by using this skill, the skill multiplier and constant will increase for that hit only
+Bonus Base Skill Multiplier +(1.3 + baseDex/100)
+Ailment: Lethargy
+Base Ailment Chance: 50% + (2 * Skill Level)%
+Ailment Duration: 10 seconds
+Ailment Resistance: None
+Game Description: "Attack a target's arm and reduce its attack power. The base element is Neutral and it has Dual Element(Arrow). Chance to inflict [Lethargy]."
+Bowgun bonus: Skill Multiplier +3
+Bow bonus: Lethargy Rate +20%
+Bowgun bonus: Skill Multiplier +3.5
+Bowgun penalty: Lethargy Rate -20%
+Arrow bonus: Lethargy Rate +20%
+
+
+==================================================
+SKILL: SHOT MASTERY
+==================================================
+
+Category: Shot Skills
+Tier: I
+Required Level: None
+
+Source Details:
+Lv 1 Skill; Bow/Bowgun only
+Passive Effect: Weapon ATK +(3 * Skill Level)%; ATK +1% (levels 1 and 2)/ +2% (levels 3 to 7)/ +3% (levels 8 to 10)
+Game Description: "Get better at using bows and bowguns. ATK of Bows and Bowguns increases."
+
+
+==================================================
+SKILL: SNEAK ATTACK
+==================================================
+
+Category: Shot Skills
+Tier: I
+Required Level: None
+
+Source Details:
+Lv 1 Skill; No Limit
+MP Cost: 400
+Damage Type: None
+Buff Effect: For the next (Skill Level) auto attacks and attacking skills, you will not gain aggro
+Buff Duration: (Skill Level) auto attacks and/or attacking skills
+Game Description: "Hide yourself and turn Aggro away. Certain attacks don't get Aggro after this skill."
+Bow bonus: MP Cost -200
+Bowgun bonus: MP Cost -200
+Support skills and non-attacking skills (including Sneak Attack itself) will still draw aggro, but they will not decrease the attack/attacking skill count.
+
+
+==================================================
+SKILL: LONG RANGE
+==================================================
+
+Category: Shot Skills
+Tier: II
+Required Level: Level 30
+
+Source Details:
+Lv 2 Skill; No Limit
+Passive Effect: Increases the damage of all skills that have a Maximum Cast Range of 8m or higher by (Skill Level)%
+Game Description: "You become good at attacking from distance. Damage dealt from 8 meters or more increases."
+Some skills are unaffected
+
+
+==================================================
+SKILL: QUICK DRAW
+==================================================
+
+Category: Shot Skills
+Tier: III
+Required Level: Level 70
+
+Source Details:
+13. Quick Draw
+Lv 3 Skill; No Limit
+Passive Effect: Whenever an attacking skill that consumes MP is used, you have a (3 * Skill Level)% chance to recover 100 MP
+Game Description: "Quickly prepare for the next move. Chance to restore MP a little when succeeding in attacking with a skill."
+Support skills, non-attacking skills, and attacking skills that do not consume MP will not activate this skill. This includes the effects of combo tags and MP Cost modifiers.
+
+
+==================================================
+SKILL: DECOY SHOT
+==================================================
+
+Category: Shot Skills
+Tier: IV
+Required Level: Level 150
+
+Source Details:
+Lv 4 Skill; No Limit
+MP Cost: 400
+Maximum Cast Range: Theoretically infinite (limited to 100m)
+Base Cast Time: 1 second; affected by Cast Speed
+Skill Effect:
+Places a decoy that auto attacks as long as the main target is within its range; full Attack MP Recovery and Aggro applies, but the decoy doesn't prorate
+The decoy will attack based on your Attack Speed, but has a minimum auto attack delay of 0.001 seconds
+Duration: 10 + (Skill Level x Skill Level / 2) seconds. At Level 10 = 60 secs
+Decoy Auto Damage Type: Neutral
+Decoy Auto Element: Neutral
+Decoy Auto Multiplier: 0.2 + 0.08 * Skill Level
+Decoy Hit Count: 1 hit
+Decoy Hit Range: Defaults to the weapon's Auto Attack Max Range
+Note: This skill is not affected by motion speed from character's status, but can use "swift" combo tag's motion speed modifier.
+Game Description: "Generate a clone and make it attack. The clone attacks enemies attacking within the range. The clone's attack is normal attack but it has no proration."
+Non Bow/Bowgun penalty: If a decoy is hit by an aoe, it's auto-atk delay is increased by 1 sec(for each hit) for next auto-atk. Maximum delay is 3 sec(3 hits by aoe)
+The decoy's Decoy Auto Multiplier is unaffected by auto attack damage increasing effects
+The decoy is affected by Combo Tag effects when you cast Decoy Shot in a combo
+Dual Swords benefit from their doubled Attack MP Recovery on the decoy, but the damage only scales with their main hand ATK
+The decoy will only attack the mob/boss you are targeting
+The skill and the decoy bypass Sneak Attack's effect
+Power Wave DOES NOT affect the decoy's range
+The decoy will be affected by all stats (such as Attack MP Recovery, Critical Rate, etc.) changes even while active, but the skill must be recast for the decoy to be affected by Attack Speed changes.
+Every time your decoy attacks when you have Poison ailments, Poison still triggers/will decrease your hp.
+Decoy attack cannot inflict Neutral Proration
+This decoy can sync with Cloning from “Scroll Tree”
+Bug Note: (don’t abuse it, or risk of getting Banned; Phantom’s Library is not responsible for that)
+This skill has AMPR bug. Everytime decoy attacks a target, it will give +100% base ampr on the next player auto attack(decoy can enjoy this effect all the time without wasting this effect until you auto attack). But this ampr bug condition => weird, sometimes works but sometimes won’t work(Yes, it happens when you switch character and switch weapon; and relogging will reset those[sometimes work & won’t work] = which is kinda using the system). Weird right? Using the system = bug. (Actually, I hope it is not a bug, but it is impossible because of that weird condition/system).
+This ampr bug always happens even if you don’t intend to(just ignore it and keep going without using the system[just pretend = don't know that bug] or report that ampr bug[evil laugh]).
+
+Fatal Shot
+Lv 3 Skill; Bow/Bowgun only
+MP Cost: 200
+Damage Type: Physical
+Base Skill Multiplier: 5 + 0.1 * Skill Level + TotalStr/200 + TotalDex/200
+Base Skill Constant: 200
+Hit Count: 1 hit
+Maximum Cast Range: 14m
+Skill Effect:
+Fatal Shot Critical Rate: +25 + 5 * Skill Level
+
+
+==================================================
+SKILL: FATAL SHOT SKILL ACCURACY: -100% + 2% * SKILL LEVEL
+==================================================
+
+Category: Shot Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Source Details:
+This skill can extend tap break time: Floor (skill level/2), {If this skill attack hit as miss/evaded/grazed, it doesn't extend break time}
+Game Description: A shot skill that pierces through a strong armor. It's a unique attack with a high critical rate, but low accuracy. If it hits the target right, the tap time to break monster's part will be extended.
+
+
+==================================================
+SKILL: VANQUISHER
+==================================================
+
+Category: Shot Skills
+Tier: V
+Required Level: Level 240
+
+Source Details:
+Lv 5; Bow/Bowgun only
+MP Cost: 1200
+Damage Type: Physical
+Base Skill Multiplier: 5 + Skill Level + Base DEX/100
+Base Skill Constant: 1200
+Hit Count: 1 hit
+Maximum Cast Range: 8m
+Hit Range: 8m with 0.5m damage radius
+Evasion/Guard bypass chance: MIN(100;(20% * (8 - range)))
+Skill Effect:
+When you have ignite debuff on you, then using this will remove ignite debuff immediately. Also, it can prevent the power dispersion(split) damage to multiple targets within the area. And as well grant Perfect Aim attribute
+This skill damage is affected by either SRD% or LRD% based on which one of them is higher.
+If you are using a Bowgun and have 5 or more "Twin Storm" stacks available; upon casting "Vanquisher", you consume 5 "Twin Storm" stack to double "Vanquisher" damage and recover 600 MP.
+Evasion/Guard bypass has similar mechanism as anticipate/guard break but without the pop-up notice.
+Game Description: “Delivers a powerful blow to a small area. The power gets dispersed if there are multiple targets within the area. The closer you are to the target, the more Guard and Evasion are disregarded.”
+Bow/Bowgun bonus: If you have the Ignite debuff, activating this skill will remove it, guarantee hits, and stop power from being dispersed.
+Bowgun bonus: If you have 5 or more "Overheat stacks" from Twin Storm, 5 stacks will be consumed to enhance Vanquisher.
+MD Bonus: Replaces “Base DEX/100” in Skill Multiplier into “Base INT/100”; everything else remains the same.
+Dagger bonus: It changes from an AoE to a single-target attack.
+
+Twin Storm
+Lv 5; Bowgun only
+MP Cost: 200
+Damage Type: None
+Auto Attacks Skill Multiplier: +0,9 * Skill Level + MIN(4;TRUNC((Stack-1)/15)) * (0,2 * Skill Level) [note: just like Rampage, this multiplier work additively with other's Auto Attacks Skill Multiplier such as Kairiki, etc.]
+Auto Attacks Skill Constant: +0
+Auto Attacks Hit Count: 2 hits; damage calculation is done once, then divided between the hits
+Skill Effect:
+Replaces the user's auto attacks with Twin Storm auto attacks.
+Auto attacks needed to increase a stack: MAX(1;MIN(4;TRUNC((Current Stack-1)/15))) or
+0-30 stk = 1 auto attacks
+31-45 stk = 2 auto attacks
+46-60 stk = 3 auto attacks
+61-98 stk = 4 auto attacks
+
+
+==================================================
+SKILL: TWIN STORM STABILITY DECREASE: -MAX(0;ROUNDDOWN((STACK-31);-1)%
+==================================================
+
+Category: Shot Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Source Details:
+or -10% every 10 stacks starting from 41st stack.
+Buff Effect:
+1.5x your movement speed while the buff is active; this is overridden by the Stop ailment and stacks with the Slow ailment.
+Total AMPR will be doubled during this stack buff.
+Attack Speed bonus: +100 * Skill Level
+Final Damage Modifier for Shot/Hunter Skills (including Twin Storm): +TRUNC(Stack/25) * 10%
+Bleed, Freeze, and Stun to your character will decrease Twin Storm stacks by 15; Bleed disables twin storm; Freeze disables twin storm stack gain.
+Game Description: “Greatly enhances normal attack and also increases movement speed. Overheat stacks each time a normal attack hits, and the skill status can be removed by reactivating the skill.”
+Bowgun Bonus: "Overheat stack" buff. The power of normal attacks, Shot Skills, and Hunter Skills increases as Overheat stacks build up. Stability decreases if Overheat stacks build up too much.
+Magic Device Bonus: Performs normal attacks with MATK if MATK is higher than ATK (still uses physical calculation). Increases Auto Attacks Skill Constant by Base INT/2 regardless of which of ATK or MATK is higher.
+Dagger Bonus: Always applies the power of close-range attack or long-range attack, whichever is higher.
+Power Wave is not disabled during this Twin Storm buff. (Affect auto attack max range & auto attack damage modifier)
+This skill cannot be put in a combo
+
+
+==================================================
+SKILL: RETROGRADE SHOT
+==================================================
+
+Category: Shot Skills
+Tier: V
+Required Level: Level 240
+
+Source Details:
+Lv 5; Bow only
+MP Cost: 300
+Damage Type: Physical
+Base Skill Multiplier: 5 + 0.5 * Skill Level + Base Dex/100
+Base Skill Constant: 300
+Hit Count: 1 hit
+Maximum Cast Range: 12m
+Hit Range: 100m with 2.5m damage radius
+Additional Damage to Marked target per hit with Shot/Hunter skills
+Multiplier for each hit: 1
+Constant for each hit: 0
+For every additional hit will increase the next additional hit multiplier by
+(Total Dex * Skill Level/100)%. This effect can gain up to (Floor(Skill Level/4) + 3) times
+To summarise, this additional multi increases everytime additional hit triggers.
+[1st additional: 1], [then 2nd additional: 1 + dex bonus], [then 3rd additional: 1 + 2x dex bonus], and so on
+Skill Effect:
+Additional Hit of this skill has 50% Physical Pierce% bonus
+Normally, using this skill will make you move backward 5m away from the target. But if you use this skill while moving forward at the same time, then you will stay there instead of moving backward.
+Has the ability to reduce any damage taken to 0 one time only during skill animation(similar to zantei iframe, that still doesn’t stop cf charge when you get hit during this time, but cannot prevent gsw/aura disappear from getting hit). Note: You still can reduce damage taken to 0 even without moving backward.
+Using this skill also can give a mark effect to the target, this mark effect lasts for (10 + 2 * Skill Level) seconds. However if this skill hits multiple enemies, then only gives 1 mark effect to the highest hp enemy only.
+Marked target will get its dodge/flee reduced by [(total DEX+total STR)*0.04]% [Credits to 寂月音, 彈力鹿頭, 鯊皮 for that dodge formula] and receive more Additional Damage every time it gets hit by Shot/Hunter skills.
+This Additional Damage is affected by srd/lrd%, but not with Long Range shot skills and combo tags damage. This Additional Damage is based on Physical proration.
+This skill doesn't get affected by motion speed; if the dash is being canceled (by holding forward), it becomes 14 frames slower.
+Game Description: “A Technique of shooting enemies while moving backward. Attacks in a linear range and the target with the most HP that gets hit will be marked.”
+Effect of the mark:
+Lowers the dodge rate of market target.
+*The mark is visible to the party members too.
+Deal additional damage when the marked target is hit with a Shot Skill or Hunter Skill and the power continues to increase up to a certain number of times. [note: only caster can trigger with its own skill]
+
+
+==================================================
+SKILL: PARABOLA SHOT
+==================================================
+
+Category: Shot Skills
+Tier: V
+Required Level: Level 240
+
+Source Details:
+Lv 5; Bow/Bowgun/Arrow only
+MP Cost: 400
+Damage Type: Physical
+Base Skill Multiplier (Main Hit): 7.5 + 0.25 * Skill Level + Total Dex/100
+Base Skill Constant (Main Hit): 40 * Skill Level
+Hit Count: 1 Hit AOE
+Maximum Cast Range: 24m
+Hit Range: (0.5 * Skill Level)m radius
+Base Skill Multiplier (trap): 10 + 0.25 * Skill Level + Base Dex/100
+Base Skill Constant (trap): 400
+Hit Count: 1 Hit AOE
+Ailment: Silence
+Ailment Chance (Main Hit): 2% * Skill Level
+Ailment Chance (trap): 10% * Skill Level
+Ailment Resistance: 5s
+Skill Effect:
+If you’re bow or bowgun, then after main hit impact, it will set a follow up trap. This trap will explodes when encountering any enemy within a 1m radius. However, the trap will disappear when the trap gets hit by AOE (even still disappears when the trap is in mid-air). This trap will last for 1 minute.
+This skill is always a homing attack even when you cast it from 24m (even without retrograde shot buff).
+This skill damage is affected by LRD% only, no matter what range between you and target, still uses LRD%.
+Game Description: “Attacks by firing a projectile in a parabolic trajectory. It's an AoE attack, and the farther the projectile is from the target, the faster it travels. Low chance to inflict [Silence].
+Bow/Bowgun Bonus: Hold an arrow key to perform a roll when the skill is activated. When it hits or reaches the target, it becomes a trap and activates 1 second later. The trap will greatly increase the chance to inflict [Silence]. As Bow/Bowgun, if you use this skill when there is a previous trap in present, then that previous trap will disappear.
+
+
+==================================================
+SKILL: SAMURAI ARCHERY
+==================================================
+
+Category: Shot Skills
+Tier: V
+Required Level: Level 240
+
+Source Details:
+Lv 5; Sub Katana only
+Passive Effect:
+- WATK increased by (Katana’s BaseWATK * 0.1 * Skill Level), but only up to a maximum of (Bow’s BaseWATK * Bow’s baseStability * 0.1 * Skill Level)
+- Stability increased by (Katana’s BaseStability/4) regardless of level.
+- When successfully using a normal attack with a katana, Increase Accuracy by (Skill Level * stack)%. This accuracy buff lasts until the next skill used. Max stack is 10.
+Game Description: “Slightly raises ATK and stability if a bow and a katana are equipped at the same time. If a normal attack is performed with the katana, the accuracy of the next skill used increases.”
+
+
+==================================================
+SKILL: QUICK LOADER
+==================================================
+
+Category: Shot Skills
+Tier: V
+Required Level: Level 240
+
+Source Details:
+T5; Bow/Bowgun Only
+MP Cost: 400
+Buff Effect:
+Upon use, you will gain 3 Quick Loader Charges. You can use this skill again but it won't overwrite this buff(you need to wait for buff to end in order to get this buff again). Bowgun Penalty: -1 Quick Loader Charge upon use.
+When you use Cross Fire which is not fully charged yet, then you will automatically use 1 Quick Loader Charge for +1 CF Charge.
+If you already learn Sneak Attack, then using this skill automatically gets you Sneak Attack buff based on Sneak Attack’s Level. However, its activated level cannot exceed this skill level. As usual, using this skill again, won't overwrite this sneak attack buff(you need to wait for buff to end in order to get this buff again)
+Using Quick Loader again while Quick Loader buff is still active adds +5% * Skill Level motion speed to the next skill and recovers (MP Consumed by Quick Loader/2) MP.
+This skill is max motion by default.
+Buff Duration: (120 - 6 * Skill Level) seconds
+Note: This skill's motion speed is always set to +50%.
+Game Description: “Activates Cross Fire and increases its charge by 1 level if is not fully charged. This skill is not overwritten.”
+
+
+==================================================
+SKILL: ELEMENT STARTER
+==================================================
+
+Category: Shot Skills
+Tier: V
+Required Level: Level 240
+
+Source Details:
+T5; Bow/Bowgun Only
+Passive Effect:
+Allows skills that aren't dual element to have [“Main Weap Ele” and “Arrow Ele”/"Katana Ele" (if Samurai Archery is Level 10)] as dual ele at same time instead of just Arrow Ele or Main Weap Ele(if don't have arrow ele). However, if skills that aren't dual element have fixed element, then fixed element will replace Arrow/Katana Ele, making it like [“Main Weap Ele” and “Fixed Ele”] as dual ele at same time. More info in ⁠💧elemental-guide🔥
+Gain +1 stack everytime you deal a stronger element against the target. You can store up to 99 stacks. Its stack will be used for HP Recovery whenever you get attacked. HP Recovery = Floor(Skill Level * your MaxHP/1000) * stack
+Game Description: “The element of bow or bowgun will be activated at the same time as the arrow. *Not valid for dual element skills. Gets a small recovery barrier each time you deal damage to targets with the element you are weak to.”
+
+Hunting Buddy
+T4; [Active] Bow/Bowgun Only
+MP Cost: 100 summon; 0 cancel summon
+Damage Type: Physical
+Base Skill Multiplier: 1 + Total DEX/1000 + Stack Multi Bonus
+Stack multiplier bonus: 0.1 * Skill Level * Stack (Max 25 stacks)
+-any auto attack multiplier booster skills (E.g. Kairiki Ranshin, Berserk) and regislets (E.g. Power Wave Modifier, Mana Thrash) add up to base skill multiplier. The stacks do not have any icon; damage calculation from stack is done behind the scenes and stacks will reset to 0 everytime the dog attacks.
+Base Skill Constant: 100
+
+
+==================================================
+SKILL: -HUNTING BUDDY ATTACKS THE TARGET AND WILL COME BACK TO YOU BEFORE ATTACKING MORE, THUS STAYING FAR FROM THE TARGET OR RUNNING AWAY WILL EXTEND THE ATTACK INTERVAL.
+==================================================
+
+Category: Shot Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Source Details:
+This skill is affected by short range damage; affected by awaken element; not affected by whack; uses physical proration and deals normal proration.
+Game Description: Summons your companion to fight alongside you. It attacks every few seconds, causing normal attack proration. The effect that enhances your companion's next attack will stack when you hit the target with a Shot Skill; 1 normal attack with Twin Storm (2 Twin Storm stack) will gain you 1 Hunting Buddy stack.
+Bow/Bowgun Bonus: Unless your entire party is wiped out, your companion will use First Aid before leaving the battle when you are knocked out. First Aid Level = Hunting Buddy Skill Level.
+
+
+==================================================
+SKILL: PIERCING SHOT
+==================================================
+
+Category: Shot Skills
+Tier: V
+Required Level: Level 240
+
+Source Details:
+T5; [Active] Bow/Bowgun
+MP Cost: 600
+Damage Type: Physical
+Base Skill Multiplier (each Hit): 10 + 0.25 * Skill Level + Base DEX/200
+Base Skill Constant (each Hit): 600 + (bonus if not "graze", depends on hit count arrangement)
+bonus skill constant:
+-1st hit: boss def * 0.25
+-2nd hit: boss def * 0.5
+-3rd hit: boss def * 0.75
+-4th hit: boss def
+-5th hit: boss def
+Hit Count: 5 hits; 1 hit/charge
+Maximum Cast Range: 24m
+Maximum Hit Range: 45m; linear AOE
+MP recovery: Attack MP Recovery * 1.5 * number of non graze hits to main target.
+Charge:
+-Charging time: 1.5 seconds/charge; 7.5s for maximum charge. Reduces charging time to sleeping/interrupted targets (0.5 second/charge; 2.5s for maximum charge).
+-Inside combo, charge is fixed to one charge.
+-Quick Loader skill works for manual charge only.
+Evasion Bypass Chance: MIN(100;(25%*stack))
+Guard Bypass Chance: 100%
+-Evasion/Guard bypass has similar mechanism as anticipate/guard break but without the pop-up notice.
+This skill is affected by short/long range damage; affected by long range skill; uses and deals physical proration.
+!Bug this skill has a visual bug where your yellow graze hits become fake non graze critical (still using graze stability, no bonus constant, and no MP recovery bonus).
+Game Description: an arrow that pierces even the strongest defense. Aims and attacks in a straight line with a Charge Skill (5 Levels). You can move and adjust the direction with Evasion. Each hit (except for Graze) increases its performance and slightly restores MP.
+Bowgun Bonus: gains invincibility for 1.5 second when you start or resume charging. * activating a skill or moving with Evasion will remove this invincibility. Moving with evasion no longer remove the invincibility as per April 24th 2025 update.
+*This invincibility is removed when a skill is activated.
+
+
+==================================================
+SKILL: SPREAD SHOT
+==================================================
+
+Category: Shot Skills
+Tier: V
+Required Level: Level 240
+
+Source Details:
+T5; [Active] Bow/Bowgun Only
+MP Cost: 200
+Damage Type: Physical
+Base Skill Multiplier (each Hit): 2 + 0.1 * Skill Level
+Base Skill Constant (each Hit): 200
+Ignore Defense: (30 + 5 * Skill Level)% (multiplied separately from "Armor Break" and "Physical Pierce")
+Maximum Cast Range: 12m; AOE
+Hit Count: 2 or 5 (depends on directional key usage upon cast)
+-No Direction: Fan-shaped 5 Hits
+-Front/Back: [Bow] 5 Hits wide arranged linear shots. [Bowgun] 5 Hits gatling linear shots.
+-Left/Right: 1st Hit > your character performs [Evasion] 90° circling the target > 2nd Hit.
+Ailment: None (with Neutral element); Ignite (with Fire element); Freeze (with Water element); Dazzled (with Wind element); Poison (with Earth element); Weaken (with Light element); Curse (with Dark element)
+Ailment Chance: 1.2 * Skill Level% (when multiple hits are registered to the target, ailment chance adds up; so, it will be 100% when 5 hits are registered when using bow at skill level 9-10)
+Ailment Resistance: 10 seconds
+-Element Starter skill can make you deal 2 ailments when using different element bow/arrow; Element Talent regislets work and make you deal only ailment related to the regislet element.
+This skill is not affected by short/long range damage; not affected by Long Range Skill; uses and deals physical proration.
+Game Description: Attacks using 5 skillfully controlled arrows. Chance to inflict a status ailment (weapon element) on the target. Each hit on the same target slightly improves its performance. You can also change their direction the arrows are fired by using the directional keys.
+Bow Bonus: The chance to inflict a status ailment is doubled. Additional hits from "Retrograde Shot" can occur up to 4 times.
+Bowgun Bonus: The power is doubled (Base Skill Multiplier * 2) when activated using a directional key (left/right).

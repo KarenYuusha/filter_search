@@ -1,0 +1,232 @@
+Category: Scroll Skills
+
+GENERAL INFORMATION
+
+Tier Requirements:
+Not specified in the source.
+
+Shared Rules and Notes:
+- This is not skill tree, but it is related to or made by Ninja Skill tree
+- You are required to get this skill “Ninjutsu” to use all Scroll Skill
+- All of the Scroll skills only can be used with scroll as a sub-weapon(except Ninjutsu, but rng 1 skill out of 8 skill). So far, only ohs/ktn/md/staff/bh can use scroll sub-weapon. Somehow, katana get more bonuses than other weapons.
+- Remember, all Scroll Skills casted through Ninjutsu Active Skill cannot enjoy cast time reduction/mp cost reduction, but all Scroll Skills through scroll sub-weapon can.
+- All of Scroll skills can be put in combo
+- Test Source formula from my Ninja Skill Damage Calculation https://docs.google.com/spreadsheets/d/1EQ_wSoIl-NFNE2VW5qvrdZAS14zF250-uk8ORi-MHnM/edit#gid=311222809
+and Ninjutsu Level Effect Test by FrostHydra97
+
+
+==================================================
+SKILL: FIRE RELEASE
+==================================================
+
+Category: Scroll Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Active Skill (Magic) (Single Target)
+MP Cost = 600
+Action Range = 8m
+Base Cast Time = 3 sec
+Base Skill Constant = 400
+Base Skill Multiplier = 2 + Ninjutsu Lvl x 0.1 + Drill Lvl x 0.3 + Scroll Atk x 0.01
+Hit Count = 1
+Ailment Inflict: Ignite
+Ailment Inflict Chance: (60 + Ninjutsu Lvl x 3)%
+If you got inflicted with Ignite or your target got Ignite, and you use this skill, then this skill will transform into Blazing Explosion
+Blazing Explosion
+Active Skill (Magic) (AOE circular around Target)
+AOE Radius = 4m regardless level
+Base Skill Constant = 400
+Base Skill Multiplier = 3 + Ninjutsu Lvl x 0.2 + Drill Lvl x 0.3 + Scroll Atk x 0.01
+Additional Hit Skill Constant = 400
+Additional Hit Skill Multiplier = 2 + Ninjutsu Lvl x 0.1 + Drill Lvl x 0.3 + Scroll Atk x 0.01
+Hit Count = 1 Aoe hits, 1 single target additional hits
+When you use this Blazing Explosion, then Normal Fire Release(single target additional hits) is activated in addition to the Blazing AoE damage, but that additional hit is unaffected by combo tags. Also, completely remove Ignite of yourself and your target.
+Srd/Lrd can affect Fire Release and Blazing Explosion
+
+
+==================================================
+SKILL: THUNDER RELEASE
+==================================================
+
+Category: Scroll Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Active Skill (Physical) (Single Target)
+MP Cost = 600
+Action Range = 12m
+Base Cast Time = 2 sec
+If ATK is higher than MATK, then use ATK as the main dmg. If MATK is higher than ATK, then use MATK as the main dmg. But this skill still inflicts Physical proration, uses Physical Stability, Physical Critical Rate/Damage, damage based on Physical proration, and DEF/P.Res can reduce this skill damage.
+Base Skill Constant = 200 + Ninjutsu Lvl x 20
+Base Skill Multiplier = 1 + Ninjutsu Lvl x 0.1 + Drill Lvl x 0.3 + Scroll Atk x 0.01
+Hit Count = 1
+Skill Effect:
+- This skill is treated as Unsheathe Skill
+- Only Srd% affect this skill, even this skill casted at 12m(lrd doesn’t affect). Maybe it is because when using this skill, it will dash to target first, then srd or lrd mechanic apply = it was srd because 1m in front of target lol. Also, Long Range from Shot tree can affect this skill damage
+- If your main weapon is katana, then this skill will transform into Lightning Flash.
+Lightning Flash still same as Thunder Release above, except it has Absolute Critical.
+
+
+==================================================
+SKILL: WIND RELEASE
+==================================================
+
+Category: Scroll Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Active Skill (Magic) (Aoe circular around users)
+MP Cost = 500
+Action Range = Default Weapon’s Auto Attack Range
+Base Cast Time = 1 sec
+Base Skill Constant = 200 + Ninjutsu Lvl x 10
+Base Skill Multiplier = 5 + Ninjutsu Lvl x 0.1 + Drill Lvl x 0.2 + Scroll Atk x 0.01
+Hit Count = 1 hit on all target within aoe
+AOE Radius = 4m regardless level
+Ailment Inflict: Tumble
+Ailment Inflict Chance: 100% regardless level
+Buff Effect:
+- When you use Wind Release, it will give buff ASPD by +(Total DEX) and Critical Rate by +(Ninjutsu Lvl)
+- When you use SkullBreaker, it will give aspd and cr like above. Also, gives Unsheathe buff by +(Ninjutsu Lvl)%
+Skill Effect:
+- Gain Invincible during jump animation
+- If you use this skill without moving, then it casts Wind Release straight.
+- If you use this skill while moving, then it will dash 8m away to where you moved before and doesn’t cast Wind Release when you don't collide with target/monster during dash. If you collide with a monster during dash away, then it will cast Wind Release.
+- If your main weapon is katana, then using this skill without moving, will transform into SkullBreaker(if used while moving, then it will cast Wind Release instead). And Its new effect, If your ATK is higher than MATK, then use ATK as the main dmg. If MATK is higher than ATK, then use MATK as the main dmg. But this skill still inflicts Magic proration, uses Magic Stability, Magic Critical Rate/Damage, damage based on Magic proration and MDEF/M.Res can reduce this skill damage. Also, animation of this SkullBreaker is slightly faster than normal Wind Release.
+- Srd can affect this skill.
+
+
+==================================================
+SKILL: KUNAI
+==================================================
+
+Category: Scroll Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Active Skill (Physical) (Single Target)
+MP Cost = 300
+Action Range = 8m
+Base Skill Constant = 0
+Base Skill Multiplier = 0.15 + Drill Lvl x 0.05 (for each hit)
+Hit Count = infinite until you moves
+Skill Effect:
+- This skill is infinite animation, and you can cancel it by moving your character.
+- Recover MP every 2 kunai hits by (Ninjutsu Lvl x 5)% of your Total AMPR. [Start from 1st hit, then 3rd 5th and so on]
+- Also, Can Inflict Auto Attack/Neutral Proration every 2 kunai hits. [Start from 1st hit]
+- Srd/Lrd can affect this skill.
+- If you’re in kunai hit animation and the target is 9m away or above, then kunai hit will miss. Kunai Miss = no ampr/prorate/damage.
+Katana Bonus= Base Skill Multiplier is doubled
+
+
+==================================================
+SKILL: WATER RELEASE
+==================================================
+
+Category: Scroll Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Active Skill (Buff) (Aoe Circular around users)
+MP Cost = 700
+Action Range = Infinite
+Base Cast Time = 2.5 sec
+AOE Radius = (3 + 0.3 x Ninjutsu Lvl)m
+Duration = (Ninjutsu Lvl + Drill Lvl * 0.5)sec
+Skill Effect:
+When Characters within this skill Radius, Poison and Ignite’s damage are reduced by (25 + Ninjutsu Lvl x 2.5)%. Also, relieves/removes the negative effect of Slow, Stop, Freeze completely.
+If you use Kunai(must not in combo) when there is water in your place, then using kunai can transform that water radius into **Rapid Aqua Vortex radius.
+**
+Rapid Aqua Vortex
+It uses MATK as main damage, but still use physical mechanic(just inflicts Physical proration, uses Physical Stability, Physical Critical Rate/Damage, damage based on Physical proration, and DEF/P.Res can reduce this skill damage)
+Base Skill Constant = 500 (for each hit)
+Base Skill Multiplier = 1 + Ninjutsu Lvl x 0.1 + Drill Lvl x 0.1 + Floor(Scroll Atk/2) x 0.01 (each hit)
+Hit Count = 6 hits
+1 hits every 2 sec, in total 10 sec for all hits.
+First Hit Ailment Inflict: Stop
+Ailment Inflict Chance: 100% (regardless lvl?)
+Ailment Inflict(All Hits): Flinch
+Ailment Inflict Chance: 100% (regardless lvl?)
+NOTES:
+FrostHydra97 = "Vortex is 2s hit interval. And vortex animation starts to dissipate at the 11th second, and fully disappears roughly 1s later. Also, keep that in mind, kunai will not activate a new vortex until the previous one fully disappear aka after the 12th second"
+Srd/Lrd doesn't affect this skill, Long range doesn't affect as well. Also, combo tags doesn't affect this skill damage
+
+
+==================================================
+SKILL: EARTH RELEASE
+==================================================
+
+Category: Scroll Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Active Skill (Buff & Magic) (Single Target)
+MP Cost = 600
+Action Range = Infinite
+Base Cast Time = 3 sec
+Skill Effect:
+- When using this skill, it will give +(Ninjutsu Lvl x 1) stack that can reduce long range damage taken(over 8m away only) by around (10 + Ninjutsu Lvl x 1.5)%. But decrease 1 stack every time you receive damage.
+- It has the duration Floor(10 + (Ninjutsu Lvl + 1)/2) seconds. Once this duration ends, this skill will deal damage based on how many stack has, also Ninjutsu Lvl and Drill Lvl affect damage
+Base Skill Constant = 400
+Base Skill Multiplier = (1 + 0.5 x stack) x (1 + 0.2 x Drill level) + (Scroll Atk x 0.01)
+Hit Count = 1
+Note:
+- This skill must be within 24m between you and your target, to deal damage. If not, then no damage
+- Srd/Lrd can affect this skill
+- Long Range cannot affect this skill damage. Also, Combo Tags doesn’t affect damage
+
+
+==================================================
+SKILL: DEMON WIND SHURIKEN
+==================================================
+
+Category: Scroll Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Active Skill (Physical) (AOE Straight Ahead Boomerang)
+MP Cost = 500
+Action Range = 12m
+Base Cast Time = 1 sec
+Width = 1m
+Base Skill Constant = 100 + Ninjutsu Lvl x 20 (for each hit)
+Base Skill Multiplier = 2 + Ninjutsu Lvl x 0.3 + Floor(Scroll Atk/10) x 0.1 (for each hit)
+Effective Tick Count = 1 + Floor(Drill Lvl/10) (+1 with katana bonus)
+Hit Count = vary from 2 - +10 hits on each target, depending on target’s size. The bigger size then more hit, and the lesser size then less hit.
+Effective Tick Aoe Splash Radius = 1m regardless lvl
+Skill Effect:
+This skill can deal full damage to the first (Effective Tick Count) targets it touches and the enemies within a radius of about 2m. After (Effective Tick Count) is used up, then next damage is reduced to 0.1 times the original.
+This skill damage is almost like splash damage. Meaning, when this shuriken hit first target, then it will deal damage to the target and also other enemy nearby target 1m within a splash radius.
+If Shuriken collide with wall, then that shuriken will poof and explode(deal few hit like splash too)
+This skill damage is affected by srd/lrd which one of them is higher. Meanwhile Long Range Shot tree cannot affect this.
+When using this skill, Shuriken will travel 12m to the target then going back to the caster's position. It look like boomerang Xd
+Motion Speed doesn’t affect this animation speed
+
+
+==================================================
+SKILL: CLONING
+==================================================
+
+Category: Scroll Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Active Skill (Buff)
+MP Cost = 600
+Action Range = Infinite
+Base Cast Time = 3 sec
+Base Clone Attack Multiplier = 1
+Clone Attack Range = Default to your Weapon’s Auto Attack Range
+Skill Effect:
+When using this skill, it will summon Shadow Clone like Decoy. Surprisingly, they sync together. For example, if you use Cloning when there is a Decoy in your place, then that decoy will become Shadow Clone. If you use Decoy when there is a Shadow Clone, then that shadow will become Decoy.
+Shadow Clone can follow the target, but cannot recover ampr via shadow auto attack.
+Decoy cannot follow the target, but can recover ampr via decoy auto attack.
+Switch between Cloning and Decoy, can refresh shadow clone/decoy duration. Also, they cannot inflict Neutral Proration as usual.
+Duration of this skill is 60 seconds
+Also, when using this skill, you will get base Max HP% penalty by (-75 + Ninjutsu Lvl x 5)%
+If you use this skill again when there is a Shadow Clone in your place, then this skill will become Mortal Surrogate. Mortal Surrogate = Allow you teleport to where the shadow clone’s position instantly. After teleporting, you will recover 600MP plus you will become invincible for 1s after activate Mortal Surrogate, and that shadow clone will disappear.
+NOTES:
+If Distance between you and the shadow clone is over 12m away, then that shadow clone will stop attacking. But if you shukuchi to target, then that shadow clone 12m away from you, will follow the target where you shukuchi before automatically and attack them. However if their distance is over 20m, then that shadow clone will disappear
+Srd/Lrd doesn't affect this skill damage
+Combo tags affect this skill damage

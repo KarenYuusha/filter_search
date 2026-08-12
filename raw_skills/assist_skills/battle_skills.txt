@@ -1,0 +1,332 @@
+Category: Battle Skills
+
+GENERAL INFORMATION
+
+Tier Requirements:
+- Tier I: Level 20
+- Tier II: Level 60
+- Tier III: Level 120
+- Tier IV: Level 180
+
+
+==================================================
+SKILL: MAGIC UP
+==================================================
+
+Category: Battle Skills
+Tier: I
+Required Level: 20
+Type: Passive
+
+Description:
+Slightly increases MATK.
+
+Effect:
+Increases flat MATK based on the player's level.
+
+Formula:
+MATK Increase =
+PlayerLvl * (2.5 * SkillLvl) / 100
+
+
+==================================================
+SKILL: CONCENTRATE
+==================================================
+
+Category: Battle Skills
+Tier: I
+Required Level: 20
+Type: Passive
+
+Description:
+Has an extremely low chance to increase the damage of the last magic attack used.
+
+Effect:
+Increases the damage dealt by a magic skill by a set percentage.
+
+Activation Rate:
+SkillLvl %
+
+Damage Increase:
+(10 + SkillLvl) %
+
+Notes:
+- The skill does not activate for placed skills.
+- The damage increase is applied additively to the skill's Long Range modifier.
+
+
+==================================================
+SKILL: ATTACK UP
+==================================================
+
+Category: Battle Skills
+Tier: I
+Required Level: 20
+Type: Passive
+
+Description:
+Slightly increases ATK.
+
+Effect:
+Increases flat ATK based on the player's level.
+
+Formula:
+ATK Increase =
+PlayerLvl * (2.5 * SkillLvl) / 100
+
+
+==================================================
+SKILL: WHACK
+==================================================
+
+Category: Battle Skills
+Tier: I
+Required Level: 20
+Type: Passive
+
+Description:
+Has an extremely low chance to increase the damage of the last physical attack used.
+
+Effect:
+Increases the damage dealt by a physical skill by a set percentage.
+
+Activation Rate:
+SkillLvl %
+
+Damage Increase:
+(10 + SkillLvl) %
+
+Notes:
+- The skill does not activate for placed skills.
+- The damage increase is applied additively to the skill's Long Range, Sword Techniques, and Martial Mastery modifiers.
+
+
+==================================================
+SKILL: DEFENSE UP
+==================================================
+
+Category: Battle Skills
+Tier: I
+Required Level: 20
+Type: Passive
+
+Description:
+Slightly increases DEF and MDEF.
+
+Effect:
+Increases flat DEF and MDEF based on the player's level.
+
+Formula:
+DEF and MDEF Increase =
+PlayerLvl * (2.5 * SkillLvl) / 100
+
+
+==================================================
+SKILL: DODGE UP
+==================================================
+
+Category: Battle Skills
+Tier: I
+Required Level: 20
+
+Description:
+Slightly increases dodge.
+
+Effect:
+Increases flat FLEE by a very small amount.
+
+Formula:
+FLEE Increase =
+SkillLvl
+
+
+==================================================
+SKILL: DESPERATE RESIST
+==================================================
+
+Category: Battle Skills
+Tier: II
+Required Level: 60
+
+Description:
+Reduces damage taken while the player is locked down by ailments such as Tumble and Stun.
+
+Effect:
+Reduces damage taken whenever the player is "Action Locked".
+
+Damage Reduction:
+SkillLvl %
+
+Action Lock Conditions:
+The character is considered Action Locked for a set duration when any of the following ailments are inflicted:
+- Flinch
+- Tumble
+- Stun
+- Knockback
+- Sleep
+
+
+==================================================
+SKILL: CRITICAL UP
+==================================================
+
+Category: Battle Skills
+Tier: II
+Required Level: 60
+Type: Passive
+
+Description:
+Slightly increases Critical Rate and Critical Damage.
+
+Effect:
+Provides flat Critical Rate and percentage Critical Damage.
+
+Critical Rate Increase:
+SkillLvl / 2
+
+Critical Damage Increase:
+SkillLvl / 2 %
+
+
+==================================================
+SKILL: ACCURACY UP
+==================================================
+
+Category: Battle Skills
+Tier: II
+Required Level: 60
+
+Description:
+Slightly increases accuracy.
+
+Effect:
+Increases flat HIT by a very small amount.
+
+Formula:
+HIT Increase =
+SkillLvl
+
+
+==================================================
+SKILL: INCREASED ENERGY
+==================================================
+
+Category: Battle Skills
+Tier: III
+Required Level: 120
+Type: Passive
+
+Description:
+Slightly increases MATK.
+
+Effect:
+Increases flat MATK based on the player's level.
+
+Formula:
+MATK Increase =
+PlayerLvl * (2.5 * SkillLvl) / 100
+
+
+==================================================
+SKILL: INTIMIDATING POWER
+==================================================
+
+Category: Battle Skills
+Tier: III
+Required Level: 120
+Type: Passive
+
+Description:
+Slightly increases ATK.
+
+Effect:
+Increases flat ATK based on the player's level.
+
+Formula:
+ATK Increase =
+PlayerLvl * (2.5 * SkillLvl) / 100
+
+
+==================================================
+SKILL: DEFENSE MASTERY
+==================================================
+
+Category: Battle Skills
+Tier: III
+Required Level: 120
+Type: Passive
+
+Description:
+Slightly increases DEF and MDEF.
+
+Effect:
+Increases flat DEF and MDEF based on the player's level.
+
+Formula:
+DEF and MDEF Increase =
+PlayerLvl * (2.5 * SkillLvl) / 100
+
+
+==================================================
+SKILL: SPELL BURST
+==================================================
+
+Category: Battle Skills
+Tier: IV
+Required Level: 180
+Type: Passive
+
+Description:
+Allows magic attacks to critically hit under certain conditions.
+
+Effect:
+Provides magic Critical Rate and magic Critical Damage conversion.
+
+Magic Critical Rate Conversion:
+(2.5 * SkillLvl)% of total Critical Rate before Critical Resistance is applied.
+
+Magic Critical Damage Conversion:
+(2.5 * SkillLvl)% of total Critical Damage gain, excluding the base 100 Critical Damage.
+
+Related Information:
+See the Critical Formula section for more details about magic critical hits.
+
+
+==================================================
+SKILL: SECRET CHASE ATTACK
+==================================================
+
+Category: Battle Skills
+Tier: IV
+Required Level: 180
+Type: Passive
+
+Description:
+Increases the chance of activating additional melee or magic attacks.
+
+Effect:
+Provides a percentage increase to the activation chance of additional melee or magic attacks.
+
+Formula:
+Additional Melee/Magic Activation Chance Increase =
+SkillLvl * 2.5%
+
+
+==================================================
+SKILL: SUPER GRIP
+==================================================
+
+Category: Battle Skills
+Tier: IV
+Required Level: 180
+Type: Passive
+
+Description:
+Reduces knockback distance when defeated.
+
+Effect:
+Reduces the knockback distance when the player is defeated.
+
+Formula:
+Knockback Distance Reduction =
+SkillLvl * 7.5%

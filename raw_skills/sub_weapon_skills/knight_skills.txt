@@ -1,0 +1,374 @@
+Category: Knight Skills
+
+GENERAL INFORMATION
+
+Tier Requirements:
+- Tier I: Level 15
+- Tier II: Level 35
+- Tier III: Level 125
+- Tier IV: Level 205
+- Tier V: Level 285
+
+
+==================================================
+SKILL: ASSAULT ATTACK
+==================================================
+
+Category: Knight Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Rush towards an enemy to inflict damage, chance to inflict SLOW and KNOCKBACK
+Active skill (Physical) [Single Target]
+Limitation: No Limit
+MP Cost: 100MP
+Action Range: 6m (Dash from range to 0m from enemy)
+Skill Constant: 5 * Lvl (Shield bonus = +50)
+Skill Rate: 0.25 + 0.1 * Lvl + Floor(Lvl/10) * (Knight Will Lvl * 0.6 [divided by 2 if no shield]) (Shield Bonus = +0.25)
+Inflict rate for SLOW: 10 * Lvl %
+Inflict rate for KNOCKBACK: 10 * Lvl % (Shield Bonus = +50%)
+KNOCKBACK distance: 3m for mobs and mini bosses, 1.5m for regular bosses
+
+
+==================================================
+SKILL: PARRY
+==================================================
+
+Category: Knight Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Use your weapon to parry incoming physical attacks.
+Passive skill
+Limitation: No Limit
+Activation Rate: (Lvl * 5 - Floor(Lvl/6) x 20 + Floor(Lvl/10) * (Knight Will Lvl * 2 [divided by 2 if no shield]))%
+Damage Reduction Rate: (10 + Floor(Lvl/6) x 10)%
+NOTES:-
+---The skill will not show any popup bar or indication like for guard whenever it activates.
+---The skill will not activate for magic or fractional attacks.
+---The skill will not activate simultaneously with guard.
+
+
+==================================================
+SKILL: P. DEFENSE
+==================================================
+
+Category: Knight Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Activate Perfect Defense to reduce the damage taken to 0 and heal yourself.
+Support Skill (Buff)
+Limitation: Shield only
+MP cost: 100MP
+Buff Application: User only
+Buff Duration: 1 second
+Buff Effect: Reduce damage taken to 0 and heal HP once per cast with a limit to max HP that can be healed. Also generate additional aggro on the enemy whose attack is successfully blocked by P.Def
+HP Healed Amount: 1*Lvl % of maxHP
+HP Healed Limit:
+---(Lvl * 100) for Lvl1-5
+---(Lvl * 100 + 150 * [Lvl - 5]) for Lvl6-9
+---(Lvl * 100 + 150 * [Lvl - 5] + 250) = 2000 for Lvl10
+If this skill is at level 10, then Knight Will every level can add 100 HP Heal Limit. So, at max we can heal 3k with max Knight Will
+Additional Aggro: ([Floor(Lvl/2)] * 200) * [Ceiling(Lvl/2)]
+NOTES:
+---You can block multiple attacks in 1 cast of P.Def but can only heal once per cast.
+---Additional aggro added on the top of MP cost base.
+---Additional aggro unaffected by aggro+% equipment but base aggro from MP cost still affected by aggro+%
+---Using Asobimo Aggro now, 1MP = 10 Aggro
+
+
+==================================================
+SKILL: PROVOKE
+==================================================
+
+Category: Knight Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Provoke the enemy on you to generate aggro on them.
+Active Skill (Invisible Damage)
+Limitation: No Limit
+MP Cost:
+---400MP for Lvl1-5
+---300MP for Lvl6-9
+---200MP for Lvl10
+Additional Aggro: 5000 + 500Lvl + Floor(Lvl/10) (Knight Will Lvl * 500[divided by 2 if no shield])
+NOTES:
+---Additional Aggro NOT added on the top of MP cost base. This skill has no MP cost base aggro.
+---Additional Aggro unaffected by aggro+% equipment.
+---This skill can not be added in a combo
+---Using Asobimo Aggro now, 1MP = 10 Aggro
+
+
+==================================================
+SKILL: FARETH
+==================================================
+
+Category: Knight Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Staying still increases the effect (5 levels). Enhances Attack Speed, Physical Pierce, Normal Attack Power, Fractional Damage Reduction. VIT affects Attack Speed and Physical Pierce.
+Self buffer skill (Active)
+Limitation: Shield only
+MP cost: 500
+Action range: infinite
+Effect: Increase Fractional Damage Reduction, Normal attack, Aspd and Physical Pierce based on number of stacks. Generate 1 stack every 3 seconds, Max Stack 5. But if you move, then your stack will become 0 and need to stay idle(not moving) in order to gain stack.
+- Fractional Damage Reduction Increase = (Skill Level / 2.5 * number of stacks)%
+- Normal Attack Multiplier Increase = (5 + 1.5 * Skill Level * number of stacks)%
+- Aspd+ Increase = Total VIT * Skill Level / 10 * number of stacks
+- Physical Pierce% increase = Floor(Total Vit / 100) * number of stacks
+- Duration = 3 min regardless level
+
+
+==================================================
+SKILL: RAGE SWORD
+==================================================
+
+Category: Knight Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Swing the sword furiously and generate additional aggro on the enemy.
+Active Skill (Physical) [Single Target]
+Limitation: One Handed/Two handed sword only
+MP Cost: 200MP
+Action Range: Same as the weapon's auto attack range
+Skill Constant: 50 + 5 * Lvl (Shield Bonus = +100)
+Skill Rate: 1.5 + 0.1 * Lvl + Floor(Lvl/10) * (Knight Will Lvl * 0.5 [divided by 2 if no shield]) (Shield Bonus = +0.3+(TotalVIT/200))
+Additional Aggro: 500 + 100 * Lvl + Floor(Lvl/10) * (Knight Will Lvl * 350 [divided by 2 if no shield])
+Buff Effect: When you use this skill on enemy who is targeting you, this skill will gain absolute Critical Rate and MP cost for next skill used will be halved
+NOTES:
+---Additional aggro added on the top of the base aggro by MP cost.
+---Both additional aggro and the base aggro by MP cost are affected by aggro+% equipment.
+---Using Asobimo Aggro now, 1MP = 10 Aggro
+
+
+==================================================
+SKILL: BINDING STRIKE
+==================================================
+
+Category: Knight Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Swing the sword furiously to damage enemies in an aoe and chance to inflict STOP.
+Active Skill (Physical) [Area of effect = circle with center on player]
+Limitation: One Handed/Two Handed sword only
+MP Cost: 300MP
+Action Range: Same as the weapon's auto attack range
+Radius of AOE:
+---3m at lvl1-5
+---4m at lvl6-9
+---5m at lvl10
+Skill Constant: 50 + 10 * Lvl (Shield Bonus = +150)
+Skill Rate: 4.5 + 0.05 * Lvl + Floor(Lvl/10) * (Knight Will Lvl * 0.4 [divided by 2 if no shield]) (Shield Bonus = +1.5+(TotalVIT/50))
+Inflict Rate for STOP: 10 * Lvl %
+Additional Aggro: 1000 + 100 * Lvl
+Fixed Element: Neutral
+NOTES:
+---Additional aggro gets added on the top of base aggro by MP Cost.
+---Both additional aggro and base aggro can get affected by aggro+% stats.
+---This skill is unaffected by ELEMENT stat weapons but can still can get affected by % DAMAGE to element stats
+---Using Asobimo Aggro now, 1MP = 10 Aggro
+
+
+==================================================
+SKILL: KNIGHT WILL
+==================================================
+
+Category: Knight Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Shows effect if target turns hostile towards you. Aggro will increase more easily and the effect of Lv 10 Knight Skills up to Skill Tree Lv 3 will be enhanced further.
+Type: passive skill (Active)
+Limitation: none
+Effect: If you have aggro(i mean enemy who is targeting you). Then passively gives more aggro effect and enhances effect of Knight Skill Tier 3 Level 10(Assault Attack, Parry, Perfect Defense, Provoke, Rage Sword, Binding Strike)
+Passive Aggro+% increase = +(2 * Skill Level)%
+Following these skills must be level 10 to enjoy Knight Will effect. Also, not forget to have aggro.
+Assault Attack = Increase Skill Multiplier by +(0.6 * Lvl)
+Parry = Increase Activation Rate by (2Lvl)%
+Perfect Defense = Increase Heal Limit by (100 Lvl)
+Provoke = Increase Additional Aggro by +(500 * Lvl)
+Rage Sword = Increase Skill Multiplier by +(0.5 * Lvl) and additional aggro by +(350 * Lvl)
+Binding Strike = Increase Skill Multiplier by +(0.4 * Lvl)
+Non-Shield Penalty = Passive effects including all enhanced Knight Skills will be halved.
+---Using Asobimo Aggro now, 1MP = 10 Aggro
+
+
+==================================================
+SKILL: KNIGHT'S STANCE
+==================================================
+
+Category: Knight Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Signifies the vow of a knight. Increases Vit and the amount of aggro raised for 6 minutes. Fractional damage from monster is slightly reduced if you are pulling aggro toward each other while the effect is active.
+Self buffer skill (Active)
+Limitation: One Handed sword only
+MP cost: 100
+Action range: infinite
+Effect: Increase Vit and +Aggro%. If you have target’s aggro, then increase fractional reduction(stack additively with fareth). Also if you equip a shield, you will gain a chance to resist Fear during War Cry buff in present.
+- VIT = +Skill Level
+- Aggro% = Skill Level * 2 (Shield Bonus = +Skill Level)
+- Fractional Reduction = Floor(0.5 * Skill Level) [x2 if with Shield]
+- Fear Resistance(Shield Only) = (8 * Skill level)%
+- Buff Duration = 6 minutes
+Note:
+- Absolute Fear bypass this skill’s Fear Resistance
+
+
+==================================================
+SKILL: SONIC THRUST
+==================================================
+
+Category: Knight Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Attack with sword aura causing enemy to lose his balance. Chance to inflict [Tumble] on the target.
+Active Skill (Physical) [Single Target]
+Limitation: One Handed sword only
+MP Cost: 200MP
+Action Range: 8m
+Skill Constant = 200
+Skill Rate = 1.5 + 0.15 * Skill Level (Shield Bonus = +Total Dex/100)
+Inflict Rate for Tumble = (10 * Skill Level)%
+Ailment Cooldown penalty = +12 seconds more than Sonic Wave/Magic Impact/etc. (at Normal dif), +9(at Hard dif), +3(at Nm dif), +1 or +0(at Ulti dif)
+Buff Effect: When you equip a shield, and the tumble effect of this skill is blocked due to the duration of resistance, then MP will be restored
+MP Recover = 100 regardless Skill Level
+Note:
+- SRD/LRD% cannot affect this skill. But Long Range from Shot Tree can.
+- This skill is already at max motion speed regardless of skill level. Even inflicted with Freeze ailment, and Sonic Thrust manual vs Sonic Thrust swift, both still gives same result. OR This skill’s motion speed is fixed. So, swift tags & mspd% does not affect this skill’s speed
+
+
+==================================================
+SKILL: REVENIR
+==================================================
+
+Category: Knight Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+A hit that overwhelms a powerful enemy in the way. Hit count increases (max 3 hits) if conditions are met. However, the effect that adds hit count won’t be active if a status ailment is inflicted. This attack does not cause proration.
+Active Skill (Physical) [Single Target]
+Limitation: One Handed sword only
+MP Cost: 400MP
+Action Range: Same as the weapon's auto attack range
+Skill Constant(for each hit) = 40 * Skill Level
+Skill Rate(for each hit)= 5 + 0.1 * Skill Level + Base Dex/50
+Hit Count = 1 + stack [Max 3 hits. But Max 1 hit if got inflicted with ailment]
+Stack Limit = 0
+With Shield Bonus=
+-- This Skill always critical
+-- Increase Stack Limit by +(Skill Level)
+-- Add 1 stack everytime you successfully block damage with P. Defense. [Multiple success block = multiple stack gained]
+-- Add 1 stack everytime you successfully inflict Flinch
+-- Add 3 stack everytime you successfully inflict Tumble
+-- Add 5 stack everytime you successfully inflict Stun
+Note:
+- This skill doesn’t inflict prorate, and Damage depend on Physical Proration
+- Srd can affect this skill damage
+- You can gain multiple stacks if you successfully interrupt multiple enemies at once.
+- Stacks are for additional or extra hits only. If you have more than 3 stacks and use this skill, then it always consumes 2 stacks for 2 extra hits(due to max 3 hits).
+- If you got inflicted with ailment, then use this skill and have 10 stacks, then it doesn’t consume stack at all.
+
+
+==================================================
+SKILL: KNIGHT'S REMEDY
+==================================================
+
+Category: Knight Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+A portion of damage received while Knight’s Stance is active will be accumulated and restored as HP. When Knight’s Stance is activated again, the total accumulation will be used to restore HP.
+Passive skill
+Limitation: One Handed sword only
+Effect: Accumulated HP depends on how many damage you received. More effect when you have a target's aggro(Shield Only). Using Knight’s Stance will recover HP the same amount as how many Accumulated HP you have. You can accumulate HP multiple times until 100%
+-- Normal effect
+Gain Accumulated HP = (Skill Level)% of damage received [Min Value is 1]
+-- If you have target’s aggro and equipped with shield, then
+Gain Accumulated HP = (3 * Skill Level)% of damage received [Min Value is 1]
+Note:
+- Damage received after P.Defense and Before barrier from equipment.
+- There is an indicator % on below Knight’s Stance buff timer. That indicator can let you know how many HP you accumulated. Numbers is based on your MaxHP(meaning, if it is 4% then can be healed up to 4% of MaxHP)
+
+
+==================================================
+SKILL: AFTERSHIELD
+==================================================
+
+Category: Knight Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+[Passive] OHS Only
+Passive Effect:
+Passively slightly gain Neutral Resistance by (Skill Level)%
+After using P. Defense, it will activate Aftershield buff for (Skill Level) seconds[refreshable with repeated use of P. Defense] that grants you damage reduction during this buff by (5 * Ceiling[remaining Buff Duration])%
+Also, this Aftershield buff can 100% negate fatal damage exceeding your MaxHP, but at cost cannot activate Aftershield buff again when successfully negate.. Cooldown is 20 sec
+Damage Reduction of this skill takes place after Sanctuary and before Stone Barrier.
+Game Description: Gains a damage reduction effect for a certain period of time after activating P. Defense. Acquiring this skill will slightly increase Neutral Resistance permanently too.
+OHS bonus: Negates fatal damage exceeding your MaxHP taken while Aftershield is active. However, once the damage negation takes place, you will be unable to activate Aftershield for some time.
+
+
+==================================================
+SKILL: BLINK SWORD
+==================================================
+
+Category: Knight Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+[Active] OHS Only
+MP Cost: 200
+Damage Type: Physical
+Base Skill Multiplier: 5 + 0.75 * Skill Level
+Shield Bonus Additional Skill Multiplier if success inflict: +(BaseVit/100)
+Base Skill Constant: 200
+Cast Range: 14m
+Ailment: Flinch
+Base Ailment Chance: 5% + ROUNDUP(4.5 * Skill Level)% + [sub-Shield Bonus = 50%]
+Ailment Duration: 2 seconds
+Ailment Resistance: 6 seconds (Easy, Normal, Hard & Nightmare); 9 seconds (Ultimate)
+Buff Effect:
+Allow you move without reset Fareth stack during this buff
+Gain Frac Resistance by +(3 * Skill Level)% [Additive with Fareth, Knight Stance, Apsis soul]
+Buff Duration: 3 sec
+Skill Effect:
+Using this skill will make you dash into your main weapon attack range toward the target if used at above said range. However, it may not dash toward the target if there is an object/wall between you and your target.
+If this skill got Miss White, then no buff from this skill will be granted and no flinch.
+However if this skill got MISS Yellow Critical Grazed, then this skill won’t inflict Flinch, but still grant buff.
+If [Flinch] is successfully inflicted, this skill gets Perfect Aim attribute.
+Game Description: Throws a sword to instantly close the distance to the target. Chance to inflict [Flinch]. When successful, Fractional Damage can be reduced for 3 seconds and the effect of Fareth will not be lost even if you move.
+OHS bonus: Gains an effect that guarantees Blink Sword hit if [Flinch] is successfully inflicted. A MISS will cause it to fail to activate.
+
+
+==================================================
+SKILL: KNIGHT PLEDGE
+==================================================
+
+Category: Knight Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+[Active] OHS Only
+MP Cost: 500
+Skill Effect:
+Using this skill will put circle 1m radius in front of you with (45 + 4.5 * Skill Level)% as Pledge percentage(refreshable). Everytime anyone gets hit in the Pledge circle, it will reduce this Pledge percentage by 10%. But if anyone gets knocked back in the Pledge circle, then that circle will vanish immediately.
+Buff Effect in Circle: all Effects below will be divided equally when there are multiple people inside circle
+Buff Duration: When Pledge% reach 0% OR until anyone get knocked back
+Damage Reduction for self: +(remaining Pledge%/10)%
+Damage Reduction for party: +(remaining Pledge%)%
+Damage Reduction of this skill takes place after Sanctuary and before Stone Barrier.
+Knockback reduced for self and party by (15 + 2.25 * Skill Level)% [Caster Shield bonus: This knockback reduction will be doubled]
+Damage Dealt% for self and party: MAX[Shield Refine ; (1 + Floor[Skill Level/4.5]) ]%
+Note: Damage Dealt% is additive with Brave Aura and Aura Blade. Also, only caster need shield to use this skill, teammates without shield can still get max dmg from shield refine.
+Game Description: Creates an area that gives protection with the sword of oaths. Within the area, ATK increases and high damage resistance (decreases with each use) is given except to yourself. Disappears if you get a knockback. The more characters in the area, the weaker the effect will be.
+OHS bonus: When getting a knockback within the area, the distance can be reduced greatly, but the effect will end as the sword gets knocked away. Furthermore, ATK boost, knockback and damage reduction effect will be shared if there are multiple characters within the area, making the effect weaker.
+Shield bonus: Resistance to knockback increases further. Atk will increase further based on your shield’s refinement value.
+Note: ATK is misleading, it is Damage Dealt Bonus% like Brave Aura instead

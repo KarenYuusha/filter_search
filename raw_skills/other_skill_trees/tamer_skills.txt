@@ -1,0 +1,310 @@
+Category: Tamer Skills
+
+GENERAL INFORMATION
+
+Source Note:
+The source states that this information came from an old Amino post and credits xiithguy, mayam, islandi, and others.
+
+Tier Requirements:
+Not specified in the source.
+
+
+==================================================
+SKILL: TAMING
+==================================================
+
+Category: Tamer Skills
+Tier: I
+Required Level: Not specified in source
+Type: Active / Capture
+
+MP Cost: 300
+Damage Type: None
+
+Description:
+Allows the player to capture a pet by using a Cage. A Cage must be present in the inventory.
+
+Base Capture Values:
+
+Timer:
+SkillTimerBoost + MobNeutralProrationRate / 2
+
+Maximum Taming Gauge:
+10000 + 10 * MobPhysicalProrationRate
+
+Mob Resistance Increase:
+(10 + MobMagicProrationRate / 10) / 3
+
+Mob Level Limit:
+PlayerLvl - 10
+
+Initial Taming Gauge:
+0
+
+Skill Timer Boost:
+- Skill Levels 1 to 5: 25 seconds
+- Skill Levels 6 to 10: 30 seconds
+
+Mob Resistance:
+- Starts at 0.
+- Cannot go below 0.
+- Cannot exceed 1100.
+
+Mob Movement Effect:
+- While the mob is moving, Mob Resistance continuously increases by MobResistanceIncrease.
+- When the mob stops moving, Mob Resistance continuously decreases by 9 until it starts moving again.
+
+Damage Interaction:
+If the mob is not damaged during capture, Mob Resistance continuously decreases by 9 until the mob is damaged.
+
+Source Uncertainty:
+The source states that it is unknown whether damaging the mob completely stops this decrease or only applies a cooldown.
+
+Base Taming Gauge Increase:
+(1 - MobCurrentHP / MobMaxHP) * 30
+
+Taming Gauge Increase or Decrease:
+BaseTamingGaugeIncrease * (1000 - MobResistance) / 1000
+
+Ailment Bonus:
+Taming Gauge increase or decrease is doubled when the mob is affected by:
+- Tumble
+- Stun
+- Sleep
+- Stop
+- Fatigue
+
+Capture Success:
+If the Taming Gauge reaches its maximum before the timer expires, the pet is captured.
+
+Captured Pet Properties:
+The captured pet receives randomly attributed:
+- Weapon type
+- Nature
+- Potential base
+
+The mob type determines its attack patterns.
+
+Using a Captured Pet:
+The player must:
+1. Purchase land.
+2. Release the pet from its Cage at the land.
+3. Raise the pet.
+4. Call the pet.
+
+Capture Failure:
+- The mob is inflicted with Rage.
+- There is a chance to lose the Cage.
+- Increasing Taming Skill Level decreases the chance of losing the Cage.
+- Full effects are unknown in the source.
+
+Capture Restrictions:
+- Cannot capture a mob with Rage.
+- Cannot capture a mob above the Mob Level Limit.
+
+Passive Effect:
+Mob Level Limit Increase =
+SkillLvl
+
+Game Description:
+Capture the monsters weaker than you. The Max Lv of them and the time limit increase. The chance of breaking Cages decreases as the skill levels up. Consume Cage x1.
+
+
+==================================================
+SKILL: CAPTURE TECHNIQUE I
+==================================================
+
+Category: Tamer Skills
+Tier: I
+Required Level: Not specified in source
+Type: Passive
+
+Description:
+Increases the maximum level of monsters that can be captured and increases the capture time limit.
+
+Mob Level Limit Increase:
+- Skill Levels 1 to 2: +1
+- Skill Levels 3 to 4: +2
+- Skill Levels 5 to 6: +3
+- Skill Levels 7 to 8: +4
+- Skill Levels 9 to 10: +5
+
+Skill Timer Boost Increase:
+- Skill Level 1: +1
+- Skill Level 2: +2
+- Skill Level 3: +3
+- Skill Level 4: +4
+- Skill Level 5: +5
+- Skill Level 6: +7
+- Skill Level 7: +9
+- Skill Level 8: +11
+- Skill Level 9: +13
+- Skill Level 10: +15
+
+Game Description:
+The Max Lv of the monsters that can be captured and time limit increase.
+
+
+==================================================
+SKILL: SKILLFUL CAPTURE
+==================================================
+
+Category: Tamer Skills
+Tier: I
+Required Level: Not specified in source
+Type: Passive
+
+Description:
+Supposedly gives a chance to increase the maximum level of captured pets.
+
+At Skill Level 10:
+Raises the captured pet's maximum level by approximately 5 to 10 levels.
+
+Source Qualification:
+The source describes this effect as "supposedly".
+
+Game Description:
+Chance to raise the growth limit level of the captured monsters.
+
+
+==================================================
+SKILL: PET HEAL
+==================================================
+
+Category: Tamer Skills
+Tier: I
+Required Level: Not specified in source
+Type: Active / Pet Support
+
+MP Cost: 100
+
+Description:
+Restores HP to the player's currently called pet. Cannot be used on another player's pet.
+
+Base Charge Time:
+- Skill Levels 1 to 3: 6 seconds
+- Skill Levels 4 to 6: 5 seconds
+- Skill Levels 7 to 9: 4 seconds
+- Skill Level 10: 3 seconds
+
+HP Heal Percentage:
+- Skill Level 1: 0.02
+- Skill Level 2: 0.05
+- Skill Level 3: 0.07
+- Skill Level 4: 0.10
+- Skill Level 5: 0.12
+- Skill Level 6: 0.15
+- Skill Level 7: 0.17
+- Skill Level 8: 0.20
+- Skill Level 9: 0.22
+- Skill Level 10: 0.25
+
+HP Heal Formula:
+PetMaxHP * HPHealPercentage + 100 * SkillLvl
+
+Bow Bonus:
+- HP Heal Percentage: +0.15
+- Charge Time: Halved
+
+Staff Bonus:
+- HP Heal Percentage: +0.15
+- Charge Time: Divided by 1.5
+
+Combo Restriction:
+If used in a combo while no pet is called, the skill does not activate.
+
+Game Description:
+Restore the called pet's HP. Unavailable on other players' pets.
+
+
+==================================================
+SKILL: CAPTURE TECHNIQUE II
+==================================================
+
+Category: Tamer Skills
+Tier: II
+Required Level: Not specified in source
+Type: Passive
+
+Description:
+Further increases the maximum level of monsters that can be captured and increases the capture time limit.
+
+Mob Level Limit Increase:
+- Skill Levels 1 to 2: +1
+- Skill Levels 3 to 4: +2
+- Skill Levels 5 to 6: +3
+- Skill Levels 7 to 8: +4
+- Skill Levels 9 to 10: +5
+
+Skill Timer Boost Increase:
+- Skill Level 1: +1
+- Skill Level 2: +2
+- Skill Level 3: +3
+- Skill Level 4: +4
+- Skill Level 5: +5
+- Skill Level 6: +7
+- Skill Level 7: +9
+- Skill Level 8: +11
+- Skill Level 9: +13
+- Skill Level 10: +15
+
+Game Description:
+The Max Lv of the monsters that can be captured and time limit increase more.
+
+
+==================================================
+SKILL: PET MP CHARGE
+==================================================
+
+Category: Tamer Skills
+Tier: II
+Required Level: Not specified in source
+Type: Active / Pet Support
+
+MP Cost: 300
+
+Description:
+Restores MP to the player's currently called pet. Cannot be used on another player's pet.
+
+Base Charge Time:
+- Skill Levels 1 to 3: 9 seconds
+- Skill Levels 4 to 6: 8 seconds
+- Skill Levels 7 to 9: 7 seconds
+- Skill Level 10: 6 seconds
+
+Pet MP Recovery:
+100 * SkillLvl MP
+
+Bow Bonus:
+Charge Time is halved.
+
+Staff Bonus:
+Charge Time is divided by 1.5.
+
+Combo Restriction:
+If used in a combo while no pet is called, the skill does not activate.
+
+Game Description:
+Restore the called pet's MP. Unavailable on other players' pets.
+
+
+==================================================
+SKILL: CAREFUL CAPTURE
+==================================================
+
+Category: Tamer Skills
+Tier: III
+Required Level: Not specified in source
+Type: Passive
+
+Description:
+Supposedly gives a chance to capture pets with higher Potential than usual.
+
+At Skill Level 10:
+Raises the pet's Potential stats by approximately 1 to 10.
+
+Source Qualification:
+The source describes this effect as "supposedly".
+
+Game Description:
+Chance to capture monsters with a little high Potential.

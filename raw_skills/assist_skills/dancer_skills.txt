@@ -1,0 +1,338 @@
+Category: Dancer Skills
+
+GENERAL INFORMATION
+
+Almost all Dancer skills use the "Timer and Charge" mechanic.
+
+Timer and Charge Rules:
+- Effect duration: 15 seconds.
+- Default maximum charge: 10.
+- If more than one Timer and Charge Dancer skill is active, the maximum charge of all affected skills is reduced according to:
+  Max Charge = 10 - Number of other active Dancer skills
+- Reusing a Timer and Charge skill when less than 5 seconds remain increases its charge.
+- Reusing it when more than 5 seconds remain decreases its charge by 1.
+
+Weapon Restrictions:
+Dancer skills are limited to the following weapons:
+- Dagger
+- Halberd
+- Knuckles
+- One-Handed Sword
+- Magic Device
+
+Tier Requirements:
+- Tier I: No level requirement
+- Tier II: Level 60
+- Tier III: Level 120
+
+
+==================================================
+SKILL: FAIRY DANCE
+==================================================
+
+Category: Dancer Skills
+Tier: I
+Required Level: None
+Type: Support (Active)
+Mechanic: Timer and Charge
+
+MP Cost: 100
+Action Range: Infinite
+Effect Duration: 15 seconds
+Maximum Charge: 10
+
+Description:
+A graceful dance like a fairy. Reduces monster accuracy. The effect can be increased by using the skill again shortly before the effect ends. The effect decreases if the skill is reused too early or if another dance affects the user.
+
+Effect:
+Decreases enemy accuracy.
+
+Formula:
+Accuracy Reduction =
+SkillLvl * 2 + Floor[2 + (SkillLvl + 2) / 3] * (ChargeLvl - 5) %
+
+Charge Rules:
+- Reusing the skill with less than 5 seconds remaining increases charge.
+- Reusing it too early decreases charge by 1.
+- Other active Timer and Charge Dancer skills can reduce the maximum charge.
+
+
+==================================================
+SKILL: FRENZY DANCE
+==================================================
+
+Category: Dancer Skills
+Tier: I
+Required Level: None
+Type: Support (Active)
+Mechanic: Timer and Charge
+
+MP Cost: 200
+Action Range: Infinite
+Effect Duration: 15 seconds
+Maximum Charge: 10
+
+Description:
+An extremely emotional dance that makes it easier to break monster parts. The effect can be increased by using the skill again shortly before the effect ends. The effect decreases if the skill is reused too early or if another dance affects the user.
+
+Effect:
+Increases tap damage.
+
+Formula:
+Tap Damage Increase =
+SkillLvl * 2 + [(SkillLvl + 1) + Max(SkillLvl - 5, 0)] * (ChargeLvl - 5) %
+
+Condition:
+If ChargeLvl is below 5, the skill does not provide a tap damage increase.
+
+Notes:
+- Max(A, B) returns the larger value.
+- Example: Max(5, 1) = 5.
+
+Charge Rules:
+- Reusing the skill with less than 5 seconds remaining increases charge.
+- Reusing it too early decreases charge by 1.
+- Other active Timer and Charge Dancer skills can reduce the maximum charge.
+
+
+==================================================
+SKILL: SPIRITED DANCE
+==================================================
+
+Category: Dancer Skills
+Tier: I
+Required Level: None
+Type: Support (Active)
+Mechanic: Timer and Charge
+
+MP Cost: 300
+Effect Duration: 15 seconds
+Initial Charge: 5
+Maximum Charge: 10
+
+Description:
+A dance that cheers allies up and immediately restores MP. The effect can be increased by using the skill again shortly before the effect ends. The effect decreases if the skill is reused too early or if another dance affects the user.
+
+Base MP Recovery:
+50 + (5 * SkillLvl)
+
+Activation:
+When the skill is activated, its 15-second duration begins and the skill starts at 5 charges.
+
+Charge Increase:
+If the skill is reused with less than 5 seconds remaining:
+- MP is restored based on the current charge.
+- The restored MP is doubled.
+- Charge increases by 1 after the MP recovery is calculated.
+
+Charge Decrease:
+If the skill is reused too early:
+- Charge decreases by 1 before MP recovery is calculated.
+
+Low-Charge MP Recovery:
+If the skill is below 5 charges:
+
+MP Recovery =
+[50 + (5 * SkillLvl)] * [20% * ChargeAfterCast]
+
+ChargeAfterCast cannot exceed 5 for this calculation.
+
+ChargeAfterCast Rule:
+- If the skill has 3 charges and is reused too early, charge becomes 2 before MP is restored.
+- If the skill is reused with less than 5 seconds remaining, MP is restored using the current charge first, then charge increases by 1.
+
+Example:
+If the skill is at 2 charges and is reused too early:
+- Charge decreases to 1.
+- MP restored = 20 MP.
+
+If the skill is at 2 charges and is reused with less than 5 seconds remaining:
+- MP restored = 40 MP * 2 = 80 MP.
+- Charge then increases by 1.
+
+Charge Rules:
+- Reusing the skill with less than 5 seconds remaining increases charge.
+- Reusing it too early decreases charge by 1.
+- Other active Timer and Charge Dancer skills can reduce the maximum charge.
+
+
+==================================================
+SKILL: ASTUTE DANCE
+==================================================
+
+Category: Dancer Skills
+Tier: II
+Required Level: 60
+Type: Support (Active)
+Mechanic: Timer and Charge
+
+MP Cost: 500
+Action Range: Infinite
+Effect Duration: 15 seconds
+Maximum Charge: 10
+
+Description:
+An agile yet supple dance. Reduces monster dodge rate. The effect can be increased by using the skill again shortly before the effect ends. The effect decreases if the skill is reused too early or if another dance affects the user.
+
+Effect:
+Decreases enemy dodge.
+
+Formula:
+Dodge Reduction =
+SkillLvl + Floor[2 + (SkillLvl + 2) / 3] * (ChargeLvl - 5) %
+
+Charge Rules:
+- Reusing the skill with less than 5 seconds remaining increases charge.
+- Reusing it too early decreases charge by 1.
+- Other active Timer and Charge Dancer skills can reduce the maximum charge.
+
+
+==================================================
+SKILL: ELEGANT POISE
+==================================================
+
+Category: Dancer Skills
+Tier: II
+Required Level: 60
+Type: Support / Parry
+Mechanic: Defensive Buff
+
+MP Cost: 100
+Action Range: Infinite
+
+Description:
+Handles attacks with a fan. Reduces damage received and can make the player invincible after taking damage. The skill cannot be used while the player is affected by a status ailment.
+
+Buff 1 Duration:
+2 seconds
+
+Buff 1 Effects:
+
+1. Damage Reduction:
+Decreases all types of received damage.
+
+Formula:
+Damage Reduction =
+SkillLvl * SkillLvl * 0.5 %
+
+At Skill Level 10:
+Damage Reduction = 50%
+
+2. Status Ailment Removal Chance:
+If a status ailment successfully affects the player during Buff 1, the player has a chance to remove it.
+
+Formula:
+Ailment Removal Chance =
+SkillLvl * SkillLvl * 0.25 %
+
+At Skill Level 10:
+Ailment Removal Chance = 25%
+
+Note:
+This effect does not increase ailment resistance. It gives a chance to remove an ailment after the ailment has already penetrated the player's ailment resistance.
+
+3. Lethal Damage Survival:
+If the player receives damage that would kill them during Buff 1, they survive with 1 HP.
+
+Buff 2:
+When the player receives damage during Buff 1, Buff 2 is triggered.
+
+Buff 2 Effect:
+Invincibility.
+
+Buff 2 Duration:
+5 seconds - AmountOfTimePassedFromBuffEffect1
+
+Restriction:
+The skill cannot be used while the player is already affected by a status ailment.
+
+
+==================================================
+SKILL: CHARMING DANCE
+==================================================
+
+Category: Dancer Skills
+Tier: III
+Required Level: 120
+Type: Support (Active)
+Mechanic: Timer and Charge
+
+MP Cost: 300
+Action Range: Infinite
+Effect Duration: 15 seconds
+Maximum Charge: 10
+
+Description:
+A fascinating dance that reduces monster stability. The effect can be increased by using the skill again shortly before the effect ends. The effect decreases if the skill is reused too early or if another dance affects the user.
+
+Effect:
+Reduces enemy stability.
+
+Formula:
+Stability Reduction =
+SkillLvl * 3 + Floor[2 + (SkillLvl + 2) / 3] * (ChargeLvl - 5) %
+
+Charge Rules:
+- Reusing the skill with less than 5 seconds remaining increases charge.
+- Reusing it too early decreases charge by 1.
+- Other active Timer and Charge Dancer skills can reduce the maximum charge.
+
+
+==================================================
+SKILL: NATURE'S WONDER
+==================================================
+
+Category: Dancer Skills
+Tier: III
+Required Level: 120
+Type: Physical / Support
+Mechanic: Attack and Healing
+
+MP Cost: 400
+Action Range: 3 m
+Hit Count: 4
+
+Description:
+Attacks nearby enemies as if dancing beautifully and restores HP to nearby allies when the skill ends. Depending on skill level, the user also gains resistance against Flinch and Tumble.
+
+Attack Range:
+3 + Floor(SkillLvl * 0.3)
+
+Heal Range:
+6 + Floor(SkillLvl * 0.6)
+
+Skill Constant:
+100 per hit
+
+Skill Multiplier:
+1.5 + 0.75 * SkillLvl
+This multiplier applies to the total hits.
+
+Buff Duration:
+During the skill action.
+
+Flinch Resistance:
+Min(20 * SkillLvl, 100) %
+
+Tumble Resistance:
+Max((SkillLvl - 5) * 15, 0) %
+
+At Skill Level 10:
+- Flinch Resistance: 100%
+- Tumble Resistance: 75%
+
+Notes:
+- Min(A, B) returns the lower value.
+- Max(A, B) returns the higher value.
+
+Healing Effect:
+Heals the caster and allies within the healing range.
+
+Heal Formula:
+Heal Amount =
+(300 * SkillLvl + PlayerMaxHP * ((10 + SkillLvl) / 100))
+/ NumberOfPlayersReceivingHeal
+
+Notes:
+- Healing is divided among all players receiving the healing effect.
+- Mercenaries and pets can also receive the healing effect.

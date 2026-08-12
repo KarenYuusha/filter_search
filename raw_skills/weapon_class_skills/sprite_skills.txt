@@ -1,0 +1,455 @@
+Category: Sprite Skills
+
+GENERAL INFORMATION
+
+Tier Requirements:
+- Tier I: Level 50
+- Tier II: Level 90
+- Tier III: Level 170
+- Tier IV: Level 250
+- Tier V: Level 300
+
+
+==================================================
+SKILL: AUTO-DEVICE
+==================================================
+
+Category: Sprite Skills
+Tier: I
+Required Level: Level 50
+
+Source Details:
+Lv 1; Main Magic Device Only
+MP Cost: 100
+Values of each attack:
+- Base Skill Multiplier: 1; total multiplier of all hits
+- Base Skill Constant: 0
+- Hit Count: 1 hit for attacks within 8m; 3 hits for attacks from 9m+
+Skill Effect:
+- Grants a buff on yourself to automatically perform a magic auto attack to the target whenever you are not doing an action (e.g. casting skill or auto attack or you’re not interrupted).
+- Magic auto attacks have a maximum range of 12m; no attack is dealt if you’re beyond that range.
+- Every time this skill deals damage to the target, recover your mp by 100% of your Total AMPR. However, if your target is within 8m or more, then this skill’s AMPR will be set to (Skill Level * 5)%
+- This skill follows the entire magic skill mechanic, such as Damage based on MATK, Magic Stability, Magic Critical Rate, Magic Critical Damage, etc. It inflicts Normal Auto Attack Proration and also uses said proration for its damage calculation, however.
+- The damage of the attacks are affected by auto attack damage modifiers, but skill modifiers don’t affect it.
+- The skill interval hit per second depends on your interval auto attack. However, if your target is within 8m or beyond, then (1.5 - 0.1 * Skill Level) second interval penalty of this skill will be applied. this skill is already fixed at +50% Motion speed, so Motion Speed doesn’t affect this interval.
+- This skill never misses, and does not trigger additional melee/magic.
+- This skill will stop attack/working if you get afflicted by the Silence ailment.
+Game Description: A technique allowing magic device to assist attack. Performs a normal attack on target after being idle for 60 seconds. Efficiency reduced for long-range (8m or more).
+
+
+==================================================
+SKILL: EXPRESS AID
+==================================================
+
+Category: Sprite Skills
+Tier: II
+Required Level: Level 90
+
+Source Details:
+Lv 2; Main Magic Device Only
+Passive Effect:
+- Doubles your speed toward the target you want to revive.
+- You can reduce damage taken +Floor(1 + Skill Level/5) times during your movement toward the target. Damage Taken Reduction = (10 * Skill Level)%.
+At level 10 = 100% damage taken reduction = become iframe/immune to any incoming damage.
+Game Description: Raises and rushes the output of magic device. Increases travelling speed toward the target of “First Aid” and reduces damage received up to a certain number of times.
+
+
+==================================================
+SKILL: COUNTERFORCE
+==================================================
+
+Category: Sprite Skills
+Tier: II
+Required Level: Level 90
+
+Source Details:
+Lv 2; Main Magic Device Only
+MP Cost: 300
+Base Cast Time: 1 seconds, affected by CSPD
+Base Skill Multiplier: 0.3 * Skill Level + TotalINT/1000; total multiplier of each hit
+Base Skill Constant: 75
+Hit Count: 4 hits
+Buff Effect:
+- Grant this buff to all players in your party (including you) within 24m range for 30 seconds.
+- If you or your teammate gets hit by enemies when this buff is active, then it will automatically cast an attack that resembles Magic: Arrows (which does 4 hits) to the enemies who deal damage to you or your teammate. Cannot auto-cast again when there are 3 ongoing attacks from this skill.
+- This skill doesn’t inflict prorate.
+- This skill isn't affected by any combo damage modifier and short/long range damage, but it can be affected by Zero stance.
+- All hits of this skill share the same proration & stability from “first hit of this skill”, but each damage is calculated separately.
+[For example using very very low atk/matk that make any dmg 1, then using this skill “Counterforce” will deal 1dmg 1 dmg 1dmg 1dmg instead of 1dmg 0 dmg 0 dmg 0dmg. If it was tenryu, then it is 1dmg 0dmg 0dmg 0dmg]
+Game Description: A supporting technique with magic device. Deploys a magic circle for 30 seconds to attack the target if a party member in sight (up to 24m) receives damage. (Max 3)
+
+
+==================================================
+SKILL: MICRO HEAL
+==================================================
+
+Category: Sprite Skills
+Tier: III
+Required Level: Level 170
+
+Source Details:
+Lv 3; Main Magic Device Only
+MP Cost: 100
+Skill Effect:
+- Casting this skill will heal you and your lowest HP member by ((50 +MATK/20) * Skill Level) HP
+- However, if there are no members within your 8m range, then it will heal you twice.
+Game Description: Sharing a little comfort. Slightly restores your HP and the HP of the party member who has lost the most HP.
+
+
+==================================================
+SKILL: ENHANCE
+==================================================
+
+Category: Sprite Skills
+Tier: III
+Required Level: Level 170
+
+Source Details:
+Lv 3; Main Magic Device Only
+MP Cost: 400
+Buff for the party member who has the highest ATK. They will receive the following buff:
+- Gain ATK = Skill Level * Target's Total DEF / 20. Cap at Target's Level
+- (Skill Level)% Damage Boost
+Buff for the party member who has the highest MATK. They will receive the following buff:
+- Gain MATK = Skill Level * Target's Total MDEF / 20. Cap at Target's Level
+- (Skill Level)% Damage Boost
+If one member has both highest ATK & MATK then they get both boosts, but the Damage Boost they get is still (Skill Level)% (not added together).
+[The Damage Boost stacks additively with Brave Aura]
+Buff Duration: (20 + 10 * Skill Level) seconds
+Game Description: A technique that boosts outstanding abilities further. Enhances the attack power of the party member with the highest ATK and MATK (1 each).
+Total (M)DEF includes boss def difficulty bonus, etc.
+[*Credits to billy for this buff formula]
+
+
+==================================================
+SKILL: ASTRAL LANCE
+==================================================
+
+Category: Sprite Skills
+Tier: III
+Required Level: Level 170
+
+Source Details:
+Lv 3; Main Magic Device Only
+MP Cost: 500
+Base Cast Time: 2 seconds, affected by CSPD
+Base Skill Multiplier: 2.5 + 0.5 * Skill Level
+Base Skill Constant: 500
+Activation range: Unlimited
+Hit Range: 1m AOE around target
+Buff Effect:
+- Gains 1 stack for every 100 MP consumed, up to a maximum of 5 stacks. Upon reaching 5 stacks, if you’re targeting an enemy, all stacks are consumed and a singular AOE lance will be launched at the target no matter how far you are from the target.
+- No more than 5 stacks can be obtained at any time. If you would gain more than five stacks from a single skill, only five will be obtained and Astral Lance will activate once and reset the count to 0..
+- This skill has innate +Floor(Skill Level * Skill Level / 2) Magic Pierce%.
+- This skill has a 2 seconds delay on attack, so it will be easy to miss when the target moves.
+- This skill inflicts Magic Proration
+- This skill isn't affected by any combo damage modifier, but can be affected by Zero Stance and short/long range damage.
+- Buff Duration: 90 seconds
+Game Description: An attack technique that efficiently recycles depleted mana. Attacks by releasing a powerful magic lance for every 500 MP consumed for 90 seconds. (max 1 lance)
+
+
+==================================================
+SKILL: RESURRECTION
+==================================================
+
+Category: Sprite Skills
+Tier: IV
+Required Level: Level 250
+
+Source Details:
+Lv 4; Main Magic Device Only
+MP Cost: 2000
+Base Cast Time: (10 - 0.5 * Skill Level) seconds; affected by CSPD
+Radius: 16m
+Skill Effect:
+- Sets all defeated players’ revive countdowns to 0. This skill also works on other players outside the caster’s party.
+- After being revived, their HP becomes (Skill Level * Skill Level)% of their MaxHP
+- If you use this skill with less than 2000MP (e.g. by casting Magic: Impact beforehand), then this skill will receive a cast time penalty by 5 second more. This penalty is unaffected by CSPD.
+- This skill works on mercenaries and pets.
+Game Description: A secret technique to resuscitate those who can no longer fight. The waiting time for those around you (within 16m) to revive instantly becomes 0 s.
+*Not available if First Aid is not applicable.
+*Not usable with combo.
+
+
+==================================================
+SKILL: STABILIZ
+==================================================
+
+Category: Sprite Skills
+Tier: IV
+Required Level: Level 250
+
+Source Details:
+Lv 4; Main Magic Device Only
+MP Cost: 700
+Skill Effect:
+- When this skill is cast successfully, removes Fatigue ailment from any part member that has it.
+Buff Effect:
+- Increase the Critical Rate of the entire party by (5 + 2 * Skill Level + their CRT/8.5)
+- Increase the Magic Stability of the entire party by (Skill Level)%
+- Reduce the stability drop from Graze for the entire party by 50%. For example, you have 100% stability and you land a graze hit with a physical attack, you will hit with 75% stability instead of 50%.
+- Buff Duration: 45 seconds
+Game Description: A technique that improves accuracy. Increases the stability of Critical Rate and Magic damage, and mitigates the decrease in stability of Graze hits for 45 seconds. Removes [Fatigue] when activated.
+Their CRT refer to their own personal’s CRT, not on caster’s CRT
+[*Credit to billy for these buff formula]
+
+
+==================================================
+SKILL: SPRITE SHIELD
+==================================================
+
+Category: Sprite Skills
+Tier: IV
+Required Level: Level 250
+
+Source Details:
+Lv 4; Main Magic Device Only
+MP Cost: 0
+Skill Effect:
+- Uses (30 - 2 * Skill Level)% of your MaxHP to make you gain 100MP.
+- Reduces any Damage Taken by 50%
+- Gives Ailment Resistance by (Skill Level * Skill Level)%. This stacks with Ailres% from MTL stats and equipment
+- You cannot use this skill if you don’t have enough HP.
+Game Description: A secret technique to convert energy into mana. Consumes HP to instantly restore 100 MP. Reduces the damage taken next and the chance of being inflicted with a status ailment.
+
+
+==================================================
+SKILL: MAGIC VULCAN
+==================================================
+
+Category: Sprite Skills
+Tier: IV
+Required Level: Level 250
+
+Source Details:
+Lv 4; Main Magic Device Only
+MP Cost: 100
+Base Cast Time: 2 seconds(unaffected by CSPD)
+Base Skill Multiplier (first 5 hits): 0.5 + 0.05 * Skill Level (first hit) + (0.05 * Skill Level) every subsequent hit; multiplier for each hit
+Base Skill Multiplier (additional shots): 1.8 + 0.1 * Skill Level; multiplier for each hit
+Base Skill Constant (first 5 hits): 0; constant for each hit
+Base Skill Constant (additional shots): 100; constant for each hit
+Hit count: Every 100MP = 5 hits; damage calculation is done for each hit. Hits every 0.2 seconds
+Maximum Cast Range: 12m
+Skill Effect:
+- This skill uses Magic Crit Rate and Critical Damage, not physical.
+- The additional hits will lose 0.2 multiplier after every 5 shots, down to a minimum of 0.1 multiplier
+- This skill will miss when the target is 12m or more away from you.
+Game Description: A revolving magic cannon technique. Inflicts consecutive magic damage to the target. MP can be consumed additionally to continue attacking, but the power will diminish bit by bit. This attack does not cause proration.
+
+
+==================================================
+SKILL: IGNITION
+==================================================
+
+Category: Sprite Skills
+Tier: I
+Required Level: Level 50
+
+Source Details:
+T1; [Active] Main Magic Device Only
+MP Cost: 100
+Damage Type: Magic
+Base Skill Multiplier: MIN(12; ((0.6* Skill Level) + Total Weapon Attack/100))
+Base Skill Constant: 100
+Maximum Cast Range: 12m
+Stability Penalty: -(0.60000002 * Physical Stability)
+-Physical stability is penalized, then converted into magic stability, rounded down.
+Ailment: Weaken
+Ailment Chance: 2.5 * Skill Level + Base DEX/10 + 5 * Skill Tree Level
+Ailment Resistance: 5 seconds
+This skill is affected by short/long range damage; affected by long range skill; uses and deals magic proration.
+Game Description: Attacks by causing the opponent's mana to burn. Deals unstable magic damage. Low chance to inflict [Weaken]. The chance increases with higher DEX and Sprite skill tree level.
+
+
+==================================================
+SKILL: TERRAWRYM
+==================================================
+
+Category: Sprite Skills
+Tier: II
+Required Level: Level 90
+
+Source Details:
+T2; [Active] Main Magic Device Only
+MP Cost: 300
+Damage Type: Magic
+Base Skill Multiplier: 3.5 + 0.35 * Skill Level + Base INT/200 + Base DEX/200
+Base Skill Constant: 300
+Hit Count: 1 Hit AOE
+Maximum Cast Range: 16m
+Hit Range: 0.5m radius
+Ailment: Stop
+Ailment Chance: 100%
+Ailment Duration: 2 seconds
+Ailment Resistance: 53 seconds
+-Inflicts [Stop] to all hostile monsters during it's travel to it's target.
+Skill Effect:
+This skill has absolute critical to all monsters without aggro on the caster with distance >7m. Initiating a battle using this skill is considered non-aggro.
+Range application for this skill is upon cast to the target and upon hitting non-aggroed monsters in the AOE.
+The projectile follows a wide parabola trajectory while chasing a moving target before hitting/missing the hit.
+This skill is affected by short/long range damage; not affected by long range skill; uses and deals magic proration.
+Game Description: Fires a magic projectile that ambushes from underground. A magic projectile is sent crawling along the ground toward the target and triggers a small AoE when it hits. Passes through any targets in the way and inflicts [Stop] on them.
+
+Faux Weapon
+T3; [Active] Main Magic Device Only
+MP Cost: 600
+Damage Type: Magic
+Faux Weapon Multiplier/Constant
+Base Skill Multiplier = 7.5 + Total DEX/100 + Total AGI/100
+Base Skill Constant = 6 * Skill Level^2
+Maximum Cast Range: 12m
+Faux Weapon mimics one of the T5 attack skills from other weapons into their magical version (not really). Upon casting this skill, one of the skills that will be activated randomly is as follows:
+FW Lunar Slash 1st Hit
+Base Skill Multiplier = Faux Weapon Multiplier * 75%
+Base Skill Constant = Faux Weapon Constant * 75%
+FW Lunar Slash 2nd Hit
+Base Skill Multiplier: Faux Weapon Multiplier * 25%
+Base Skill Constant: Faux Weapon Constant * 25%
+-Both of Faux Weapon Lunar Slash hits have absolute critical.
+FW Draconic Charge 1st Hit
+Base Skill Multiplier: Faux Weapon Multiplier * 75%
+Base Skill Constant: Faux Weapon Constant * 75%
+FW Draconic Charge 2nd Hit
+Base Skill Multiplier: Faux Weapon Multiplier * 75%
+Base Skill Constant: Faux Weapon Constant * 75%
+
+
+==================================================
+SKILL: -FAUX WEAPON DRACONIC CHARGE LOSES ONE OF IT'S HIT WHEN CASTED FROM OVER 7M.
+==================================================
+
+Category: Sprite Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Source Details:
+FW Kasumi Setsugetsuka 1st Attack (4 Hits)
+Base Skill Multiplier: Faux Weapon Multiplier * 25%
+Base Skill Constant: Faux Weapon Constant * 25%
+-1st Attack's damage calculation is done once, then spread evenly into four hits.
+FW Kasumi Setsugetsuka 2nd Attack (1 Hit)
+Base Skill Multiplier: Faux Weapon Multiplier * 75%
+Base Skill Constant: Faux Weapon Constant * 75%
+FW Retrograde Shot
+Base Skill Multiplier: Faux Weapon Multiplier
+Base Skill Constant: Faux Weapon Constant
+-Reduces any damage taken to 0 one time only during skill animation.
+FW Lunar Misfortune
+Base Skill Multiplier: Faux Weapon Multiplier
+Base Skill Constant: Faux Weapon Constant
+-Teleport back animation is available with ⬇️ direction input, but no additional hits.
+This skill is affected by short/long range damage; affected by long range skill; uses and deals magic proration.
+Game Description: Wields a weapon crated with mana. Targets a single enemy. The power increases with higher AGI and DEX.
+
+
+==================================================
+SKILL: SLASH REAPER
+==================================================
+
+Category: Sprite Skills
+Tier: IV
+Required Level: Level 250
+
+Source Details:
+T4; [Active] Main Magic Device Only
+MP Cost: 400 (deploy); 100 (strike)
+Damage Type: Magic
+Skill Effect:
+Deploys magical blades which amount increases as stack amount increases. Deployed magical blades (max deploy:5) can be used to deal damage over time by being near enemies, or to strike the target at the cost of 5 stacks.
+Stack Gain Condition: (10 * Attacking Skill Usage)/Skill Level
+Maximum Cast Range: 16m
+-You lose all stack from getting [Stun] and half the stack from getting [Tumble].
+Deployed Magical Blade Damage:
+Base Skill Multiplier: 0.1 + Total AGI/(100 * (20 - Skill Level))
+Base Skill Constant: Base AGI/(10 - 0.5 * Skill Level)
+Hit Range: 1-4m (0m is out of range)
+-More magical blades deployed will shorten hit interval.
+-Deployed magical blades damage is affected by short range damage; not affected by long range skill; uses magic proration and deals no proration.
+Strike Damage:
+Base Skill Multiplier: 2 + BaseINT/500
+Constant: 100
+Maximum Cast Range: 16m
+-Strike damage is affected by short/long range damage; not affected by long range skill; uses and deals magic proration.
+Game Description: Protects yourself from looming danger with magical blades. If conditions are met, the number of magical blades increases (up to 99, max 5 deployed at once). Reusing the skill sends the deployed magical blades to strike the target.
+
+Lebenglanz
+T5; [Active] Main Magic Device Only
+MP Cost: 400
+Maximum Cast Range: 12m
+Debuff: Life Explosion
+Debuff Duration: 5 seconds
+
+
+==================================================
+SKILL: LEBENGLANZ'S LIFE EXPLOSION
+==================================================
+
+Category: Sprite Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Source Details:
+Damage Type: Magic, uses accumulated MP instead of MATK
+Base Skill Multiplier: 10 + Skill Level
+Base Skill Constant: 400
+-Accumulates MP from attacking skills that is/are dealt to the target with "Life Explosion" debuff to fill the usual "ATK/MATK" spot in the damage calculation. MATK is not included in Lebenglanz's Life Explosion damage calculation. You can attack multiple times to accumulate MP.
+Damage reference value from Accumulated MP: Magic Device Weapon Attack * Accumulated MP/200
+-Reusing Lebenglanz before the explosion occurs will reset the accumulated MP.
+-"Life Explosion" damage cannot become a critical hit, ignores guard, and always stronger element against the enemy.
+-MP from "Arcane Strike" skill counts as 0 MP.
+-This skill affects Guild Raid allies.
+Heal Amount and Cap: (1000 * Skill Level)/Members Affected
+Heal Range: 7m radius from the target
+AMPR Buff: 1 * Skill Level
+-Only on enemies affected by "Life Explosion"
+This skill is not affected by short/long range damage; not affected by long range skill; affected by zero stance regislet; not affected by combos; uses and deals magic proration (no proration upon cast).
+Game Description: A forbidden technique that reverses the phase of life that is lost to create explosive power. Puts a "Life Bomb" on the target. It explodes and deals damage when the effect ends.
+Magic Device Bonus: "Life Bomb" debuff. Boosts Attack MP Recovery for party members attacking the target with this debuff, and accumulates a portion of the MP used when attacking. Deals damage based on accumulated MP and restores HP of nearby party members upon explosion.
+
+Cursed Altar
+T5; [Active] Main Magic Device Only
+MP Cost: 600
+Maximum Cast Range: 12m
+Ailment: Curse
+Ailment Chance: 100%
+Ailment Duration: (2 + Skill Level) seconds
+Skill Effect:
+Applies "Cursed Altar" debuff to the target upon successful "Curse" ailment infliction using this skill. During debuff duration, the enemy will receive continuos damage.
+Cursed Altar Debuff Damage (1 tick):
+to Boss/Miniboss: INT(2% * Current HP * (1 - MAX(P.res; M.res)))
+to Common Monster: INT(10% * Current HP * (1 - MAX(P.res; M.res)))
+-Current HP, P.res, & M.res are the target's/enemy's.
+
+
+==================================================
+SKILL: -CURSED ALTAR STABILITY: MIN(CHARACTER'S PHYSICAL STABILITY/2; 50)
+==================================================
+
+Category: Sprite Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Source Details:
+-Each tick damage is calculated separately, so the next tick will use new remaining hp after previous tick damage is substracted.
+-Tick Count: Skill level
+This skill is not affected by "Role Model" regislet.
+Game Description: Devours the soul with a curse. Puts a "Curse" on the target. If successful, an effect that continuosly deals damage to the target is additionally applied (damage is reduced against bosses).
+
+
+==================================================
+SKILL: SPRITE UPGRADE
+==================================================
+
+Category: Sprite Skills
+Tier: V
+Required Level: Level 300
+
+Source Details:
+T5; [Passive] Main Magic Device Only
+Passive Effect:
+Auto Device Duration: +6 * Skill Level
+Counterforce Duration: +3 * Skill Level
+Astral Lance Buff Duration: +9 * Skill Level
+Stabiliz Duration: +4.5 * Skill Level
+Game Description: Extends the duration of Auto-Device, Counterforce, Astral Lance, and Stabiliz.

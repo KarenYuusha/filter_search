@@ -1,0 +1,376 @@
+Category: Assassin Skills
+
+GENERAL INFORMATION
+
+Tier Requirements:
+- Tier I: Level 15
+- Tier II: Level 35
+- Tier III: Level 125
+- Tier IV: Level 205
+- Tier V: Level 285
+
+
+==================================================
+SKILL: ASSASSIN STAB
+==================================================
+
+Category: Assassin Skills
+Tier: I
+Required Level: Level 15
+
+Active skill(physical)
+MP cost: 300
+Description:Deal a fatal blow to target. The effectiveness of the attack depends on the hit direction. Aim for target's back to maximize it.
+Skill constant: 30 * skill lvl
+Skill multiplier varies from which side you use the skill
+[315°-40°]Front: 1 + 0.01 * skill lvl
+[225°-315°,45°-135°]Side: 1.05 + 0.03 * skill lvl
+[225°-135°]Back: 1.1 + 0.09 * skill lvl
+Dagger/Scroll bonus: Skill multiplier+0.5(Front), +1(Side), +3(Back)
+
+
+==================================================
+SKILL: EVASION
+==================================================
+
+Category: Assassin Skills
+Tier: I
+Required Level: Level 15
+
+Active Skill(Party-Buff)
+MP cost: 200
+Description:A technique to improve the ability to dodge. Increase dodge rate and for a certain period of time and remove status Ailment: [Slow]
+Duration(sec): 20+skill lvl
+Effect: Gives +flat dodge and +dodge%, Removes Slow-ailment while active
+Dodge: +Skill lvl
+Dodge%: +Skill lvl%
+Dagger/Scroll bonus: Duration is doubled
+Dagger/Scroll bonus: +10 dodge
+
+
+==================================================
+SKILL: BACKSTEP
+==================================================
+
+Category: Assassin Skills
+Tier: II
+Required Level: Level 35
+
+Active skill(Buff+null)
+MP cost: 100
+Description:A technique to instantly escape from danger. Restore a little MP by using it against the monster's attack warning. increase the power of Assassin stab when it is used next to this skill.
+Effect: jumps backward(5m) and gives damage boost for assassin stab(if used next). Also, Recover MP when you use this skill while in your Boss Aoe Attack Warning(refers to Exclamation mark “?” that appear on the character’s head).
+MP recover amount: 5 * Skill lvl
+Increase damage of assassin stab by (5 * Skill lvl)% [applied additively with Foresight buff]
+If you have backstep and foresight at same time, then you get additional +100% dmg to assassin stab as bonus.
+So total when backstep and foresight at same time= +(100 + 5 * backstep lvl + 5 * foresight lvl)%
+Dagger/Scroll bonus: MP recovery is doubled
+
+
+==================================================
+SKILL: SERUM
+==================================================
+
+Category: Assassin Skills
+Tier: II
+Required Level: Level 35
+
+Active skill(Party-Buff)
+MP cost: 300
+Description:A technique to ease and relieve pain. Reduce damage over time due to status ailments:[Poison] and [Ignite] for a certain period of time.
+Duration: 10 + Skill lvl
+Effect:Reduce DOT on player by a percentage.
+Damage decreased(Ignite): (10 + 2 * skill lvl)% [applied additively with Stone Barrier]
+Damage decreased(Poison): (25 + 2.5*skill lvl)% [applied additively with Stone Barrier]
+Dagger/Scroll bonus: Duration is tripled
+
+
+==================================================
+SKILL: ARCANE STRIKE
+==================================================
+
+Category: Assassin Skills
+Tier: III
+Required Level: Level 125
+
+Limitation: Dagger/Scroll Only
+Active skill(physical)
+MP cost: 100+remaining MP from MPbar
+Description:A secret technique passed down from an assassin squad. Use all MP and enhances Attack MP recovery until the next skill is activated. Significantly reduce Aggro on you when not targeted.
+Skill constant: 500 + 50 * skill lvl
+Skill multiplier: 0.1 * skill lvl+(0.6+0.04 * skill lvl) * (MP/100){this MP is from MP bar only}
+Ampr: +10(lv1-5), +20(lv6-10)
+
+
+==================================================
+SKILL: FORESIGHT
+==================================================
+
+Category: Assassin Skills
+Tier: III
+Required Level: Level 125
+
+Passive skill
+Description:Exceed the limit of your ability to dodge. Lower monster's minimum accuracy and makes it easier to dodge attacks. The power of Assassin Stab is also raised.
+Effect: Increases damage boost for assassin stab passively, lowers enemy's minimum accuracy(hit) ONLY for you and increases maximum limit of process rate of dodge.
+Min accuracy of enemy:(25-skill lvl)%
+Max dodge chance:(75+skill lvl)%
+Increase damage of assassin stab by (5skill lvl)% [applied additively with Backstep buff]
+If you have backstep and foresight at same time, then you get additional +100% dmg to assassin stab as bonus.
+So total when backstep and foresight at same time= +(100 + 5 backstep lvl + 5 * foresight lvl)%
+Attacks including perfect aim from an enemy will bypass this skill's hit check.
+
+
+==================================================
+SKILL: SICARIUS
+==================================================
+
+Category: Assassin Skills
+Tier: IV
+Required Level: Level 205
+
+Passive skill
+Description: Raises the power of Back Stab with lasting effect. Successful Back Stab execution will slightly enhance ATK and Physical Pierce for a short time. Damage received will be slightly reduced and the enhancement effect will be lost.
+Effect: Passively Increase “Back”(not front and side) skill multiplier of assassin stab. Also, gives buff physical pierce%, flat ATK and damage taken reduction when you successfully use assassin stab on target behind. But buff will ends when you receive hit
+Increase [Back] Skill Multiplier of Assassin Stab = +0.15 * skill lvl [+1 with Dagger/Scroll Bonus]
+Flat Atk increase = 5 * Skill Level * 2[with Dagger/Scroll Bonus]
+Physical Pierce% = there are two formula below
+-> With Dagger/Scroll = (15 + skill lvl)%
+-> Without Dagger/Scroll = (skill lvl)%
+Damage Taken Reduction = (10 + skill lvl + floor[(0.5 + skill lvl * 0.05) * Foresight's skill level])%
+Buff Duration = 30 seconds or until you get hit
+
+
+==================================================
+SKILL: SHADOW WALK
+==================================================
+
+Category: Assassin Skills
+Tier: IV
+Required Level: Level 205
+
+Active skill (Self Buff)
+Description: Briefly grants additional attack effect together with Evasion if not targeted. (Range depends on weapon.) Certain moves enhance the additional attack, but the effect is reset if you take damage while targeted. Can't be used repeatedly
+Limitation: Dagger/Scroll only
+MP Cost: 100
+Action range: Infinite
+Skill Effect:
+When you use this skill, gives early stack by (1 * skill level). You can generate stack up to (10 + skill level)
+Buff Duration: 3 min regardless level
+To generate stack, you need use these skill below and don’t have target aggro on you
+• Backstep can generate 3 stk
+• Assassin Stab, Manual evasion, Back stab can generate 1 stk
+Note: using backstab can activate assassin stab and back stab at same time, and gives 2 stk!!!
+If you get hit from enemy that has aggro on you, then your stack will become 0
+The skill can't be used repeatedly for resetting duration or stack after initial activation
+During Shadow Walk buff, Everytime you do evasion and target is within your default auto attack range, then this skill will deal damage. The higher stack then more damage
+Skill Constant = 100 (for all hit)
+Skill Multiplier (for all hit)
+= (1+0.1 * Skill Level) * (1+Floor((stack-1)/4) * 0.25)% * Dagger or Scroll’s ATK
+Hit Count = 1 + Floor((stack - 1)/4)
+If your stack is above 10, the skill will do enhanced damage when successfully dodge an enemy's attack(including aoe) with evasion(manual and auto works). When successfully doing Enhanced damage, it will consume 10 stacks. Note: Evasion gain invincibility when you're about to get hit during evasion animation
+Enhanced Skill Constant = 100 (for all hit)
+Enhanced Skill Multiplier = 10 + 2 * Skill Level (for all hit)
+Enhanced Hit Count = 10 hit, damage calculation is done once then spread evenly between the hits
+
+
+==================================================
+SKILL: VENOM INJECTION
+==================================================
+
+Category: Assassin Skills
+Tier: I
+Required Level: Level 15
+
+T1; Dagger/Scroll/BH only
+MP Cost: 100
+Skill Effect:
+Using this skill will cost 5% of your MaxHP and give you +(Skill Level) Venom Stack. You can store Venom Stack up to (2 * Skill Level).
+If you have venom stacks, then your auto attack has a chance to inflict Poison ailment. Successfully inflict Poison with this skill then it will decrease 1 Venom Stack.
+Ailment: Poison
+Base Ailment Chance: MAX[1% ; (Sub Weapon Atk/50)%] * 2[if crit] / 2[if graze]
+Note: Sub Weapon Atk=
+Scroll: +(Scroll ATK * 0.8)
+Dagger: +(Dagger ATK)
+OHS/HB Bonus: Base Ailment Chance multiplied by (Skill Level)
+BH Bonus: Change Base Ailment Chance into this below
+(10 * Skill Level)% * 2[if crit] / 2[if graze]
+Ailment Duration: 10 seconds
+Ailment Resistance: None
+Tricky note on ail chance: Calculate base ail chance first, then round down ouch… then multiplied by ohs/hb bonus according to Skill Level (tho not sure if this round down happen “after” or “before” crit/graze changes but high likely “after”)
+Another note for bh: bh sub chance is entirely same as main bh only chance, meaning as bh sub, sub weapon doesn't boost poison chance at all… it is as if sub weapon got ignored due to changes on [main bh]. That's why i wrote “Change base ail chance” on bh bonus instead
+Game Description: “An assassination technique by applying poison to your weapon. Consumes your HP to gain the chance to inflict poison during normal attacks. The chance depends on the stats of dagger, ninjutsu scroll and changes based on Critical or Graze.”
+You cannot use this skill if you don’t have enough hp
+
+
+==================================================
+SKILL: CORROSIVE POISON
+==================================================
+
+Category: Assassin Skills
+Tier: II
+Required Level: Level 35
+
+T2; Dagger/Scroll/BH only
+Passive Effect:
+Allow you to stack poison multiple times up to +2 with Venom Injection only. Note: You can inflict other poison such as Poison Dagger/Draconic Charge/etc. for initial/first poison(+0), but only Venom Injection can stack poison on top(poison+0 into +1 then +1 into +2)!!
+Their chance are dependant on this skill level:
+Poison+1 chance is (25 + Skill Level * 5)% of Final Poison+0 Chance(Venom Inject).
+Poison+2 chance is (Skill Level * 5)% of Final Poison+0 Chance(Venom Inject).
+About Poison duration… it will be extended by +10s everytime you successfully inflict Poison+1 or Poison+2.
+If a target has Poison+1 or Poison+2, then attacking that target will automatically inflict poison damage(even other players/merc/pets can inflict poison damage). But this poison can only be inflicted/triggered once at max every 1 second. This means, doing multi hit skill won’t trigger this poison multiple times in 1 second, even if you and your allies hit at same time still trigger once! Note: altho, it is possible to get multiple poison in 1 second. But only achievable with every time enemies attack!
+FYI, About poison damage from this skill..
+Poison dmg = dex scale + (Atk+matk) scale
+Poison+1 dmg = dex scale + 2 * (Atk+matk) scale
+Poison+2 dmg = dex scale + 3 * (Atk+matk) scale
+You can check full meth in #ailment-information
+Game Description: “Enables the stacking of poison with Venom Injection (max +2). If it turns into enhanced poison due to the stacking, the player's attack will also be able to inflict poison damage.”
+
+
+==================================================
+SKILL: VENOM THIEF
+==================================================
+
+Category: Assassin Skills
+Tier: III
+Required Level: Level 125
+
+T3; Dagger/Scroll/BH only
+MP Cost: 200
+Maximum Cast Range: 12m
+Skill Effect:
+You can only use this skill if target has Poison ailment
+Using this skill will remove Poison ailment from you if you’re poisoned.
+Using this skill on Poison =
+HP Recovery by (1000 + Total Dex) * Skill Level/10
+If you already learn Death Reception, then you will get (Deadly Poison 0 stack)
+Using this skill on Poison+1 =
+HP Recovery by (1000 + Total Dex) * 2 * Skill Level/10
+MP Recovery by (10 * Skill Level)
+If you’re not poisoned, then you will get “Recovery(from Support Tree)” nullify ail effect for 10 seconds
+If you already learn Death Reception, then you will get (Deadly Poison 1 stack)
+Using this skill on Poison+2 =
+HP Recovery by (1000 + Total Dex) * 4 * Skill Level/10
+MP Recovery by (20 * Skill Level)
+If you’re not poisoned, then you will get “Recovery(from Support Tree)” nullify ail effect for 30 seconds
+If you already learn Death Reception, then you will get (Deadly Poison 2 stack)
+You cannot stack previous Deadly Poison with new Deadly Poison, since your new stack will just overwrite your previous stack!
+Game Description: “Absorbs the corrosive poison from the target to restore your own HP and get rid of the poison status. If it is enhanced poison, MP will also be restored. If not poisoned, you will get an effect that prevents you from getting poisoned.”
+Note: Using Recovery from Support Tree(let’s say.. lv 1: 12s) when you already have a Recovery effect from this skill(let’s say +30s with Poison+2), will result you get 12s Recovery lv 1 effect due to new recovery overrides previous recovery!
+What if we switch both, using this skill to get recovery when you already have Recovery(Support tree)? The result is, Recovery(from this skill) doesn't override that Recovery(Support Tree). Even regardless of skill level.
+
+
+==================================================
+SKILL: DEATH RECEPTION
+==================================================
+
+Category: Assassin Skills
+Tier: IV
+Required Level: Level 205
+
+T4; Dagger/Scroll/BH only
+MP Cost: 300
+Base Skill Constant (Main Target): 30 * Skill Level
+Base Skill Multiplier (Main Target): 2.5 + 0.25 * Skill Level + SubWeapon Bonus
+Note: Sub Weapon Bonus =
+Scroll: +(Scroll ATK/100 * 0.8) mult
+Dagger: +(Dagger ATK/100) mult
+One-Handed Sword Bonus: Skill Multiplier +(Total Dex/100)
+Halberd Bonus: Skill Multiplier +(Base Agi/100)
+Barehand Bonus: Change Base Skill Multiplier into this below.
+2.5 + 0.25 * Skill Level + PlayerLevel/80 + Accumulated Qi/100
+Tricky Note: for Main BH dmg, This skill might have bug or tricky atk penalty… it is just that this skill uses Total Atk after qi cost[from using this skill non bh skill], making it impossible to have you max atk due to qi cost first.. But from what i test on other attacking skills such as Kick(Hunter tree), Smash & Bash (Martial Tree), it uses Total Atk before qi cost[making it possible to have max atk!?!], i guess this new skill is kinda special then[due to separate dmg.. main hit and aoe hit] maybe?
+Fortunately, accumulated qi in that skill multiplier formula, remain intact/before qi cost…
+Another note: idk.. if this might be a bug or not, but the thing is when BH sub use this skill is same as main BH only use this skill but without qi stack. Meaning, bh sub doesn't get sub weapon multi bonus at all[sub weap bonus got ignored]. This is the same case with Venom Injection[Change to formula without sub weap].
+Base Skill Constant (AOE): 0
+Base Skill Multiplier (AOE): 50% of Base Skill Multiplier (Main Target)
+Hit Count: 1 Main hit on main target; 1 additional hits on surrounding main target
+AOE Hit Range: 8m around the main target
+Maximum Cast Range: 8m
+Skill Effect:
+You can only use this skill if you have Deadly Poison stacks(via using Venom Thief).
+This skill(Main Target & AOE) has Physical Pierce based on the Deadly Poison stack.
+Deadly Poison 0 = +0% Physical pierce
+Deadly Poison 1 = +25% Physical pierce
+Deadly Poison 2 = +50% Physical pierce
+One-Handed Sword/Halberd/Barehand Bonus: Physical pierce of this skill by +25%
+Upon using this skill, this skill inflicts Deadly Poison debuff to the main target. Deadly Poison 0 debuff = 10 tick of deadly poison damage starting from first tick 1% damage of (Death Reception Damage to Main Target) then next tick increase by +1% damage, then repeat to next tick until last tick 10% damage....
+Having a higher Deadly Poison stack means more deadly poison damage. So, Deadly Poison 1 damage = 2x of Deadly Poison 0 Damage. And Deadly Poison 2 damage = 3x of Deadly Poison 0 Damage
+Meanwhile, the AOE of this skill can +100% inflict Poison(according to Deadly Poison stack) to the other surrounding main target. [Inflict Poison if 0 stack, or Poison+1 if 1 stacks, or Poison+2 if 2 stacks]. Note: AOE of this skill cannot kill others since it always leaves others at 1hp.
+Using Arcane Strike to the target that has Deadly Poison debuff, will trigger Deadly Poison Explode damage and ending Deadly Poison debuff duration. Deadly Poison Explode damage based on its stack.
+So… using Arcane Strike on Poison+0 = Explode damage is 20% damage of “Death Reception Damage to Main Target”. Then on Poison+1 = 40% dmg of Death Reception and lastly, Poison+2 = 60% dmg of Death Reception.
+Also, Arcane Strike MP Cost on Deadly Poison debuff will be based on Deadly Poison stack. So, using Arcane Strike on Deadly Poison 1, will have its half mp cost. And Arcane Strike on Deadly Poison 2, will have no mp cost. Note: the damage of Arcane Strike still intact as if before this mp reduction or id say same as when all mp used already.
+Game Description: “Uses the poison absorbed with Venom Thief to inflict damage and Deadly Poison to the target. Depending on the poison used, damage that inflicts poison to your surroundings will also be generated additionally.”
+
+
+==================================================
+SKILL: SECRET ASSASSIN
+==================================================
+
+Category: Assassin Skills
+Tier: V
+Required Level: Level 285
+
+[Passive] All weapons
+Passive Effect:
+Increase Base Skill Multiplier of Arcane Strike by +(0.025 * Skill Level * MP Bar). So, Final Multiplier = 0.1 * Arcane Strike’s Lvl + (0.6 + 0.04 * Arcane Strike’s Lvl + 0.025 * Skill Level) * MP Bar
+Increase Base Skill Multiplier of Assassin Stab(Front Stab, Side Stab, Back Stab) by:
+[Halberd]
+Assassin Stab Skill Multiplier + 0.02 * Skill Level
+With Dagger:
+Assassin Stab Skill Multiplier + 0.3
+[Other Weapons]
+Assassin Stab Skill Multiplier + 0.1 * Skill Level
+With Dagger/Ninjutsu Scroll:
+Assassin Stab Skill Multiplier + 2
+This multiplier bonus is applied first alongside Sicarius multi bonus, before multiplied by backstep & foresight backstab dmg boost multiplier. So you can achieve up to 30 skill multiplier with this.
+this might be bug… Assassin stab registlet effect doesn’t work if you have this skill Secret Assassin.. [i mean registlet got overridden by this skill for some reason]
+Game Description: Deepens your understanding of assassination techniques. Increases the power of the skill “Assassin Stab” and “Arcane Strike”.
+Dagger/Ninjutsu Scroll bonus: *Increases Assassin Stab power further.
+
+
+==================================================
+SKILL: ASSAULT CHASE
+==================================================
+
+Category: Assassin Skills
+Tier: V
+Required Level: Level 285
+
+[Active] All weapons
+MP Cost: 800
+Skill Effect:
+Restores your Evasion by 50% of your total Evasion Count. You can restore Evasion upon use only if you don’t have this skill buff active.
+The buff effect will end immediately as soon as your current Evasion Count reaches 0.
+If this skill is at level 10, then you will have auto Evasion(can dodge auto attack only) during this skill animation.
+Buff Effect:
+Buff Duration: 3 minutes OR when your current Evasion Count reaches 0
+Reduce Evasion consumption when you use evasion toward your target or near target within 7m by (2.5 * Skill Level)% [Dagger/Ninjutsu Bonus: +25%]. This Evasion reduction stack multiplicatively with Combat Knife’s Evasion reduction.
+Gives your Srd% for every successful avoid damage with Evasion by 1% [Dagger/Ninjutsu Bonus: doubles this srd% gain]. You can only gain srd% up to 20% regardless of Skill Level. Note: If you use this skill again when you have srd%, then you will start from scratch with 0% srd instead.
+Game Description: Restores Evasion by 50% if a new buff is gained and decreases the consumption of Evasion toward (or around) the attack target for 180 seconds. The buff effect will end too once the remaining Evasion count hits 0.
+A successful dodge with Evasion while the buff is active will add an effect that increases close-range attack power.
+Adds Evasion effect to Assault Chase’s activation animation only if the skill level is 10.
+Dagger/Ninjutsu Scroll bonus: * Decreases the consumption of Evasion further. * Increases the amount of close-range attack power added when Evasion is successful. (maximum limit remains unchanged).
+
+
+==================================================
+SKILL: POISON MASTER
+==================================================
+
+Category: Assassin Skills
+Tier: V
+Required Level: Level 285
+
+[Passive] Dagger/Ninjutsu Scroll/Main Bare Hand Only
+Passive Effect:
+Increase Base Skill Multiplier of Death Reception:
+With OHS or Barehand
+Death Reception Single Target Multiplier + 0.75 * Skill Level
+Death Reception AOE Multiplier + 0.45 * Skill Level
+With All Other Weapons:
+Death Reception Single Target Multiplier + 0.5 * Skill Level
+Death Reception AOE Multiplier + 0.3 * Skill Level
+This extra multiplier applies after the original Death Reception’s Single Target and AOE Hit Multiplier values are determined.
+Increase duration of Poison inflicted from Venom Injection by +(Skill Level) seconds. This also applies for Poison+1 and Poison+2 extend duration, so all of them from 30 sec become 60sec max duration.
+Allow every Deadly Poison tick damage to have chance to inflict Poison/Poison+1/Poison+2 by (10 + 3 * Skill Level)% of Final Poison+0 Chance without Critical/Graze(Venom Inject)? [this is an expected formula from trial and error, so it is not really an exact formula, it could be 2.5%... but idk, also Corrosive Poison doesn't affect this much for some reason… so based on only Venom Injection surely].
+Game Description: Increases the duration of the status ailment [Poison] and the power of the skill “Death Reception”. Damage from Deadly Poison may also inflict [Poison] (depends on Venom Injection).

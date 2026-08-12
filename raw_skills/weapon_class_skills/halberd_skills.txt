@@ -1,0 +1,628 @@
+Category: Halberd Skills
+
+GENERAL INFORMATION
+
+Tier Requirements:
+- Tier I: None
+- Tier II: Level 30
+- Tier III: Level 70
+- Tier IV: Level 150
+- Tier V: Level 240
+
+
+==================================================
+SKILL: FLASH STAB
+==================================================
+
+Category: Halberd Skills
+Tier: I
+Required Level: None
+
+Source Details:
+Lv 1 Skill; One-Handed Sword/Halberd only
+MP Cost: 100
+Damage Type: Physical
+Base Skill Multiplier: 1 + 0.05 * Skill Level
+Base Skill Constant: 50 + 5 * Skill Level
+Hit Count: 1 hit
+Maximum Cast Range: Defaults to the weapon's Auto Attack Max Range
+Skill Effect: The skill has a Motion Speed boost of +50%;
+Game Description: "Sharply attack an enemy with a quick movement."
+One-Handed Sword penalty: Motion Speed boost -25%
+
+
+==================================================
+SKILL: CANNON SPEAR
+==================================================
+
+Category: Halberd Skills
+Tier: I
+Required Level: None
+
+Source Details:
+Lv 1 Skill; Halberd only
+MP Cost: 200
+Damage Type: Physical
+Base Skill Multiplier (First Hit): 0.4 + 0.01 * Skill Level
+Base Skill Multiplier (Toss): 1.5 + 0.1 * Skill Level
+Base Skill Constant (First Hit): 100 + 10 * Skill Level
+Base Skill Constant (Toss): 100 + 10 * Skill Level
+Hit Count: 2 hits; damage calculation is done for each hit
+Maximum Cast Range: Defaults to the weapon's Auto Attack Max Range
+Hit Range (Toss): Length of 8m (levels 1 and 2)/ 9m (levels 3 and 4)/ 10m (levels 5 and 6)/ 11m (levels 7 and 8)/ 12m (levels 9 and 10); radius of 1m (levels 1 to 5)/ 2m (levels 6 to 10); from caster's position
+Game Description: "Attack an enemy by throwing the halberd. The range increases as the skill levels up."
+Triple Thrust's Skill Constant buff is divided by 2
+
+
+==================================================
+SKILL: DRAGON TAIL
+==================================================
+
+Category: Halberd Skills
+Tier: II
+Required Level: Level 30
+
+Source Details:
+Lv 2 Skill; Halberd only
+MP Cost: 300
+Damage Type: Physical
+Base Skill Multiplier (First Hit): 0.7 + 0.03 * Skill Level
+Base Skill Multiplier (Second Hit): 2 + 0.2 * Skill Level
+Base Skill Constant (First Hit): 100
+Base Skill Constant (Second Hit): 50 + 15 * Skill Level
+Hit Count: 2 hits; damage calculation is done for each hit
+Maximum Cast Range: Infinite(but need target to cast)
+Hit Range (First Hit): 1.5m (levels 1 to 5); 2m (levels 6 to 10); around caster
+Hit Range (Second Hit): 2.5m (levels 1 to 3); 3m (levels 4 to 6); 3.5m (levels 7 to 9); 4m (level 10); around caster
+Buff Effect: lowers dmg taken while the skill is active. Cannot lower Fractional dmg taken
+Buff Effect:
+During "Hit count=1" animation, you will receive 50% dmg once
+During "Hit count=2" animation, you will receive (100 - 10 * Skill Level)% dmg once
+Ailment: Tumble
+Base Ailment Chance: (10 * Skill Level)% on mobs; 0% on bosses
+Ailment Duration: 3 seconds
+Ailment Resistance: 3 seconds
+Game Description: "Whirl around the Halberd and swipe enemies. Chance to inflict [Tumble]. Unable to inflict Tumble on boss monsters."
+Triple Thrust's Skill Constant buff is divided by 2
+
+
+==================================================
+SKILL: DIVE IMPACT
+==================================================
+
+Category: Halberd Skills
+Tier: III
+Required Level: Level 70
+
+Source Details:
+Lv 3 Skill; Halberd only
+MP Cost: 400
+Damage Type: Physical
+Base Skill Multiplier (First Hit): 2 + 0.2 * Skill Level + TotalSTR/250
+Base Skill Multiplier (Second Hit): 2 + 0.4 * Skill Level + TotalINT/100
+Base Skill Constant (First Hit): 200 + 20 * Skill Level
+Base Skill Constant (Second Hit): 0
+Hit Count: 2 hits; damage calculation is done for each hit
+Maximum Cast Range: Defaults to the weapon's Auto Attack Max Range
+Hit Range (First Hit): (2.5 + 0.25 * SkillLvl)m ; around caster
+Hit Range (Second Hit): (4.5 + 0.25 * SkillLvl)m ; around the caster's position when the skill is cast
+Skill Effect: The second hit will detonate after 4 seconds
+Second Hit Ailment: Dazzled
+Second Hit Ailment Chance: (10 * Skill Level)%
+Second Hit Ailment Duration: 10 seconds
+Second Hit Ailment Resistance: 30 seconds
+Buff Effect: Invincibility
+Buff Duration: 3sec or until caster lands on ground
+Game Description: "The thrust Halberd breaks the earth in time. Generate a mass explosion and deal additional damage after a while with a chance to inflict [Dazzled] when the skill is activated."
+This skill’s motion speed is fixed. So, swift tags & mspd% does not affect this skill’s speed
+Triple Thrust's Skill Constant buff is divided by 2
+This skill is affected by Whack on both hit, however only first hit is affected by Short Range Damage/Long Range Damage modifiers
+
+
+==================================================
+SKILL: DRAGON TOOTH
+==================================================
+
+Category: Halberd Skills
+Tier: IV
+Required Level: Level 150
+
+Source Details:
+Lv 4 Skill; Halberd only
+MP Cost: 500
+Damage Type: Physical
+Base Skill Multiplier (First Hit): 0.75 * Skill Level
+Base Skill Multiplier (Second Hit): 7.5
+Base Skill Constant: 0; constant for each hit
+Hit Count: 2 hits; damage calculation is done for each hit
+Maximum Cast Range: 12m
+Hit Range: Single target, but has a radius of 0.5m + weapon's Auto Attack Maximum Range; around caster's landing position
+Skill Effect:
+- Causes the caster to jump at the enemy's current position and back; the speed of the jump is determined by the Motion Speed and the distance
+- Negates Flinch, Tumble and Stun during the skill's animation
+- This skill has Critical Rate +65 + (Skill Level) and Physical Pierce +(10 * Skill Level)%
+Game Description: "Jump toward a target and attack. After using the skill, you will return to the original place. It has high Defense Ignorance and Critical Rate but it has no bonus on power."
+If your landing spot(from player to enemy position) is above your (0.5m + weapon’s auto attack range), then this skill won’t deal damage
+
+
+==================================================
+SKILL: DEADLY SPEAR
+==================================================
+
+Category: Halberd Skills
+Tier: I
+Required Level: None
+
+Source Details:
+Lv 1 Skill; One-Handed Sword/Halberd only
+MP Cost: 100
+Damage Type: Physical
+Base Skill Multiplier: 1.2 + 0.05 * Skill Level
+Base Skill Constant: 80 + 3 * Skill Level
+Hit Count: 1 hit
+Maximum Cast Range: Defaults to the weapon's Auto Attack Max Range
+Base Charge Time: 1.5 seconds (level 1); 1 second (levels 2 to 4); 0.5 seconds (levels 5 to 7); none (levels 8 to 10)
+Skill Effect:
+- This skill has Critical Rate +(+300% Total Crit Rate boost). Which is 4x of your total crit rate.
+- This skill has Physical Pierce +10% (levels 1 to 3)/ +15% (levels 4 to 6)/ +20% (levels 7 to 9)/ +25% (level 10)
+- MP cost of next skill is halved if this skill does a crit hit
+Game Description: "Accurately thrust an enemy and deal fatal damage. It takes time to activate the skill, however, ignore certain amount of defense and have a high chance to inflict critical damage."
+One-Handed Sword penalty: Skill Multiplier -0.2
+One-Handed Sword penalty: Skill's Critical Rate boost -2.5
+
+
+==================================================
+SKILL: PUNISH RAY
+==================================================
+
+Category: Halberd Skills
+Tier: II
+Required Level: Level 30
+
+Source Details:
+Lv 2 Skill; One-Handed Sword/Halberd only
+MP Cost: 0
+Damage Type: Physical/Magical
+Element: Neutral
+Base Skill Multiplier: 0.25 + 0.01 * Skill Level² + total INT/400
+Base Skill Constant: 0
+Hit Count: 1 hit
+Maximum Cast Range: 12m
+Base Cast Time: 2 seconds; affected by Cast Speed
+Skill Effect: This skill calculates base damage as if it were a physical skill, but the rest of damage calculation as if it were a magic skill;
+the skill gives magic proration
+Buff Effect: Gives a Critical Rate boost for the next three skills;
+(15 * Skill Level) for the first,
+(10 * Skill Level) for the second and
+(5 * Skill Level) for the third
+Buff Duration: Until a skill is used
+Game Description: "Cast a magic using the Halberd to resemble a staff. Deal magic damage affected by ATK. Critical Rate of the next skill increases."
+Halberd bonus: Skill Multiplier is doubled
+One-Handed Sword penalty: Critical Rate boost for the first skill is divided by 1.5
+One-Handed Sword penalty: Critical Rate boost for the second skill is halved
+One-Handed Sword penalty: Critical Rate boost for the third skill is halved
+This skill cannot be used as the first skill of a combo
+
+Strike Stab
+Lv 3 Skill; One-Handed Sword/Halberd only
+MP Cost: 200
+Damage Type: Physical
+Base Skill Multiplier: 1.9 + 0.01 * Skill Level + total STR/500; multiplier for each hit
+Ailment Bonus Skill Additional Multiplier: 0.1 * Skill Level
+Base Skill Constant: 100; constant for each hit
+Hit Count: 3 hits; damage calculation is done once then copied to the other hits
+Maximum Cast Range: Defaults to the weapon's Auto Attack Max Range
+Skill Effect:
+- This skill has a base Crit Rate penalty of (5 * Skill Level)%;
+the penalty is applied as follows:
+Strike Stab Crit Rate = (25 + CRT/3.4) * (1 - base Crit Rate penalty/100) * (1 + Crit Rate%/100) + Flat Crit Rate
+- If this skill hits a target with an ailment, the Ailment Bonus Skill Multiplier is added to the Base Skill Multiplier
+Game Description: "Thrust an enemy with a quick movement. The damage increases if the target has a status ailment. Have a low chance to deal critical."
+Halberd bonus: Ailment Bonus Skill Multiplier is doubled
+Halberd bonus: Skill Constant +100
+One-Handed Sword penalty: Base Crit Rate is halved, changing the penalty formula to:
+
+
+==================================================
+SKILL: STRIKE STAB CRIT RATE = (25 + CRT/3.4) * (1 - BASE CRIT RATE PENALTY/100) * (1 + CRIT RATE%/100)/2 + FLAT CRIT RATE
+==================================================
+
+Category: Halberd Skills
+Tier: IV
+Required Level: Level 150
+
+Source Details:
+Chronos Drive
+Lv 4 Skill; Halberd only
+MP Cost: 400
+Damage Type: Physical
+Base Skill Multiplier: 1 + 0.5 * Skill Level; total multiplier of all hits
+Base Skill Constant: 40 * Skill Level
+Hit Count: 3 hits; damage calculation is done once then spread evenly between the hits
+Maximum Cast Range: Defaults to the weapon's Auto Attack Max Range
+Skill Effect: The target gets inflicted additional hits over time
+Skill Effect Duration: 5 seconds (levels 1 and 2); 6 seconds (levels 3 and 4); 7 seconds (levels 5 and 6); 8 seconds (levels 7 and 8); 9 seconds (level 9); 10 seconds (level 10)
+Chronos Drive Additional Damage Type: Physical/Magic
+Chronos Drive Additional Skill Multiplier: 0.4 + 0.01 * Skill Level + Total INT/500
+Chronos Drive Additional Skill Constant: 250 + 25 * Skill Level
+Chronos Drive Additional Hit Count:
+Delay between hits = Auto attack delay + 1.5 * Animation Time Modifier of Chronos Drive/100
+Hit Count = Skill Effect Duration/Delay between hits
+-hit/miss, evasion, graze and critical checks are copied from the skill for all hits; rest of damage calculation is done for each hit
+
+
+==================================================
+SKILL: CHRONOS DRIVE ADDITIONAL HIT CAN RECOVER 30 MP EVERY 1 HIT
+==================================================
+
+Category: Halberd Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Source Details:
+Game Description: "Repeat the fact that you penetrated a target. Add an effect that you deal additional damage for a few seconds."
+The delay isn't affected by Motion Speed modifiers on Chronos Drive
+The extra hits use magic proration(meaning damage based on Magic Proration but does not inflict Magic Proration), but the rest of damage calculation is done as if they were physical skills
+The extra hits are unaffected by Combo tags, Whack and Short Range Damage/Long Range Damage modifiers
+
+
+==================================================
+SKILL: HALBERD MASTERY
+==================================================
+
+Category: Halberd Skills
+Tier: I
+Required Level: None
+
+Source Details:
+Lv 1 Skill; Halberd only
+Passive Effect: Weapon ATK +(3 * Skill Level)%; ATK +1% (levels 1 and 2)/ +2% (levels 3 to 7)/ +3% (levels 8 to 10)
+Game Description: "Get better at using Halberds. ATK increases when you equip a Halberd."
+
+
+==================================================
+SKILL: CRITICAL SPEAR
+==================================================
+
+Category: Halberd Skills
+Tier: III
+Required Level: Level 70
+
+Source Details:
+Lv 3 Skill; Halberd only
+Passive Effect: Critical Rate +0% (level 1)/ +1% (levels 2 and 3)/ +2% (levels 4 and 5)/ +3% (levels 6 and 7)/ +4% (levels 8 and 9)/ 5% (level 10) and Critical Rate +1 (levels 1 and 2)/ +2 (levels 3 and 4)/ +3 (levels 5 and 6)/ +4 (levels 7 and 8)/ +5 (levels 9 and 10)
+Game Description: "Learn the mastery of Halberds. Critical Rate increases when you equip a Halberd."
+
+
+==================================================
+SKILL: QUICK AURA
+==================================================
+
+Category: Halberd Skills
+Tier: I
+Required Level: None
+
+Source Details:
+Lv 1 Skill; No Limit
+MP Cost: 0
+Damage Type: None
+Skill Effect: This skill will consume 15% of your current Max HP to activate; if you don't enough HP, you will be left with 1 HP but the effects of the buff will be reduced to the effects of Skill Level 1
+Buff Effect: Attack Speed +(2.5 * Skill Level)% and +(50 * Skill Level)
+Buff Duration: 3 minutes
+Game Description: "Increase your speed with the fighting spirit. Activate skills by consuming HP instead of MP. Increase ASPD for a certain period of time."
+Halberd bonus: Max HP Consumption -5%
+Halberd bonus: Buff Duration +2 minutes
+This skill cannot be used as the first skill of a combo
+
+
+==================================================
+SKILL: WAR CRY OF STRUGGLE
+==================================================
+
+Category: Halberd Skills
+Tier: II
+Required Level: Level 30
+
+Source Details:
+Lv 2 Skill; No Limit
+MP Cost: 100
+Damage Type: None
+Base Charge Time: 5 seconds (levels 1 to 3); 4 seconds (levels 4 to 6); 3 seconds (levels 7 to 9); 2 seconds (level 10)
+Skill Effect:
+- When the skill is cast successfully, restores 120 MP
+- If the skill is cast when your HP is at 85% or lower, increases the MP restored by (2 * Skill Level) MP
+- If the skill is cast when your HP is at 70% or lower, increases the MP restored by (4 * Skill Level) MP
+- If the skill is cast when your HP is at 55% or lower, increases the MP restored by 20 + (10 * Skill Level) MP
+- All the HP dependent effects stack and are added to the total amount of MP restored
+Game Description: "The roar of life in a critical situation. Restore MP a little. The amount of the MP restoration increases as the current HP is low."
+Halberd bonus: Charge Time -1 second
+This skill cannot be used in a combo
+
+
+==================================================
+SKILL: GODSPEED WIELD
+==================================================
+
+Category: Halberd Skills
+Tier: IV
+Required Level: Level 150
+
+Source Details:
+Lv 4 Skill; No Limit
+MP Cost: 100
+Damage Type: None
+Skill Effect: Every time you use the skill, you add a stack to the buff; the buff can have 3 stacks maximum
+Buff Effect:
+- Attack Speed +(30 * Skill Level * number of stacks)
+- Motion Speed +(Skill Level * number of stacks)%
+- Evasion Recharge +(Skill Level * number of stacks)%
+- Max MP -(100 * number of stacks)
+- Physical Resistance and Magic Resistance -((100 - 3 * Skill Level) * number of stacks)%
+Buff Duration: 10 + (2 * Skill Level) seconds
+Game Description: "Consume MaxMP and able to stack 3 times at most. Enhance ASPD/Action Speed/Evasion Recharge for a short period of time and greatly decrease Physical and Magic Resistance. The effect ends when taking damage."
+Halberd bonus: Attack Speed of buff +(100 * number of stacks)
+Halberd bonus: Physical and Magical Resistance decrease of buff is reduced by (45 * number of stacks)%
+Halberd bonus: Buff Duration +30 seconds
+
+
+==================================================
+SKILL: BUSTER LANCE
+==================================================
+
+Category: Halberd Skills
+Tier: III
+Required Level: Level 70
+
+Source Details:
+Lv 3 Skill; Halberd only
+MP Cost: 100
+Damage Type: Physical
+Base Skill Constant: 100
+Base Skill Multiplier:
+5 - Max[0, (distance - 6)] * (100 - Slvl * 5)% + (TotalSTR + TotalAGI)/200
+Hit Count: 1 hit
+Maximum Cast Range: 12m
+Note: distance = range between you and target when using this skill.
+Max is highest value, Example = Max[0, -4] then result is 0
+Skill Effect:
+- If you use this skill when you have Punish Ray Buff, then this skill will transform into Grand Buster Lance
+Grand Buster Lance
+Grand Buster Lance is a magic skill but uses ATK as base damage. Affected by concentrate. Stab, hit, evasion and dmg calc checks are applied normally just like physical.
+Damage Type: Magic
+Base Skill Constant: 200
+Base Skill Multiplier:
+5 + 0.1 * Punish Ray’s level - Max[0, (distance-6)] * (60 - Slvl *4)% + (TotalSTR + TotalAGI)/200
+Hit Count: 1 hit
+Maximum Cast Range: 12m
+Note: distance = range between you and target when using this skill.
+Skill Effect:
+- Grand Buster Lance inflicts Magic Proration. Also, Damage based on Magic Proration
+- Everytime you use the Grand Buster Lance, it will reset/refresh Punish Ray stack to 3.
+- Leveling up “Punish Ray” can increase this grand buster’s multiplier
+Notes:
+- Xenesis5: [Grand Buster Lance]'s stability, hit, evasion, and damage calculation are all based on physical characteristics. [Grand Buster Lance] is casted as [Buster Lance] first, which is treated as a physical skill. Meanwhile, [Grand Buster Lance] itself is treated as a magic skill. Hence, the caster cannot use [Grand Buster Lance] while under the effects of [Bleed] or [Silence]. Since [Grand Buster Lance] is treated as a magic skill, it can be affected by [Concentrate], but not [Whack].
+Game description: "Attack by throwing a spear from a distance. The further you are from the target, the weaker it is. The skill will change if certain conditions are met and the distance-based power depletion will also be minimized."
+
+
+==================================================
+SKILL: DRACONIC CHARGE
+==================================================
+
+Category: Halberd Skills
+Tier: V
+Required Level: Level 240
+
+Source Details:
+Lv 5; Halberd only
+MP Cost: 300
+Damage Type: Physical, 1st hit uses ATK, 2nd hit uses ATK + Halberd MATK/2
+Base Skill Multiplier (First Hit): (5 + 0.5 * Skill Level) * (100% + Charge%)
+Base Skill Constant (First Hit): 300
+Base Skill Multiplier (Second AOE Hit): (5 + 0.5 * Skill Level) * (100% + Charge%)
+Base Skill Constant (Second AOE Hit): 30 * Skill Level
+Hit Count: 2 hits on the main target; 1 hit on all other targets (from AOE); damage calculation is done for each hit.
+Maximum Cast Range: Theoretically infinite(but need target to cast)
+Second AOE Hit Range: in front of the caster after dash, with 4m of radius and an angle of 90°
+Teleport Distance: MIN((9 + Charge% Value * 0.08);16)m
+-this teleport distance can be considered as 1st hit's range.
+Second AOE Hit Ailment: None (with Neutral element); Ignite (with Fire element); Freeze (with Water element); Slow (with Wind element); Poison (with Earth element); Blind (with Light element); Cursed (with Dark element)
+Second AOE Hit Ailment Chance: (Skill lvl ^ 2)%
+Second AOE Hit Ailment Duration: 10 sec
+Second AOE Hit Ailment Resistance: None
+Skill Effect:
+1st Hit has a Perfect Aim attribute, also it has physical pierce bonus based on the distance between you and the enemy on dash/launch = +INT(range - 1m) * 10% Physical Pierce [no cap, you can reach 200% PP to attain 100% Pierce for 2nd hit from distance bonus alone].
+Meanwhile, the 2nd AOE Hit only has Absolute Critical!!! However if 2nd AOE hit got evaded, then turn Yellow dmg(absolute critical) into White dmg(no crit) instead of get evaded. But for absolute/forced evasion phase such as Evil Crystal Beast, then 2nd AOE hit still gets evaded.
+2nd AOE hit of this skill is somewhat hybrid damage with physical properties(such as phy proration, cr, stab, etc.). This 2nd hit damage uses Base Damage like this: (ATK + Halberd MATK/2 + Player Lvl - Enemy Lvl) * (100-pres)% - MDEF. (as per 24 April 2025 adjustment, the base damage now uses Halberd MATK instead of regular MATK).
+2nd Hit uses Pierce as follow: MAX(INT(1st Hit Physical Pierce%/2); Magic Pierce%) and refer to MDEF. This calculation uses 1st Hit’s Physical Pierce% with attack range bonus, N Dragon Tooth’s buff, Sicarius, etc included before division. PP% used for 2nd Hit’s calculation can exceed 100% (you can reach 100% pierce from PP%).
+Manual Mode!
+Using this skill manually to target, will enter Charge Mode. The more you charge then more damage will be dealt. 20% Charge every 1 second(this charge over time unaffected by motion speed%). This skill will stop charge and deal damage right away by moving your character or when charge reaches 100%. Note: You can release charge after charge reaches 20% only.
+If you sense Enemy AOE during Charging Mode, then you will automatically release 100% charge instantly. Note: Must charge before AOE comes!
+Combo Mode!
+If you put this skill in a combo(not opener), it will gain Charge% depends on which combo slot you put it on. Every 1 combo slot after Combo Opener = +5%. Example: Opener(can manual charge up to 100%) > 2CC(5%) > 3CC(10%) > 4CC(15%) > ... > 10CC(45%) MAX. CC refers to Combo count or combo slot.
+ps. CC Charge% formula = (CC - 1) * 5%
+After releasing Charge Mode, it will teleport you to 1m in front of the main target. Attention! This skill will not deal damage to the target if your skill didn’t reach the target. You have to pay attention to the distance & Charge% or else only the 2nd AOE will hit, or none at all.
+This skill damage is affected by srd% only, even if you dash/teleport from 8m. (Similar to Thunder Release). And Long Range shot skills can affect this. This skill uses and deals physical proration; 2nd hit uses the same proration as 1st hit.
+Game Description: Unleashes the rage of a dragon. Activates when it is full or when you move. Accumulates more rage if you sense danger from charging. Be careful not to miss as the range of the charge attack is only 8 meters.
+
+
+==================================================
+SKILL: INFINITE DIMENSION
+==================================================
+
+Category: Halberd Skills
+Tier: V
+Required Level: Level 240
+
+Source Details:
+Lv 5; Halberd only
+MP Cost: 200
+Damage Type: Physical
+Base Skill Multiplier: 4 + Base STR/500 + Base AGI/500; multiplier for each tick
+Base Skill Constant: 20 * Skill Level; constant for each tick
+Hit Count (Number of Ticks): 5 ticks; damage calculation is done for each tick
+Hit Count (Hits per Ticks): 2 hits; damage calculation is done once then spread evenly between the hits
+Maximum Cast Range: 12m
+Hit Range: 6m radius; around the target’s position when casted
+Interval Hit: 1 tick = 2 hits every 1 seconds; unaffected by motion speed%, swift and freeze
+Ailment for each tick: Dazzled
+Base Ailment Chance: (8 * Skill Level)%
+Ailment Duration: 10 sec
+Ailment Resistance: None
+Skill Effect:
+This skill doesn't inflict prorate at all. However, its damage is still based on Physical Proration.
+If your character has CHRONOS DRIVE effect/buff, then this skill can recover your mp every tick by (Total AMPR/10 * Skill Level)
+This skill’s attack animation will end immediately as soon as the main target is dead/killed.
+This skill damage is not affected by srd/lrd%
+Game Description: “Repeated spear attacks that transcend time and space. Repeatedly performs wide-ranging attacks around a target. Chance to inflict [Dazzled]. If Chronos Drive is in effect, extra MP will be recovered.”
+
+
+==================================================
+SKILL: TORNADO LANCE
+==================================================
+
+Category: Halberd Skills
+Tier: V
+Required Level: Level 240
+
+Source Details:
+Lv 5; Halberd only
+Passive Effect:
+Everytime you use an attacking halberd skill that doesn’t miss nor get evaded, it gives 1 tornado lance stack. Max Stack is 10. However, you will lose half of the current stack every time you get hit, even if you can dodge(enemy's attack misses), evasion and invincibility Now they won't lose stack with iframe/evade, but dodge[miss] still lose stack!!!.
+Passive Buff Duration: 100 sec(can be refreshed to 100s after you use hb attack skills).
+Increase Critical damage by +(Skill level/5) per stack.
+Increase Dodge/Flee by 10% per stack.
+Increase Chance to trigger Additional Melee/Magic by (2.5 * stack * Skill Level/10)%
+[Currently need confirmation with stack or skill level, probably just stacks i suppose. At max effect, this skill can reduce the decrease of Graze Stability penalty from -50% Final Stab into -40% Final Stab. Making it your graze dmg will fluctuate between 60% and 100% if you have 100% Final Stability]
+Increase your Graze Threshold by (8 * stack * Skill Level/10)%. Note: Halberd has a 20% base Graze Threshold.
+If enemy got inflicted with Dazzled, then Hit Chance become MAX[(100 - (enemy flee - player accuracy) + MP/10) ; Base Graze Threshold * 2]. This Dazzled only takes base hb graze without Tornado Lance’s graze threshold increase buff.
+Game Description: “Gains 1 unit of tornado power when a halberd skill hits. Your halberd gets stronger as you accumulate more tornade power. Half of the tornado will be lost if attacked.”
+Increases halberd’s critical damage, chance of additional attack and guaranteed hit as it accumulates. When the tornado power is lost due to getting attacked, dodge rate increases according to the value of power lost.
+
+
+==================================================
+SKILL: ALMIGHTY WIELD
+==================================================
+
+Category: Halberd Skills
+Tier: V
+Required Level: Level 240
+
+Source Details:
+Lv 5; Halberd only
+Passive Effect:
+Chance to activate Invincibility upon taking damage if any Godspeed Wield stack is on.
+Invincibility Chance%: 10 + 2 * Skill Level + Base AGI/3.5
+Invincibility Duration: 2 seconds
+Invincibility Cooldown: 10 seconds
+Relieves Physical/Magic resist penalty of Godspeed Wield by (Skill Level/2 * stack)%
+Increases the damage of Physical Halberd Skills by (1 * Skill Level)%
+Skills Affected: Flash Stab, Cannon Spear, Dragon Tail, Dive Impact, Dragon Tooth, Draconic Charge, Deadly Spear, Strike Stab, Chronos Drive, Infinite Dimension, Buster Lance, Grand Buster Lance, Blitz Spike.
+This damage boost is included in Skill Damage Modifier group like Whack, Long Range, Sword Techniques.
+For Halberd Only, it will give new skill shortcuts based on this skill level. At level 1, add “Almighty Wield III” that gives 3 gsw stacks. At level 5, add “Almighty Wield II” that gives 2 gsw stacks. At level 10, add “Almighty Wield I” that gives 1 gsw stack. These stack effect still based on Godspeed Wield's Level as usual.
+Game Description: Alleviates the amount of each resistance decreased due to the skill “Godspeed Wield”. Chance to gain invincibility (based on AGI) when taking damage. This effect may trigger (once every 10 seconds). Also grants passive effect that boosts the physical damage of Halberd Skills.
+
+The three Thunder themed Halberd Skills after "Punish Ray" Skill in the same line, use new Base MATK for their magic damage dealing hits.
+Base MATK (Halberd MATK): Player Level + Total Weapon ATK * 62.5% + INT * 4 + AGI * 1
+The magic damage dealing hits of Thunder themed Halberd Skills act the same as the usual magic damage (use magic critical damage, affected by spell burst, use magic stability, affected by boss magical defensive status).
+*as per April 24th 2025, Draconic Charge also uses "Halberd MATK" for it's second AOE hit hybrid base damage MATK part.
+*if you need a more accurate formula for Halberd MATK, then use INT((Player Level + INT*2 + AGI + DEX)*(1+MATK%)) + INT((Total Weapon ATK*62.5% + INT*2 - DEX)*(1+MATK%)). Halberd MATK adds new/extra formula over original MATK stat, thus using this formula would be more accurate.
+
+
+==================================================
+SKILL: BLITZ SPIKE
+==================================================
+
+Category: Halberd Skills
+Tier: III
+Required Level: Level 70
+
+Source Details:
+T3; [Active] Halberd Only
+MP Cost: 300
+[Short Range Version] (cast range: 0-7m)
+Damage Type: Physical, uses ATK
+Base Skill Multiplier: 3 + 0.1 * Skill Level + 0.1 * Thor's Hammer Skill Level
+Base Skill Constant: 300
+Hit Count: 2 hits; damage calculation is done once then divided evenly between the hits.
+The hit is affected by short range damage; affected by long range skill; uses and deals magic proration.
+Ailment: Paralysis
+Ailment Chance: (5 * Skill Level + INT/10)%
+Ailment Resistance: 10 seconds
+Paralysis additional magic damage
+Damage Type: Magic, uses Halberd MATK
+Base Skill Multiplier: 1 + 0.3 * Skill Level + 0.1 * Thor's Hammer Skill Level + Base INT/200
+Base Skill Constant: Total INT/2
+Hit Count: 1 hit.
+This hit is absolute critical.
+The hit is affected by short range damage; affected by long range skill; uses magic proration.
+[Long Range Version] (cast range: 8-24m; bullets start firing from 7m and below)
+Damage Type: Physical, uses ATK
+Base Skill Multiplier: Total INT/200
+Base Skill Constant: Total INT
+Hit Count = ROUNDUP(Skill Level/3;0)
+MP recovery per bullet = 100% character's Attack MP Recovery
+The hit is not affected by short/long range damage; not affected by long range skill; uses and deals normal proration (each hits).
+Game Description: A swift spear thrust wrapped in lightning. Chance to inflict [Paralysis] when activated near the target. If paralyzed, the target will take additional magic damage. When activated at a distance, lightning spears that automatically attack approaching enemies will be summoned.
+
+
+==================================================
+SKILL: LIGHTNING HAIL
+==================================================
+
+Category: Halberd Skills
+Tier: IV
+Required Level: Level 150
+
+Source Details:
+T4; [Active] Halberd
+MP Cost: 200
+Damage type: Magic, uses Halberd MATK
+Base Skill Multiplier: 0.75 + 0.2 * INT(Skill Level/2) + Total INT/1000
+Base Skill Constant: 100 + 10 * Skill Level
+Damage calculation is done separately per hit. This is a formula for 1 hit.
+Hit count: 3 + ROUNDUP(Skill Level/2;0)
+Invincible frame: 2 seconds (will end as skill animation ends).
+Maximum Cast Range: 18m
+This skill has absolute critical.
+This skill is forced to be and affected by long range damage; affected by long range skill; uses and deals magic proration; not affected by motion speed from character's status, but can use "swift" combo tag's motion speed modifier.
+Game Description: A spear technique that summons multiple lightning strikes from the sky. Generates multiple attacks that deal magic damage around the target. More likely to hit paralyzed targets.
+Grants invincibility to yourself when activated.
+
+Thor's Hammer
+T5; [Active] Halberd Only
+MP Cost: 400
+Damage Type: Magic, uses Halberd MATK
+Base Skill Multiplier: (10 + 0.5 * Skill Level)/Target Count
+Base Skill Constant: 400
+If multiple targets are hit, base skill multiplier will be divided depending on the hit target(s) count. Damage calculation is still done separately per hit.
+Maximum Cast Range: 12m
+This skill has absolute critical.
+This skill is not affected by short/long range damage; not affected by long range skill; uses and deals magic proration.
+Additional Magic Damage: Lightning Hail's Trail
+Base Skill Constant: Current Lightning Hail's Base Skill Constant
+Base Skill Multiplier: Current Lightning Hail's Base Skill Multiplier * Hit Arrangement
+Base skill multiplier increases along the hit arrangement:
+-1st hit's multiplier = Lightning Hail Multiplier * 1
+-2nd hit's multiplier = Lightning Hail Multiplier * 2
+-3rd hit's multiplier = Lightning Hail Multiplier * 3
+
+
+==================================================
+SKILL: ...
+==================================================
+
+Category: Halberd Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Source Details:
+-8th hit's multiplier = Lightning Hail Multiplier * 8
+These additional attacks are absolute critical.
+The hits are not affected by short/long range damage; not affected by long range skill; use magic proration and deal no proration.
+Buff Effect:
+-Additional Magic: + 10 * Skill Level%
+-Magic Pierce: + 2 * Skill Level%
+-Accuracy: + Base INT * Skill Level/10
+Buff Duration: 12 seconds * Skill Level (or until you are immobilized)
+Game Description: A spear technique that calls down a massive lightning strike. A magic attack with guaranteed critical, but the damage will be split among targets caught in the blast. Once activated, your Additional Magic, Magic Pierce, and Accuracy Rate will increase for a certain period of time.
+Halberd Bonus: Accuracy Rate increases according to INT. The skill "Lightning Hail" will leave a lightning trail, and when Thor's Hammer is activated, additional magic damage will be generated.

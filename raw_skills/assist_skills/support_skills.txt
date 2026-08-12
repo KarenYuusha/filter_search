@@ -1,0 +1,467 @@
+Category: Minstrel Skills
+
+GENERAL INFORMATION
+
+Weapon Restrictions:
+All Minstrel skills are limited to:
+- Two-Handed Sword
+- Bow
+- Bowgun
+- Katana
+- Staff
+- Magic Device
+
+Buff Range:
+24 m
+
+Song Interaction Rules:
+- If two players are singing the same song, each singer receives the buff from their own song.
+- Party members receive the buff from the higher-level song.
+- If the song applies a party-member penalty, the caster receives their own penalized buff instead of another singer's full buff.
+- Walking while singing outside combat interrupts the song.
+- Walking while singing during combat does not interrupt the song, but Movement Speed is halved.
+- Basic attacks and skill casts interrupt singing but do not reset singing progress.
+- An interrupted song can be continued by using Ad-Lib before the 9-second timer within the 10-second duration ends.
+- Different song skills cannot be sung at the same time.
+- Song buffs and Beat Blast stacking affect Guild Raid allies, up to 16 members.
+
+Acoustic Buff:
+Continuing a song for a certain amount of time transforms it into an Acoustic Buff.
+
+Acoustic Buff Properties:
+- Acoustic Buffs are permanent effects after activation.
+- They remain active indefinitely unless the performer is knocked out.
+- In boss fights, the source notes that the song may remain active indefinitely even after this condition.
+- Party members who are knocked out and then revived receive already-active full buffs.
+- Party members who enter the song caster's map also receive already-active full buffs.
+
+Acoustic Buff Progression:
+The MP cost and singing duration required to transform the next song into an Acoustic Buff increase as more Acoustic Buffs are active.
+
+Sing Duration:
+5 + (AcousticBuffOrder - 1) * 4 seconds
+
+MP Cost:
+(AcousticBuffOrder - 1) * 100 MP
+
+EX Skill: Setlist
+Allows the player to arrange a setlist and sing multiple songs in sequence from one shortcut button.
+
+Maximum Songs in Setlist:
+6
+
+Tier Requirements:
+- Tier I: No level requirement
+- Tier II: Level 60
+- Tier III: Level 120
+
+
+==================================================
+SKILL: HEALING SONG
+==================================================
+
+Category: Minstrel Skills
+Tier: I
+Required Level: None
+Type: Support
+Proration: None
+Mechanic: Song / Acoustic Buff
+
+MP Cost: 100
+Action Range: Unlimited
+
+Description:
+A break for travelers. Increases EXP Gain and Natural Regeneration when not in combat. Grants additional HP and MP recovery when battle ends based on battle duration. Cannot be sung at the same time as other songs.
+
+Buff Effects:
+
+EXP Gain Increase:
+CasterLvl / 10 % + SkillLvl %
+
+Notes:
+- Can be used for boss battles, common monsters, and minibosses.
+- Does not affect pet leveling.
+
+Natural HP Regen Increase:
+10 * SkillLvl %
+
+Natural MP Regen Increase:
+5 * SkillLvl %
+
+HP Recovery After Battle:
+3 * SkillLvl * Min(BattleDurationSeconds, 30)
+
+MP Recovery After Battle:
+SkillLvl * Min(BattleDurationSeconds, 30)
+
+Battle Recovery Notes:
+- Only battle duration while Healing Song's buff is active is counted.
+- HP and MP recovered after battle are flat values.
+
+Natural HP Regeneration Formula:
+
+Base NHPR:
+MaxHP / 25 * (100% + TotalEquipmentNHPR%) + 10 + TotalEquipmentFlatNHPR
+
+Final NHPR:
+BaseNHPR * (100% + TotalSkillNHPR%) + TotalSkillFlatNHPR
+
+Natural MP Regeneration Formula:
+
+Base NMPR:
+MaxMP / 100 * (100% + TotalEquipmentNMPR%) + 1 + TotalEquipmentFlatNMPR
+
+Final NMPR:
+BaseNMPR * (100% + TotalSkillNMPR%) + TotalSkillFlatNMPR
+
+Notes:
+- Natural HP Regen from equipment and avatars is added into the base NHPR calculation.
+- Natural HP Regen from skills is applied after base NHPR is calculated.
+- Natural MP Regen from equipment and avatars is added into the base NMPR calculation.
+- Natural MP Regen from skills is applied after base NMPR is calculated.
+
+
+==================================================
+SKILL: FAIRY SONG
+==================================================
+
+Category: Minstrel Skills
+Tier: I
+Required Level: None
+Type: Support
+Proration: None
+Mechanic: Song / Acoustic Buff
+
+MP Cost: 100
+Action Range: Unlimited
+
+Description:
+A fairy's guidance. Increases Accuracy and Dodge Rate. Slightly restores MP based on Attack MP Recovery when the target successfully performs Evasion or Guard.
+
+Buff Effects for the Caster:
+
+Accuracy% Increase:
+INT(5 * SkillLvl * NumberOfPlayersInParty / 4)
+
+Flat Accuracy Increase:
+INT(10 * SkillLvl * NumberOfPlayersInParty / 4)
+
+Flee% Increase:
+INT(5 * SkillLvl * NumberOfPlayersInParty / 4)
+
+Flat Flee Increase:
+INT(10 * SkillLvl * NumberOfPlayersInParty / 4)
+
+Buff Effects for Party Members Not Casting the Skill:
+
+Accuracy% Increase:
+5 * SkillLvl
+
+Flat Accuracy Increase:
+10 * SkillLvl
+
+Flee% Increase:
+5 * SkillLvl
+
+Flat Flee Increase:
+10 * SkillLvl
+
+MP Recovery from Evasion:
+100% * CharacterAMPR
+
+MP Recovery from Guard:
+75% * CharacterAMPR
+
+Notes:
+- Certain Fairy Song effects on the caster are reduced.
+- The reduction is mitigated as the number of party members, excluding NPCs, increases.
+
+
+==================================================
+SKILL: LIFE SONG
+==================================================
+
+Category: Minstrel Skills
+Tier: I
+Required Level: None
+Type: Support
+Proration: None
+Mechanic: Song / Stack / Acoustic Buff
+
+MP Cost: 200
+Action Range: Unlimited
+Maximum Stacks: 50
+
+Description:
+The beat of life. Reduces the revive timer at fixed intervals and accumulates an effect that mitigates fractional damage. If HP reaches 0, accumulated stacks are converted into HP recovery.
+
+Stack Gain:
+- Non-aggro holder: Gains 1 Life Song stack every 4 seconds.
+- Aggro holder: Gains 1 Life Song stack every 2 seconds.
+- Maximum: 50 stacks.
+
+HP Recovery When HP Reaches 0:
+INT(MaxHP / 1000 * SkillLvl * LifeSongStack)
+
+Fractional Damage Taken:
+Max(FractionalDamage - LifeSongStack, INT(FractionalDamage% / 2)) %
+
+Equivalent Fractional Damage Reduction:
+Min(LifeSongStack, FractionalDamage% / 2) %
+
+Notes:
+- Fractional damage reduction works similarly to Heavy Armor Damage Reduction.
+- It is calculated after Heavy Armor Damage Reduction.
+- Removes Knockback from death.
+- Reduces revive time every 3-second interval by:
+  3 * SkillLvl seconds
+- Life Song stacks reset to 0 whenever the player takes Fractional Damage.
+- Life Song stacks also reset to 0 whenever the player's HP reaches 0.
+
+
+==================================================
+SKILL: FANTASY SONG
+==================================================
+
+Category: Minstrel Skills
+Tier: II
+Required Level: 60
+Type: Support
+Proration: None
+Mechanic: Song / Stack / Acoustic Buff
+
+MP Cost: 200
+Action Range: Unlimited
+Maximum Stacks: 9
+
+Description:
+Feels like a dream, like an illusion. The song effect accumulates at fixed intervals. Restores MP using accumulated stacks when skills are used. It will not activate during a combo.
+
+Stack Gain Interval:
+11 - SkillLvl / 2 seconds
+
+Maximum Fantasy Song Stacks:
+9
+
+MP Recovery:
+100 MP * FantasySongStackConsumed
+
+Stack Consumption:
+- Using any skill other than a basic attack restores MP by consuming Fantasy Song stacks.
+- Stacks are consumed until the player's MP is full.
+- Excess recovery is retained as stacks according to the source description.
+- Quick Draw MP recovery is taken into account.
+- If Quick Draw activates, Fantasy Song may conserve a stack.
+
+Restriction:
+Does not activate during a combo.
+
+
+==================================================
+SKILL: AD-LIB
+==================================================
+
+Category: Minstrel Skills
+Tier: II
+Required Level: 60
+Type: Support
+Proration: None
+Mechanic: Song Resume / Defensive
+
+MP Cost: 100
+Action Range: Unlimited
+
+Description:
+Resumes the most recently used song. Reduces damage taken during Ad-Lib if a song is currently active. At Skill Level 10, this effect becomes invincibility instead of damage reduction.
+
+Damage Reduction:
+10% * SkillLvl
+
+At Skill Level 10:
+- Damage Reduction reaches 100%.
+- Grants invincibility.
+- Invincibility duration: 1 second.
+
+Conditions:
+- Damage Reduction or invincibility only occurs if a song was being played before Ad-Lib was cast.
+- The damage reduction does not stack with Sound Veil.
+- When both are applicable, the higher damage reduction value is used.
+
+Interrupted Song Resume Conditions:
+1. Being hit by an enemy, using another skill, or performing a basic attack starts a 10-second countdown.
+2. Ad-Lib must be used within those 10 seconds.
+3. If Ad-Lib is not used within the countdown, the interrupted song disappears completely.
+
+
+==================================================
+SKILL: BEAT BLAST
+==================================================
+
+Category: Minstrel Skills
+Tier: II
+Required Level: 60
+Type: Active
+Mechanic: Song / Stack Attack
+
+MP Cost: 0
+Damage Type: Magic
+Damage Stat:
+Uses ATK or MATK, whichever is higher.
+
+Maximum Cast Range:
+Weapon Range
+
+Description:
+A sound-pressure attack usable only while a song skill is active. Gains Beat Blast stacks based on MP consumed by allies affected by the player's song and consumes those stacks to deal magic damage.
+
+Stack Gain:
+Gain 1 Beat Blast stack whenever a player affected by your song consumes 300 MP.
+
+Affected Players:
+Includes Guild Raid allies.
+
+Maximum Stacks:
+20
+
+Maximum Stacks Consumed Per Cast:
+6
+
+Hit Count:
+Deals one hit per Beat Blast stack consumed.
+
+Base Skill Multiplier:
+1 + 0.15 * SkillLvl
+
+Base Skill Constant:
+0
+
+Innate Magic Pierce:
+10% * SkillLvl
+
+Range Properties:
+- Forced Long Range Damage.
+- Affected by Long Range Damage.
+- Not affected by the Long Range skill.
+
+Damage Modifier Interaction:
+- Affected by Concentrate.
+
+Proration:
+- Uses Magic Proration.
+- Deals Magic Proration.
+- Proration occurs once per cast, not once per hit.
+
+Requirement:
+Can only be used while a song skill is active.
+
+
+==================================================
+SKILL: PASSION SONG
+==================================================
+
+Category: Minstrel Skills
+Tier: III
+Required Level: 120
+Type: Support
+Proration: None
+Mechanic: Song / Acoustic Buff
+
+MP Cost: 300
+Action Range: Unlimited
+
+Description:
+An incredibly strong and fierce determination. Increases Damage to Element against a weak element and against Neutral-element targets. Increases Aggro for the current aggro holder.
+
+Damage to Element Increase:
+INT(INT(1.5% * SkillLvl) * PartyMemberNumber / 4)
+
+Conditions:
+- Damage to Element bonus is granted against enemies whose element is weak against the player's attack element.
+- If the enemy's element is Neutral, the Damage to Element bonus applies regardless of attack element.
+- For party members who are not the song caster, ignore the PartyMemberNumber / 4 part of the formula.
+
+Aggro Effect:
+Increases Aggro for the current aggro holder by 30%.
+
+
+==================================================
+SKILL: WISDOM SONG
+==================================================
+
+Category: Minstrel Skills
+Tier: III
+Required Level: 120
+Type: Support
+Proration: None
+Mechanic: Song / Acoustic Buff
+
+MP Cost: 300
+Action Range: Unlimited
+
+Description:
+Enlightenment born from immense knowledge. Reduces all types of damage and reduces Knockback distance.
+
+Damage Reduction:
+INT(2.5 * SkillLvl)%
+
+Knockback Reduction:
+5% * SkillLvl * PartyMemberNumber / 4
+
+Notes:
+For party members who are not the song caster, ignore the PartyMemberNumber / 4 part of the Knockback Reduction formula.
+
+
+==================================================
+SKILL: SOUND VEIL
+==================================================
+
+Category: Minstrel Skills
+Tier: III
+Required Level: 120
+Type: Passive
+Mechanic: Song / Acoustic Buff Scaling
+
+Description:
+While a song skill is active, the player's Aggro output becomes 1. Reduces all types of damage according to the number of Acoustic Buffs. Damage from enemies directly targeting the player cannot be reduced by this effect.
+
+Damage Reduction:
+Min(AcousticBuffCount, 9) * SkillLvl
+
+Aggro Effect:
+While a song skill is active, Aggro output becomes 1.
+
+Restrictions:
+- Damage from enemies directly targeting the player cannot be reduced by Sound Veil.
+- Does not stack with Ad-Lib.
+- If both Sound Veil and Ad-Lib apply, the higher damage reduction value is used.
+
+Note:
+The source notes that a bug may occur where the damage reduction buff fails to activate.
+
+
+==================================================
+SKILL: BATTLE ANTHEM
+==================================================
+
+Category: Minstrel Skills
+Tier: III
+Required Level: 120
+Type: Passive
+Mechanic: Song / Automatic Basic Attack
+
+Description:
+While a song skill is active, emits an aggressive sound and performs a normal attack against targets within weapon range while the player is stationary.
+
+Activation Condition:
+- A song skill must be active.
+- The player must be stationary.
+- The target must be within weapon range.
+
+Attack Interval:
+Max(0, (1100 - INT(ASPD * SkillLvl / 10)) / 1000) seconds
+
+Basic Attack Properties:
+No basic attack modifier changes.
+
+Notes:
+Activation interval depends on ASPD and Skill Level.

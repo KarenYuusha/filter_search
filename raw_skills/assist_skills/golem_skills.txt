@@ -1,0 +1,562 @@
+Category: Golem Skills
+
+GENERAL INFORMATION
+
+Tier Requirements:
+- Tier I: No level requirement
+- Tier II: Level 200
+- Tier III: Level 250
+
+Main Weapon Requirements:
+Some Golem skills have different weapon restrictions. Each skill block lists its own allowed weapons.
+
+
+==================================================
+SKILL: GOLEM CALL
+==================================================
+
+Category: Golem Skills
+Tier: I
+Required Level: None
+Type: Active
+Allowed Weapons:
+- Bowgun
+- Staff
+- Main Magic Device
+
+MP Cost: 500
+Base Cast Time: 2 seconds
+Base Buff Duration: 10 seconds
+Base Shield Range: 4 m
+
+Description:
+Summons a golem to assist in battle. The golem performs basic attacks and can provide damage reduction through Golem's Shield.
+
+Game Description:
+Summons a golem to assist in battle. Your attacks will not restore MP. Instead, the golem's normal attacks restore MP. The EX skill allows selection of the golem type and adjustment of the Magic Lamp.
+
+Golem Properties:
+The golem uses the character's following stats:
+- Attack Speed
+- Critical Rate
+- Critical Damage
+- Pierce
+- Stability
+- Character Movement Speed
+
+Notes:
+- Motion Speed% from character stats is not included in the golem's Attack Speed.
+- Golem movement speed is based on the character's default Movement Speed, not movement gained from running or skills.
+
+Golem Attack Properties:
+- Element: Weapon Dependent
+- Uses normal proration.
+- Deals no proration.
+- Affected by Short Range Damage and Long Range Damage.
+- Not affected by the Long Range skill.
+- Not affected by Whack.
+- Not affected by Concentrate.
+- Affected by Role Model Registlet.
+- Not affected by Zero Stance Registlet.
+
+The following buffs do not apply to Golem attacks:
+- Twin Storm
+- Dual Shield
+- Knife Combat
+- Shukuchi
+- Sliding
+- Bouncing Blade
+- Storm Reaper
+- Magic Arrow from Hunter Skills
+- Asura Aura
+
+EX Skill: Golem Selection
+
+The player may choose one of three golem types.
+
+Lancer-Type:
+Behavior:
+Charges at the target and has high attack power.
+
+Damage Type:
+Physical
+
+Damage Stat:
+Uses MATK
+
+Base Attack Multiplier:
+2
+
+Maximum Attack Range:
+1 m
+
+Movement Speed Coefficient:
+75%
+
+
+Shielder-Type:
+Behavior:
+Stays near the user and attacks targets within range.
+
+Damage Type:
+Physical
+
+Damage Stat:
+Uses MATK
+
+Base Attack Multiplier:
+1
+
+Maximum Attack Range:
+7 m
+
+Movement Speed Coefficient:
+50%
+
+Base Damage Reduction from Golem's Shield:
+10%
+
+
+Buster-Type:
+Behavior:
+Has long attack range and deals magic damage.
+
+Damage Type:
+Magic
+
+Damage Stat:
+Uses MATK
+
+Base Attack Multiplier:
+1
+
+Maximum Attack Range:
+14 m
+
+Movement Speed Coefficient:
+25%
+
+
+EX Skill: Magic Lamp Power Distribution
+
+Magic Lamp Count:
+SkillLvl
+
+Surplus Allocation:
+Buff Duration Increase =
+10 * SurplusPoint seconds
+
+Effect:
+The golem remains active longer when more surplus power is left.
+
+Attack Allocation:
+Golem Attack Multiplier Increase =
+0.2 * AttackPoint
+
+Golem Accuracy Increase =
+20 * AttackPoint
+
+Shield Allocation:
+Damage Reduction Increase =
+2% * ShieldPoint
+
+Speed Allocation:
+Golem Movement Speed Coefficient Increase =
+15% * SpeedPoint
+
+Notes:
+Attack, Shield, and Speed Magic Lamp allocations gain additional effects from:
+- Attack Boost
+- Shield Boost
+- Speed Boost
+
+
+==================================================
+SKILL: MAGIC GRENADE
+==================================================
+
+Category: Golem Skills
+Tier: I
+Required Level: None
+Type: Active
+Allowed Weapons:
+- Bowgun
+- Shield
+- Main Bare Hand
+
+MP Cost: 100
+Element: Weapon Dependent
+Damage Type: Magic
+Damage Stat: MATK
+
+Description:
+Destabilizes the Magic Lamp's power and throws it like a bomb. The skill deals AoE magic damage, but cannot reach targets beyond its maximum throwing distance. INT and TEC increase its power.
+
+Game Description:
+Destabilizes the magic lamp's power to use it like a bomb. It's an AoE attack, but it won't reach targets that are too far away. INT and TEC will boost its power further.
+
+Element Note:
+If using Bowgun with Arrow, the element can depend on the Arrow.
+
+Base Skill Multiplier:
+1 + 0.4 * SkillLvl + Max(BaseINT / 100, BaseTEC / 50)
+
+Base Skill Constant:
+100
+
+Maximum Throwing Distance:
+3 + 0.5 * SkillLvl meters
+
+Explosion Range:
+2 + 0.2 * SkillLvl meters
+
+
+==================================================
+SKILL: NEO LANCER
+==================================================
+
+Category: Golem Skills
+Tier: II
+Required Level: 200
+Type: Passive
+Allowed Weapons:
+- Bowgun
+- Staff
+- Main Magic Device
+
+Description:
+Improves the abilities of the Lancer-type golem. The Lancer gains increased Critical Rate and Physical Pierce. Smaller bonuses are also granted to Shielder-type and Buster-type golems.
+
+Game Description:
+Improves the abilities of the Lancer-type golem. The golem's piercing power and Critical Rate increase, with a small boost also applied to the Shielder-type and Buster-type golem.
+
+Lancer-Type Effects:
+
+Golem Critical Rate Increase:
+INT(7.5 * SkillLvl)
+
+Golem Physical Pierce Increase:
+(5 + 7 * SkillLvl)%
+
+Other Golem Types:
+
+Golem Critical Rate Increase:
+INT(INT(7.5 * SkillLvl) / 3)
+
+Golem Physical/Magic Pierce Increase:
+INT((5 + 7 * SkillLvl) / 3)%
+
+
+==================================================
+SKILL: NEO SHIELDER
+==================================================
+
+Category: Golem Skills
+Tier: II
+Required Level: 200
+Type: Passive
+Allowed Weapons:
+- Bowgun
+- Staff
+- Main Magic Device
+
+Description:
+Improves the abilities of the Shielder-type golem. The Shielder gains increased active duration and Shield range. Smaller bonuses are also granted to Lancer-type and Buster-type golems.
+
+Game Description:
+Improves the abilities of the Shielder-type golem. The golem's active time and damage reduction range increase, with a small boost also applied to the Lancer-type and Buster-type golem.
+
+Shielder-Type Effects:
+
+Buff Duration Increase:
+8 * SkillLvl seconds
+
+Shield Range Increase:
+2 * SkillLvl / 10 meters
+
+Other Golem Types:
+
+Buff Duration Increase:
+4 * SkillLvl seconds
+
+Shield Range Increase:
+SkillLvl / 10 meters
+
+
+==================================================
+SKILL: NEO BUSTER
+==================================================
+
+Category: Golem Skills
+Tier: II
+Required Level: 200
+Type: Passive
+Allowed Weapons:
+- Bowgun
+- Staff
+- Main Magic Device
+
+Description:
+Improves the abilities of the Buster-type golem. The Buster gains increased Critical Rate and Magic Pierce. Smaller bonuses are also granted to Lancer-type and Shielder-type golems.
+
+Game Description:
+Improves the abilities of the Buster-type golem. The golem's piercing power and Critical Rate increase, with a small boost also applied to the Lancer-type and Shielder-type golem.
+
+Buster-Type Effects:
+
+Golem Critical Rate Increase:
+INT(7.5 * SkillLvl)
+
+Golem Magic Pierce Increase:
+(5 + 7 * SkillLvl)%
+
+Other Golem Types:
+
+Golem Critical Rate Increase:
+INT(INT(7.5 * SkillLvl) / 3)
+
+Golem Physical Pierce Increase:
+INT((5 + 7 * SkillLvl) / 3)%
+
+
+==================================================
+SKILL: FROST GRENADE
+==================================================
+
+Category: Golem Skills
+Tier: II
+Required Level: 200
+Type: Active
+Allowed Weapons:
+- Bowgun
+- Shield
+- Main Bare Hand
+
+MP Cost: 200
+Damage Type: Magic
+Damage Stat: MATK
+Ailment: Freeze
+
+Description:
+Fills the Magic Lamp with cold magic power. Its power depends on Magic Grenade. It may inflict Freeze on the target and can also Freeze the caster if caught in the blast.
+
+Game Description:
+Fills the magic lamp with cold magic power. Its power depends on the Magic Grenade you've learned. May inflict Freeze on the target. If you get caught in the blast, there is a low chance of freezing yourself.
+
+Base Skill Multiplier:
+Uses Magic Grenade's Base Skill Multiplier.
+
+Base Skill Constant:
+100
+
+Maximum Throwing Distance:
+Uses Magic Grenade's Maximum Throwing Distance.
+
+Explosion Range:
+Uses Magic Grenade's Explosion Range.
+
+Ailment Chance:
+10% * SkillLvl
+
+Self-Inflicted Ailment Chance:
+Base Ailment Chance / 2
+
+
+==================================================
+SKILL: BARRIER SCREEN
+==================================================
+
+Category: Golem Skills
+Tier: II
+Required Level: 200
+Type: Active
+Allowed Weapons:
+- Bowgun
+- Shield
+
+MP Cost: 300
+
+Description:
+Deploys a drone that creates a magic barrier. The barrier reduces the power of certain straight-line, bullet, or bowling blade-wave attacks that pass through it. The barrier reduces damage once and then breaks.
+
+Game Description:
+Deploys a drone that creates a magic barrier. Reduces the power of straight-line, bullet, or bowling blade-wave attacks that pass through the barrier one time. The power of certain attacks cannot be reduced. While deployed, Attack MP Recovery is reduced.
+
+Buff Duration:
+Min(60, 12 * SkillLvl) seconds
+
+Damage Reduction:
+Max(20%, 4% * SkillLvl)
+
+Attack MP Recovery Penalty:
+-50%
+
+Barrier Behavior:
+- The barrier reduces damage once.
+- After reducing damage, the barrier breaks.
+- Certain attacks cannot have their damage reduced by the barrier.
+
+
+==================================================
+SKILL: ATTACK BOOST
+==================================================
+
+Category: Golem Skills
+Tier: III
+Required Level: 250
+Type: Passive
+Allowed Weapons:
+- Bowgun
+- Staff
+- Main Magic Device
+
+Description:
+Improves the Magic Lamp's Attack allocation efficiency. Increases the attack-related benefit gained per Attack Point and always increases Golem Accuracy.
+
+Game Description:
+Improves the magic lamp to increase attack efficiency. Increases the boost received per lamp power distributed to Attack. Always increases Accuracy, no matter the distribution.
+
+Golem Attack Multiplier Increase:
+0.02 * SkillLvl * AttackPoint
+
+Golem Accuracy Increase:
+2 * SkillLvl^2
+
+Golem Call Reactivation Effect:
+Reactivating Golem Call while a golem is already on the field grants a one-time buff that increases the power of one Golem basic attack.
+
+Lancer-Type Buffed Attack Multiplier:
+GolemAttackMultiplier * (2 + 0.2 * SkillLvl)
+
+Buster-Type Buffed Attack Multiplier:
+GolemAttackMultiplier * (1 + 0.2 * SkillLvl)
+
+Shielder-Type Buffed Attack Multiplier:
+GolemAttackMultiplier * (2 + 0.2 * SkillLvl) + (0.4 * ShieldPoint)
+
+Notes:
+- The reactivation effect applies to one Golem basic attack after Golem Call is reactivated.
+- The Golem Call reactivation bonus applies when using Bowgun, Staff, or Main Magic Device.
+
+
+==================================================
+SKILL: SHIELD BOOST
+==================================================
+
+Category: Golem Skills
+Tier: III
+Required Level: 250
+Type: Passive
+Allowed Weapons:
+- Bowgun
+- Staff
+- Main Magic Device
+
+Description:
+Improves the Magic Lamp's Shield allocation efficiency. Increases the damage reduction gained per Shield Point and always increases the Golem Shield range.
+
+Game Description:
+Improves the magic lamp to increase shield efficiency. Increases the boost received per lamp power distributed to Shield. Always increases damage reduction range, no matter the distribution.
+
+Damage Reduction Increase:
+0.2% * SkillLvl * ShieldPoint
+
+Shield Range Increase:
+2 * SkillLvl / 10 meters
+
+
+==================================================
+SKILL: SPEED BOOST
+==================================================
+
+Category: Golem Skills
+Tier: III
+Required Level: 250
+Type: Passive
+Allowed Weapons:
+- Bowgun
+- Staff
+- Main Magic Device
+
+Description:
+Improves the Magic Lamp's Speed allocation. Increases the Golem's Motion Speed for each Speed Point distributed.
+
+Game Description:
+Improves the magic lamp to increase speed. Increases Action Speed per lamp power distributed to Speed.
+
+Golem Motion Speed Increase:
+SkillLvl% * SpeedPoint
+
+
+==================================================
+SKILL: FLASH GRENADE
+==================================================
+
+Category: Golem Skills
+Tier: III
+Required Level: 250
+Type: Active
+Allowed Weapons:
+- Bowgun
+- Shield
+- Main Bare Hand
+
+MP Cost: 300
+Damage Type: Magic
+Damage Stat: MATK
+Ailment: Dazzled
+
+Description:
+Fills the Magic Lamp with shining magic power. Its power depends on Magic Grenade. It may inflict Dazzled on the target and can also Dazzle the caster if caught in the blast.
+
+Game Description:
+Fills the magic lamp with shining magic power. Its power depends on the Magic Grenade you've learned. May inflict Dazzled on the target. If you get caught in the blast, there is a medium chance to be dazzled too.
+
+Base Skill Multiplier:
+Uses Magic Grenade's Base Skill Multiplier.
+
+Base Skill Constant:
+100
+
+Maximum Throwing Distance:
+Uses Magic Grenade's Maximum Throwing Distance.
+
+Explosion Range:
+Uses Magic Grenade's Explosion Range.
+
+Ailment Chance:
+10% * SkillLvl
+
+Self-Inflicted Ailment Chance:
+Base Ailment Chance / 2
+
+
+==================================================
+SKILL: BARRIER UPGRADE
+==================================================
+
+Category: Golem Skills
+Tier: III
+Required Level: 250
+Type: Passive
+Allowed Weapons:
+- Bowgun
+- Shield
+
+Description:
+Improves Barrier Screen by increasing its damage reduction and reducing its Attack MP Recovery penalty.
+
+Game Description:
+Improves the barrier drone. Boosts the barrier's damage reduction rate and lessens the decrease in Attack MP Recovery used to maintain the drone.
+
+Base Barrier Damage Reduction Increase:
+SkillLvl%
+
+Attack MP Recovery Penalty Mitigation:
+2.5% * SkillLvl
+
+Example:
+At Barrier Screen Level 10 and Barrier Upgrade Level 10:
+- Base Barrier Screen Attack MP Recovery penalty: -50%
+- Barrier Upgrade mitigation: 25%
+- Final Attack MP Recovery penalty: -25%

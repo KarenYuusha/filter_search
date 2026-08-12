@@ -1,0 +1,823 @@
+Category: Magic Skills
+
+GENERAL INFORMATION
+
+Tier Requirements:
+- Tier I: None
+- Tier II: Level 30
+- Tier III: Level 70
+- Tier IV: Level 150
+- Tier V: Level 240
+
+Shared Rules and Notes:
+The name of magic with Fire - Water - Wind - Earth - Light - Dark, respectively:
+Magic: Arrows
+Fire Arrows - Water Arrows - Wind Arrows - Earth Arrows - Light Arrows - Dark Arrows
+Magic: Javelin
+Fire Javelin - Ice Javelin - Wind Javelin - Rock Javelin - Holy Javelin - Dark Javelin
+Magic: Lances
+Vulcan - Icicles - Wind Thrust - Rock Cannon - Vanishment - Eclipse
+Magic: Wall
+Fire Wall - Aqua Screen - Gale Zone - Earthquake - Holy Wall - Evil Gate
+Magic: Blast
+Explosion - Absolute Zero - Aero Blast - Geo Impact - Shining Blast - Evil Blast
+Magic: Storm
+Fire Storm - Frozen Cyclone - Thunder Storm - Sandstorm - Lux Vortex - Evil Tempest
+Magic: Burst
+Hell Inferno - Eternal Blizzard - Force Tempest - Gravity Turn - Punishment - Eclipse
+Magic: Fall
+Meteor Rain - Hail - Fulgurite - Rockfall - Meteor Light - Cosmos
+Note regarding ele change
+M.arrows has its arrow appearance changed
+M.javelin has the "impact" animation changed
+M.lances has the hit effect of the lances changed
+M.wall has the entire magic formation along with its effect anim changed
+M.blast has the "explosion" effect changed
+M.storm, well, its color changed
+M.burst has its entire effect animation changed
+M.fall only color changed
+~ FrostHydra97
+
+
+==================================================
+SKILL: MAGIC: ARROWS
+==================================================
+
+Category: Magic Skills
+Tier: I
+Required Level: None
+
+Source Details:
+Lv 1 Skill; No Limit
+MP Cost: 100
+Damage Type: Magic
+Base Skill Multiplier: 0.65 + 0.06 * Skill Level; multiplier for each hit
+Base Skill Constant: 90 + 5 * Skill Level; constant for each hit
+Hit Count: 2 hits (levels 1 and 2); 3 hits (levels 3 and 4); 4 hits (levels 5 and 6); 5 hits (levels 7 and 8); 6 hits (levels 9 and 10); damage calculation is done for first hit then the rest hit will copy first hit[copy crit/guard/etc.]
+Maximum Cast Range: 12m
+Base Cast Time: 2 seconds; affected by Cast Speed
+Game Description: "Shoot small magic arrows. The arrows increase as the skill levels up."
+Staff bonus: Skill Multiplier +0.25
+Magic Device bonus: Hit Count +2
+Staff bonus takes precedence over Magic Device bonus
+
+
+==================================================
+SKILL: MAGIC: JAVELIN
+==================================================
+
+Category: Magic Skills
+Tier: I
+Required Level: None
+
+Source Details:
+Lv 1 Skill; No Limit
+MP Cost: 200
+Damage Type: Magic
+Base Skill Multiplier: 1.5 + 0.1 * Skill Level
+Base Skill Constant: 50 + 15 * Skill Level
+Hit Count: 1 hit
+Maximum Cast Range: 8m
+Ailment: Flinch (with Neutral element); Ignite (with Fire element); Freeze (with Water element); Blind (with Wind element); Slow (with Earth element); Dizzy (with Light element); Fear (with Dark element)
+Base Ailment Chance: (7.5 * Skill Level)%
+Ailment Duration: 2 seconds for Flinch; 10 second for others
+Ailment Resistance:
+- For Flinch: 5 seconds (Easy, Normal and Hard); 6 seconds (Nightmare); 9 seconds (Ultimate)
+- For others: None
+Game Description: "Drop a large magic javelin on the target. Chance to inflict a status ailment. The status ailment depends on the element."
+Staff bonus: Skill Multiplier +0.5
+Magic Device: Ailment chance +25%
+Staff bonus takes precedence over Magic Device bonus
+
+
+==================================================
+SKILL: MAGIC: LANCES
+==================================================
+
+Category: Magic Skills
+Tier: II
+Required Level: Level 30
+
+Source Details:
+Lv 2 Skill; No Limit
+MP Cost: 300
+Damage Type: Magic
+Base Skill Multiplier: 2.5 + 0.15 * Skill Level; multiplier for each hit
+Base Skill Constant: 300 + 40 * Skill Level; constant for each hit
+Hit Count: 2 hits (levels 1 to 5); 3 hits (levels 6 to 10); damage calculation is done for first hit then the rest hit will copy first hit[copy crit/guard/etc.]
+Maximum Cast Range: 14m
+Base Cast Time: 2 seconds; affected by Cast Speed
+Ailment: Stop
+Base Ailment Chance: 10% + (2 * Skill Level)%
+Ailment Duration: 10 seconds
+Ailment Resistance: 10 seconds
+Game Description: "Shoot magic lances one after another. The lances increase as the skill levels up. Chance to inflict [Stop] on the target."
+Staff bonus: Skill Multiplier (+1.5 + TotalINT/500)
+Staff bonus: Stop chance is tripled
+Magic Device bonus: Skill Multiplier (TotalINT/500)
+Magic Device bonus: Hit Count +2
+Magic Device bonus: Stop chance is tripled
+Staff bonus takes precedence over Magic Device bonus
+
+
+==================================================
+SKILL: MAGIC: IMPACT
+==================================================
+
+Category: Magic Skills
+Tier: III
+Required Level: Level 70
+
+Source Details:
+Lv 3 Skill; No Limit
+MP Cost: 200
+Damage Type: Magic
+Element: Neutral
+Base Skill Multiplier: 0.25 * Skill Level
+Skill Multiplier (Impact Buff Active): 0.1 * Skill Level
+Base Skill Constant: 100 + 10 * Skill Level
+Hit Count: 1 hit
+Maximum Cast Range: Theoretically infinite (limited to 100m)
+Hit Range: 3m; around caster
+Base Cast Time: 2 seconds (levels 1 and 2); 1 second (levels 3 to 6); none (levels 7 to 10); affected by Cast Speed
+Buff Effect:
+- The next skill has its MP Cost divided by half and rounded up to the nearest multiple of 100 (e.g. 300/2 = 150 -> 200 MP; 600/2 = 300 -> 300 MP)
+- While this buff is active, the Skill Multiplier and Tumble chance of this skill are decreased and the specific weapon bonuses are disabled
+Buff Duration: Until a skill is used
+Ailment: Tumble
+Base Ailment Chance: 15% + (5 * Skill Level)%
+Ailment Chance (Impact Buff Active): (Skill Level)%
+Ailment Duration: 3 seconds
+Ailment Resistance: 3 seconds (Easy and Normal); 6 seconds (Hard); 12 seconds (Nightmare); 18 seconds (Ultimate)
+Game Description: "Attack enemies around you with a shock wave. Halves MP cost of the next skill. The effect will become weak if you consecutively use this skill."
+Staff bonus: Tumble chance +25%
+Magic Device bonus: Skill Multiplier +2.5
+
+
+==================================================
+SKILL: MAGIC: FINALE
+==================================================
+
+Category: Magic Skills
+Tier: IV
+Required Level: Level 150
+
+Source Details:
+Lv 4 Skill; No Limit
+MP Cost: 1600
+Damage Type: Magic
+Element: Neutral
+First Radius Skill Multiplier: 30
+Second Radius Skill Multiplier: 20
+Third Radius Skill Multiplier: 10
+First Radius Skill Constant: 300 * Skill Level
+Second Radius Skill Constant: 30 * Skill Level
+Third Radius Skill Constant: 3 * Skill Level
+Hit Count: 3 hits (if within the First Radius)/ 2 hits (if within the Second Radius but not within the First Radius)/ 1 hit (if within the Third Radius but not on the others); damage calculation is done for each hit
+Maximum Cast Range: 12m
+Hit Range: 0.5m (First Radius); 4m (Second Radius); 10m (Third Radius)
+Base Cast Time: (13 - Skill Level) seconds
+Skill Effect:
+On the main target, generates 1000 Aggro per second of cast time[aggro based on 1MP = 10Aggro], then generates the remaining aggro on hit. Works normally on other targets. Cspd can reduce that aggro cast time. Within 1k cspd, every 20 cspd = 1% aggro reduction, and after 1k cspd, every 180 cspd = 1% aggro reduction. Just like how cast time with cspd calculation.
+Cast Speed can slightly reduce casting time (maximum of 1 second reduction at 10k CSPD). So Magic: Finale Cast Time = (13 - Skill Level) - (MAX(0; MIN(10000; Total CSPD))/10000).
+Game Description: "Super wide area of effect. Deal greater damage to enemies near the center. Cast Speed is long and unable to reduce it with CSPD. Generate Aggro while casting."
+Staff bonus: First Radius Skill Multiplier +7.5+(baseINT/100)
+Magic Device bonus: First Radius Skill Multiplier +(baseINT/100)
+Magic Device bonus: First Radius is quadrupled
+Magic Device bonus: Second and Third Radius is doubled
+Staff bonus takes precedence over Magic Device bonus
+This skill is unaffected by Chain Cast
+The aggro generated during the casting animation is unaffected by Sneak Attack or Aggro% stats
+
+
+==================================================
+SKILL: MAGIC: WALL
+==================================================
+
+Category: Magic Skills
+Tier: I
+Required Level: None
+
+Source Details:
+Lv 1 Skill; No Limit
+MP Cost: 200
+Damage Type: Magic
+Base Skill Multiplier: 0.8 + 0.04 * Skill Level + base INT/1000; multiplier for each hit
+Base Skill Constant: 120 + 10 * Skill Level; constant for each hit
+Hit Count: 5 hits (level 1); 6 hits (levels 2 and 3); 7 hits (levels 4 and 5); 8 hits (levels 6 and 7); 9 hits (levels 8 and 9); 10 hits (level 10); damage calculation is done for each it
+Maximum Cast Range: Theoretically infinite
+Hit Range: 2m; around the caster's position when the skill is cast
+Base Cast Time: 1 second; affected by Cast Speed
+Ailment: Knockback
+Base Ailment Chance: 100% as long as you have aggro
+Knockback Distance: 5m; halved for bosses
+Ailment Resistance: 0.8 seconds
+Game Description: "Create a magic wall at the feet. Deal damage and knock back enemies."
+Staff bonus: Skill Multiplier +0.3
+Magic Device bonus: Hit Range +1m
+Staff bonus takes precedence over Magic Device bonus
+Triple Thrust's Skill Constant buff is divided by the Hit Count
+
+
+==================================================
+SKILL: MAGIC: BLAST
+==================================================
+
+Category: Magic Skills
+Tier: II
+Required Level: Level 30
+
+Source Details:
+Lv 2 Skill; No Limit
+MP Cost: 300
+Damage Type: Magic
+Base Skill Multiplier: 7 + 0.3 * Skill Level
+Base Skill Constant: 180 + 20 * Skill Level
+Hit Count: 1 hit
+Maximum Cast Range: 8m
+Hit Range: 2m around target
+Base Cast Time: 4 seconds; affected by Cast Speed
+Ailment: Flinch (with Neutral element); Ignite (with Fire element); Freeze (with Water element); Blind (with Wind element); Slow (with Earth element); Dizzy (with Light element); Fear (with Dark element)
+Base Ailment Chance: (5 * Skill Level)%
+Ailment Duration: 2 seconds for Flinch; 10 second for others
+Ailment Resistance:
+- For Flinch: 5 seconds (Easy, Normal and Hard); 6 seconds (Nightmare); 9 seconds (Ultimate)
+- For others: None
+Game Description: "Set off a blast by concentrating magic power. Chance to inflict a status ailment. The status ailment depends on the element."
+Staff bonus: Skill Multiplier +(1.5 + TotalINT/500)
+Magic Device bonus: Skill Multiplier +(TotalINT/500)
+Magic Device: Ailment chance +50%
+Magic Device bonus: Hit Range +2m
+Staff bonus takes precedence over Magic Device bonus
+
+
+==================================================
+SKILL: MAGIC: STORM
+==================================================
+
+Category: Magic Skills
+Tier: III
+Required Level: Level 70
+
+Source Details:
+Lv 3 Skill; No Limit
+MP Cost: 400
+Damage Type: Magic
+Base Skill Multiplier: 1.8 + 0.02 * Skill Level; multiplier for each hit
+Base Skill Constant: 420; constant for each hit
+Hit Count: 1 hit (level 1); 2 hits (levels 2 and 3); 3 hits (levels 4 and 5); 4 hits (levels 6 and 7); 5 hits (levels 8 and 9); 6 hits (level 10); damage calculation is done for each it
+Maximum Cast Range: 8m
+Hit Range: 1.75m (levels 1 to 3); 2.75m (levels 4 to 7); 3.75m (levels 8 to 10); around the target's position when the skill is cast
+Base Cast Time: 1 second; affected by Cast Speed
+Ailment: Suction
+Base Ailment Chance: 100% on mobs; 50% on bosses
+Ailment Duration: 1 second
+Ailment Resistance: 0.001 seconds
+Game Description: "A magic to generate a storm. Enemies will be sucked into it. Strong monsters may not be sucked into it."
+Staff bonus: Skill Multiplier +1
+Magic Device bonus: Hit Range +2m
+Staff bonus takes precedence over Magic Device bonus
+Triple Thrust's Skill Constant buff is divided by the Hit Count
+
+Magic: Burst
+Lv 4 Skill; No Limit
+MP Cost: 500
+Damage Type: Magic
+Base Skill Multiplier: 15 + 0.6 * Skill Level
+Base Skill Constant: 200 + 30 * Skill Level
+Hit Count: 1 hit
+Maximum Cast Range: 8m
+Hit Range: Fan of 8m (levels 1 to 5)/ 9m (level 6)/ 10m (level 7)/ 11m (level 8)/ 12m (level 9)/ 13m (level 10) of radius and an angle of (40 + 2 * Skill Level)°
+Base Cast Time: 8 seconds; affected by Cast Speed
+Magic: Burst range:
+Red: position of main caster
+Blue: possible position of main target (the position doesn't really matter)
+Green: area of Magic: Burst
+Purple: angle of Magic: Burst
+Black: the area of a circle skill if it had the same radius as Magic: Burst; this is mainly to describe the radius and the arc of Magic: Burst
+
+
+==================================================
+SKILL: MAGIC: BURST
+==================================================
+
+Category: Magic Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Source Details:
+Buff Effect:
+For every other attacking skill from the Magic Skill Tree cast, the buff gains a counter; this skill can have a maximum of 8 counters
+This skill's Total Cast Time is decreased by 1 second for each counter; this is applied after Cast Speed and Chain Cast calculations; only a maximum of 8 seconds can be reduced this way
+Buff Duration: Until you use Magic: Burst
+After this skill cast ends, Gain Invincibility buff on yourself 2 seconds but end immediately when this skill animation end. However, if you use this skill as Staff or Main MD, then its invincibility buff is fixed 2 seconds [in fact, doesn't immediately end this iframe buff when this skill animation end].
+Ailment: Knockback(unavailable on bosses)
+Base Ailment Chance: (10 * Skill Level)%
+Knockback Distance: 15m - 2 * mob's size in in-game meters
+Ailment Resistance: Mob Knockback Distance in seconds
+Now, Total Cast Time Reduction will affect this stack max counter limit.
+Visual Stack Max Count 0/8 if have 0 cspd, 0/4 if have 1k cspd, 0/3 if have 3250 cspd, 0/2 if have 5500 cspd, 0/1 if have 7750 cspd, lastly 0/0 if have 10k cspd. Tldr; basically it is just a visual stacks counter which helps you to show how many stacks you need to get insta cast burst. [Note: last time it works like this, but now bugged won't change visual Stack Max Count :/]
+Game Description: "Enhance magic power and shoot out. Chance to Knock Back the target aiming at you. Cast Time is very long, however, it is shortened by using Magic Skills before casting."
+Staff bonus: Skill Multiplier +(BaseINT/100)
+Magic Device bonus: Skill Multiplier +(BaseINT/200)
+Magic Device bonus: Fan radius +1m (levels 1 to 3)/ +2m (levels 4 to 6)/ +3m (levels 7 to 10)
+Magic Device bonus: Fan angle +5° (levels 1 to 3)/ +10° (levels 4 to 6)/ +15° (levels 7 to 10)
+Staff bonus takes precedence over Magic Device bonus
+
+
+==================================================
+SKILL: MAGIC MASTERY
+==================================================
+
+Category: Magic Skills
+Tier: I
+Required Level: None
+
+Source Details:
+Lv 1 Skill; Staff/Magic Device only
+Passive Effect: Weapon ATK +(3 * Skill Level)%; MATK +1% (levels 1 and 2)/ +2% (levels 3 to 7)/ +3% (levels 8 to 10)
+Game Description: "Get better at using magic weapons. ATK of Staffs and Magic Devices increases."
+
+
+==================================================
+SKILL: MP CHARGE
+==================================================
+
+Category: Magic Skills
+Tier: I
+Required Level: None
+
+Source Details:
+Lv 1 Skill; No Limit
+MP Cost: 0
+Damage Type: None
+Base Charge Time: 9 seconds (levels 1 to 3); 8 seconds (levels 4 to 6); 7 seconds (levels 7 to 9); 6 seconds (level 10); affected by Cast Speed
+Charge time reduction from CSPD = Base charge time - MIN [1 ; CSPD/1000]
+Skill Effect: Restores (200 + 10 * Skill Level) MP if the skill is cast successfully
+Buff Effect: Decreases the Cast Time of Maximizer by (Skill Level) seconds; this effect only takes place if you have a Staff or Magic Device when using Maximizer
+Buff Duration: Until a skill is used
+Game Description: "Restore MP by charging magic power. The charging time reduces as the skill levels up."
+Staff bonus: Charge Time is halved
+Magic Device bonus: Charge Time is divided by 1.5
+Magic Device bonus: Restored MP +50
+Staff bonus takes precedence over Magic Device bonus
+This skill cannot be used as the first skill of a combo
+
+
+==================================================
+SKILL: CHAIN CAST
+==================================================
+
+Category: Magic Skills
+Tier: II
+Required Level: Level 30
+
+Source Details:
+Lv 2 Skill; No Limit
+Passive Effect:
+Everytime you use Magic: Arrow, then grant following one of two effects below:
+If next attacking skill from Magic Tree have cast time, then that next skill’s Cast Time will be reduced by (5 * Skill Level)%. APPLY AFTER CSPD reduct on cast time
+If the next attacking skill from Magic Tree doesn't have a cast time, then that next skill gains a Motion Speed boost of (5 * Skill Level)%.
+Passive Effect duration: Until you use any attacking skill from Magic Tree
+Staff/MD bonus:
+Gain Passive Effect that grants +1 Chain stack everytime attacking skill that need chant time hit enemies (with exception, Ether Flare can add this stack too). Note: +1 stack every hit!
+Base Cast time of any skill that need chant time, will be reduced by (0.1 * Chain Stack) seconds. This buff applies before Cast time reduction from CSPD. Note: this base cast time reduction from this skill, seem cannot lower any skill that has 1 sec Base Cast time(Magic: Storm/Wall)
+Increase your Magic Stability by (Skill Level * 0.1 * Chain Stack)%. Staff Bonus: 2x Magic Stab Bonus!
+Increase Matk by +(Skill Level * Chain Stack). MD Bonus: 2x Matk Bonus!
+Chain Stack Duration: 1 Chain stack lost per 30 seconds(can refresh duration everytime gain stack)
+Game Description: "Efficiently cast magic. The cast speed of the magic skill used after "Magic: Arrows" increases. Additional effect granted with staff or magic device (main): Casting speed, MATK, and magic stability increase each time an attack skill that has a casting time hits. This effect can be obtained up to 10 times.”
+The Motion Speed boost stacks multiplicatively with the effects of Freeze and the combo tag "Swift"
+
+Power Wave
+Lv 3 Skill; No Limit
+Damage Type: Neutral
+Maximum Power Wave Auto Attack Range: 5m + (0.5 * Skill Level)m
+Passive Effect: Whenever you're out of your default auto attack range, but within the Power Wave Auto Attack range, you can use an auto attack that still recovers MP through Attack MP Recovery and still inflicts neutral proration, but its total damage is decreased by (100 - 5 * Skill Level)%
+Game Description: "Shoot a magic wave if the target is out of range. Available from 5m or less away. The range extends up to 10m as the skill levels up. Attack MP Recovery is applied to this skill."
+Staff bonus: Maximum Power Wave Auto Attack Range +2m
+Staff bonus: Auto attack damage penalty -40%
+Magic Device bonus: Auto attack damage penalty -70%; a negative damage "penalty" results in a positive damage boost
+On Dual Swords, the damage calculation formula for Power Wave auto attacks changes: both their main hand and subhand auto attack damage are summed before being spreading the result evenly between the hits
+
+
+==================================================
+SKILL: POWER WAVE IS DISABLED WHEN RAMPAGE IS ACTIVE
+==================================================
+
+Category: Magic Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Source Details:
+
+
+==================================================
+SKILL: MAXIMIZER
+==================================================
+
+Category: Magic Skills
+Tier: IV
+Required Level: Level 150
+
+Source Details:
+Lv 4 Skill; No Limit
+MP Cost: 300
+Damage Type: None
+Base Cast Time: 17 seconds (level 1); 16.5 seconds (level 2)/ 16 seconds (level 3)/ 15.5 seconds (level 4)/ 15 seconds (level 5)/ 14 seconds (level 6)/ 13 seconds (level 7)/ 12 seconds (level 8)/ 11 seconds (level 9)/ 10 seconds (level 10)
+Skill Effect: Restores 1000 MP if the skill is cast successfully
+If you have MP Charge, then every MP Charge's level can reduce 1 sec cast time of this skill. ONLY for STAFF and MD
+Game Description: "Greatly restore MP. Cast Time is shortened as the skill levels up. If you use MP Charge before this skill, the Cast Time of Maximizer will be shortened according to the skill level of MP Charge when using the skill with a Staff or Magic Device."
+Staff bonus: Restored MP +500
+Magic Device bonus: Restored MP +700
+Staff bonus takes precedence over Magic Device bonus
+This skill’s cast time unaffected by CSPD
+
+
+==================================================
+SKILL: MAGIC: GUARDIAN BEAM
+==================================================
+
+Category: Magic Skills
+Tier: III
+Required Level: Level 70
+
+Source Details:
+Lv 3 Skill; Staff/Main Magic Device Only
+MP Cost: 300
+Damage Type: Magic
+Base Skill Multiplier lv 10: 0.5 + TotalINT/100; multiplier for each hit
+Base Skill Constant: 50 + 3 * Skill Level; constant for each hit
+Maximum Cast Range: Infinite
+Buff Effect:
+Your Beam Stack upon use will become (Skill Level * (Skill Level + 1)/2). So at level 10, you will have 55 Beam Stacks.
+Skill duration is unlimited and it will last until beam stacks are all used up,
+If you have target's aggro and target is in 8m, then using magic skill during cast time = 1 beam stack will be used to attack for every 1 second cast time, on target within 8m that has aggro on you.
+Meanwhile 1 beam stack will be used to attack [after attacking magic skills cast time ends?] without need of aggro and must be within 24m.
+Using aoe magic like burst/storm/wall/etc. and hit other targets, but other targets didn't die. Then the beam stack is used to hit other targets. (beam used count = how many other target that didn't die)
+The beams cause knockback 4m on normal monsters (can't knockback bosses/mini bosses)
+This beam attack does not inflict Magic Proration
+This skill is fixed to be Neutral/no element.
+Game description: “Emits light to protect the caster. While active, magic attacks will be executed at a certain time such as after other magic skills are cast, or after dealing damage to an enemy.”
+Combo Tags does not affect this skill
+
+
+==================================================
+SKILL: CHRONOS SHIFT
+==================================================
+
+Category: Magic Skills
+Tier: V
+Required Level: Level 240
+
+Source Details:
+Lv 5; Main Magic Device only
+MP Cost: 0
+Skill Effect:
+Using this skill, will recast your last skill from the Magic tree used. There is a cooldown upon this activation, it is a (16 - Skill Level) seconds cooldown.
+This skill copies the exact values of the original skill when that skill is cast, (Constant, Multiplier, Range, Effect, ... but not combo tag effects), regardless of this skill’s level. It’s also treated as being the same skill as the original, thus skills that last after cast such as Magic: Wall will be “reset” as if you recast a new Magic: Wall.
+Skill casted through this skill, can insta cast regardless of your cspd (uses this skill’s cast motion). Even insta cast finale. The skill cannot grant Magic: Burst stack nor charge Magic: Magic Cannon, however.
+MP Cost of this skill depends on your last skill’s final mp cost (including after mp-cost-halving effects such as Impact). HP will be consumed when your mp is not enough to use this skill, hp cost is (110 - 10 * Skill Level)% of your MaxHP for every 100 MP.
+A copied Magic: Arrow can still give Chain Cast buff
+Game Description: “A forbidden technique of turning back time and deploying magic again. Instantly reactivates the last magic skill used. HP is consumed if you don’t have enough MP and this may KO your character. First Aid, Struggle, and Revive Droplet won’t be available.
+This skill cannot be put in a combo.
+
+Magic: Magic Cannon
+Lv 5; No Limit
+MP Cost: 0(buff cast) / 700 (attack cast)
+Damage Type: Magic
+Base Skill Constant: 700 + Charge
+Base Skill Multiplier: 0.03 * Skill Level * Charge (for each hit up to 20% charge, restart to a new hit every 20%); starts increasing again in a similar manner after 100% (+0.03 * Skill Level * Charge, switch to the next hit after every 20%), up to +0.6 * Skill Level multiplier for all hits each at 200%
+Hit Count: 1 hit every 20%, max 5 hits
+Maximum Cast Range: infinite, limited to 24m (maximum targeting range)
+Hit Range: length of 100m and width of 2m, from the caster towards the main target
+Skill Effect:
+The skill will Miss if cast at 0%
+This skill has chance to not get guarded by MAX[0 ; (MCannon Charge - 100)]%
+If the attack cast has the same Combo Tag as the buff cast did, the Combo Tag of the attack cast will be ignored
+The Combo Multiplier carries over from the buff cast; this takes into account if the attack cast's Combo Tag is ignored; the total Combo Multiplier is calculated as follows:
+Magic: Cannon Total Combo Multiplier = Attack Cast Combo Multiplier + Buff Cast Combo Multiplier - 100
+Remember! Out of all combo tags, Only Bloodsucker(lifesteal) and Mind’s eye(always graze/no miss) tags cannot apply on buff(Charge) cast, but Bloodsucker after-effect(Spirit = boost dmg), Smite, Save and the rest can apply on buff cast.
+This skill is affected by Concentrate, Long Range passive, Short Range Damage and Long Range Damage stats; Long Range Damage stat will be applied to the entire skill instead of Short Range Damage stat if at least 1 enemy hit by this skill is at 8m or further from the caster, regardless of where the other enemies are
+Buff Effect:
+The next cast of Magic: Cannon becomes 700 MP
+Gains charge over time, 1% charge every second, reduces to 1% every 2 seconds after reaching 100% charge.
+Can only gain up to 200% charge, after which you cannot gain charge anymore by any means.
+Buff Duration: Until you cast Magic: Cannon(attack cast) again OR upon taking damage from Mana Explosion
+If you get Mana Explosion from enemies, then your charge over time remains unchanged until 100%(over 100%, will stop charge) and disables your ability to gain charge% from magic skills. Fortunately, using this skill will clear Mana Explosion ail if you got afflicted with it.
+Using certain skills also gives charge depending on its Final Cast Time[seconds], your Cast Time reduction from your cspd and this skill’s level.
+Formula= (40 * Cast Time Reduction * 2[if staff/main md] + Final Cast Time * Skill Level) / 2[if your charge over 100%]
+This formula above applies to all following skills below except Instant cast Magic: Impact, Instant cast Maximizer and Enchant Sword.
+Both 3 skills above uses (20 * Cast Time Reduction) * 2[if staff/main md] / 2[if your charge over 100%]
+Cast Time Reduction = MIN(50 ; CSPD/20)% + (MAX(CSPD - 1000 ; 0)/180)% (fixed the explanation to another embed below)
+-
+Final Cast time is after reduction from cspd, mburst stack, chain cast, etc.
+-
+List of all skills that can gain this charge%:
+All Magic skills, except Mp Charge, Qadal, Chrono Shift, Enchanted Barrier & Guardian Beam
+Priest = Bless, Gloria, Royal Heal, Holy Light, Prayer
+Magic Blade = Ether Flare & Enchant Sword
+Wizard = Mana Crystal & Imperial Rays
+Others = Red Tear(Dark Tree), Punish Ray(Halberd Tree)
+Note: i don’t know if this bugged or not… well that -2% still there when we have 0-400 cspd, but no more -2% when have over 800 cspd
+
+
+==================================================
+SKILL: -
+==================================================
+
+Category: Magic Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Source Details:
+The charge animation of this skill is not affected by motion speed from character's status, but can use "swift" combo tag's motion speed modifier.
+Magic cannon charge mechanics
+CAST SPEED MODIFIER
+CastSpeedModifier (CSM%) is how much CSPD speeds up casting and affects Magic Cannon charge.
+Up to 1000 CSPD: Every 20 CSPD adds 1 CSM%
+Beyond 1000 CSPD: Every 180 CSPD adds 1 CSM%
+CSM% is capped at 100% (10.000 CSPD).
+Skills are divided into 3 categories:
+◇ Instant Cast Skills (Guardian beam...)
+If CSPD ≤ 1000: Charging = 80 × CSM%
+If CSPD > 1000: Charging = 20 + (40 × CSM%)
+◇ Skills with Casting Time (Magic: Storm, Crash, Arrows...)
+If CSPD ≤ 1000: Charging = (Cast Time × 10) + (80 × CSM%)
+If CSPD > 1000: Charging = 20 + (Cast Time × 10) + (40 × CSM%)
+◇ Skills with no cast time but not "instant" (Resonance, Enchanted Sword...)
+If CSPD ≤ 1000: Charging = 40 × CSM%
+If CSPD > 1000: Charging = 10 + (20 × CSM%)
+CHARGE PENALTIES
+After reaching 100% charge, all charging skills receive a x0.5 charge penalty. However, the transition from below to above 100% can affect the charged amount.
+Breakpoint mechanic
+When a skill is used below 100% but above the breakpoint%, it gets a reduced x0.75 penalty instead.
+Breakpoint% = 100% - (Skill’s Charge / 2)
+When a skill is used below the breakpoint%, even if it goes over 100% charge, it gives the full intended charge, bypassing the 75% and 50% penalties.
+Example
+I cast Magic: Arrows with 2840 total CSPD.
+CSM% = 50% (from first 1000 CSPD) + ((2840 - 1000)/180 ≈ 10.22%) = 60.22%
+Charge% (cast time skill) = 20 + (0.77 × 10) + (40 × 60.22%) ≈ 20 + 7.7 + 24.09 ≈ 51.79 = 51%
+Breakpoint% = 100 - (51 / 2) = 74%
+At 73% or less ➔ Gives the full charge amount (+51%)
+At 75% or more ➔ Only 75% of the charge amount (+38%)
+At 100% or more ➔ Only 50% charge amount (+25%)
+Game Description: “A magic cannon that mows down enemies in a straight line (Charge Skill). Charge it to increase its power and hit count. Using a skill that involves casting will speed up the charging.”
+Staff bonus: Skill Multiplier per hit +baseINT/100
+Magic Device bonus: Skill Constant gained per charge is tripled
+Magic Device bonus: Width +1m
+
+
+==================================================
+SKILL: MAGIC: CRASH
+==================================================
+
+Category: Magic Skills
+Tier: V
+Required Level: Level 240
+
+Source Details:
+Lv 5; No Limit
+MP Cost: 400
+Damage Type: Magic
+Base Skill Multiplier: (3 + 0.2 * Skill Level) for first volley; (2 + 0.2 * Skill Level) for second volley; (1 + 0.2 * level) for third volley; multiplier for each hit of each volley
+Base Skill Constant: 400; constant for each hit
+Hit Count: 3 hits for the first volley, and up to 3 hits for each subsequence volley, up to a total of 9 hits from all 3 volleys; damage calculation is done for each hit
+Maximum Cast Range: 12m
+Hit Range: 1m radius
+Base Cast Time: 2 seconds; affected by Cast Speed
+Fall Radius: 1m; all hits casted on the target’s position all the time
+Interval Hit: 1 meteor every 0.7 sec; second & third volley meteors drop after about 2-2.1 seconds after being triggered by the respective first & second volley meteors.
+(Hit order: First 1 > First 2 > First 3 > Second 1 > Second 2 > Second 3 > Third 1 > Third 2 > Third 3)
+Armor Break Ailment Chance: 10%, x1.5 & x3 on second & third volley
+Armor Break Duration: 5 seconds
+Armor Break Resistance: None
+Dizzy Ailment Chance: 10%, x1.5 & x3 on second & third volley; can only inflict if Armor Break is already inflicted
+Dizzy Duration: 10 seconds
+Dizzy Resistance: None
+Skill Effect:
+This skill can give a hidden fall mark effect on the target, so that few meteorites will fall upon that marked target. Meteorites can follow the target's movement, thanks to the mark effect!
+There is an increased critical chance of repeated meteorites:
+-Initial Meteor does not get any critical bonus.
+-2nd volley Meteor gets a 50% chance for absolute critical (separate from critical calculation).
+-3rd volley Meteor gets absolute critical.
+This Skill ignores half of enemy magic defense BEFORE Magic Pierce%.
+Game Description: “Summons 3 little meteorites. When hitting the target, each meteorite may drop down again up to 2 times with diminishing power, but a higher chance of inflicting [Armor Break] or [Dizzy].”
+Staff bonus: Skill multiplier per first volley hit +baseINT/300
+Staff bonus: Ailment chance x2
+Staff bonus: Hit Range (radius) +0.5m
+MD bonus: Ailment chance x4
+MD bonus: Hit Range (radius) +1.5m
+
+Rapid Charge
+Lv 5; Staff/Magic Device only
+Passive Effect:
+- Reduce Mp Charge by (0.2 * Skill Lvl) sec. Max at 1 sec reduction.
+- After using Mp Charge to instant Maximizer, then grant MATK that depends on the amount of mp recovered from maximizer and also, depends on your total magic pierce%.
+Flat Matk buff increase =
+For Staff = (MP restored)/10 + MAX[0 ; MIN((Magic pierce - 20) * 5 ; 150) - (1500 - MP restored)/10]
+For MD = (MP restored)/10 + MAX[0 ; MIN((Magic pierce - 16) * 5 ; 170) - (1700 - MP restored)/10]
+- And, it gives Magic pierce% buff only if you don’t have over 50% m.pierce.
+Formula =
+For Staff = MAX(0 ; MP restored/50 - MAX[0 ; (Magic pierce - 20)])
+For MD = MAX(0 ; MP restored/50 - MAX[0 ; (Magic pierce - 16)])
+
+
+==================================================
+SKILL: - RAPID CHARGE BUFF DURATION: MAX[40; 10 * (SKILL LEVEL - 1)] SEC
+==================================================
+
+Category: Magic Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Source Details:
+Game Description: “Slightly accelerates MP Charge. (Up to Lv5). Enhances MATK and Magic Pierce (max 50%) that depends on MP Heal Amount when followed by the activation of Maximizer. *Starting from Lv6, it will only extend the buff duration.”
+Fyi, this is complicated ngl… as staff, if u have 0% m.pierce, then u get 30% m.pierce from this skill. However, starting from 21% m.pierce, it is capped to 50%, in exchange of increases matk furthermore. Until you have over 50% m.pierce to make this skill, don't give m.pierce buff at all.
+
+
+==================================================
+SKILL: ENCHANTED BARRIERS
+==================================================
+
+Category: Magic Skills
+Tier: V
+Required Level: Level 240
+
+Source Details:
+Lv 5; Staff/MAIN Magic Device Only
+MP Cost: 400
+Skill Effect:
+When using this skill, it puts a barrier on your position with radius 2.5m. This barrier will last till Barrier HP becomes 0.
+Reusing this skill won't refresh Barrier HP(only change barrier position). And to recover Barrier HP, you need to recover mp (except for instant maximizer effect from E.barrier>Maximizer) inside the barrier. Formula = Floor(+1% Barrier HP * MP Bar).
+Note: Reusing this skill when your Barrier HP value is already at 0 aka… barrier vanished before, then it still puts a barrier on your position, but your Barrier HP value is at 1% HP.
+This barrier can only protect you from any damage as long as it has a Barrier HP and you're inside this barrier.
+Barrier HP = MAX[100 ; (Base Main Weap ATK * Base Main Weap Stability% * (Total INT / 7.5) * (1 + MaxHP%) + Flat MaxHP)]
+MaxHP modifiers (MaxHP % & flat; not VIT) affecting Barrier HP: equipments, avatars, guild bar equipment, consumables, MaxHP land cookings, regislet.
+This skill has Percentage Damage Reduction, which reduces damage received by (25 + Skill Level * 5)%, regardless of how much Barrier HP you had.
+Then after that percentage, Flat Damage Reduction takes place and its absorption value according to enemy attack range. It will absorb either 50% dmg(srd/0-7m distance between player and enemy) or 100% dmg(lrd/+8m distance between player and enemy).
+And.. that part above is where 1 Barrier HP lost for every 1 Flat Damage Reduction Value used to absorb. However if you don't have enough Barrier HP, then convert all of the current Barrier HP into Flat reduction value to absorb and… your Barrier will vanish.
+As per April 24th 2025 update, any fractional damage reduced from Barrier will skip the 1st damage reduction step (the percentage damage reduction) and goes straight to 2nd damage reduction step (flat damage reduction); this means, any/all fractional damage reduced from Barrier, will cost you Barrier HP (no Free up to 75% damage reduction like physical/magical damage).
+This skill damage reduction is confirmed to take place after Cover(Pet Skills).. hence this skill must be at the end of dmg received calc, and it is before “Special things that saves you from death such as Guard Power Break, Saber Aura, Magic Skin etc.”
+Buff Effect:
+While inside this Barrier, using any attacking magic tree skills when you have mburst learned, then you will gain +2 mburst stacks for every attacking magic tree skill used instead of +1 mburst stack.
+Magic: Finale Cast Time inside this Barrier will be shortened by 1 seconds.
+You're immune to “Magic Flinch” while inside this Barrier.
+While inside this Barrier, this barrier can reduce Aggro of All Skills by MIN[75% ; (1 - 1/Base MP Bar Cost)]. Provoke is unaffected by this skill aggro reduction, as provoke only generates fixed aggro not mp aggro.
+NOTES: The aggro increase does not stack with the aggro% stats additively but they do stack multiplicatively. Even multiplicatively with Guardian Aggro% Increase Multiplier.
+E.g.
+1mp skill = 1mp aggro(-0%)
+2mp skill = 1mp aggro(-50%)
+3mp skill = 1mp aggro(-66%)
+4mp skill = 1mp aggro(-75%)
+5mp skill = 1.25mp aggro(-75%)
+7mp skill = 1.75mp aggro(-75%)
+16mp skill = 4mp aggro(-75%)
+Your animation will be quicker while you're inside this Barrier. It is estimated that formula is +((2 + 0.5[if have 1k aspd]) * Skill Level)% Motion speed
+Your Maximizer while inside this Barrier, will become insta cast and recover MP, this one lasts until you use Maximizer. You can recast this skill and get this Maximizer insta cast again. [This is too broken… might be a bug tho? Even so.. you can insta cast maximizer outside this barrier, but no MP gain?!?]
+While inside this Barrier, if your qadal charge would reach over 100% charge as soon as you use qadal and not at 99% charge(aka. need to be less than 99%), then this Barrier will keep your Qadal at 99% charge (prevent your Qadal reach over 100% charge) and that qadal still gives halves mp/100% crit buff, but in exchange of that prevention, your current Barrier HP will be halved.
+Note: While inside this barrier if you use qadal at 99% charge(or let's say this barrier already prevents qadal over 100% charge before), then you still receive one of 4 following effects(Full Recovery, Stun, Sleep, Ded) as soon as you use qadal(even if you wait qadal buff timer 3 min to end). Fortunately you just make sure ebarrier hasn't prevented your qadal over 99% and wait for qadal buff timer to end, then you can start qadal again from the scratch while keeping qadal battle duration intact.
+Game Description: “Creates a barrier to protect yourself. If you are inside the barrier, damage will be absorbed. Besides, you won’t flinch while casting and aggro from MP consumption will be reduced. Restoring MP inside the barrier will restore the barrier’s HP too.”
+
+
+==================================================
+SKILL: MAGIC KNIFE
+==================================================
+
+Category: Magic Skills
+Tier: II
+Required Level: Level 30
+
+Source Details:
+Lv 2 Skill; Staff Only
+MP Cost: 0
+Damage Type: Physical
+Element: Neutral
+First 4 Hits Base Skill Multiplier: MIN[0.6 + 0.1 * Skill Level; 1.5]; total multiplier of all hits
+First 4 Hits Base Skill Constant: 0; total constant of all hits
+Last Hit Base Skill Multiplier: 1.5
+Last Hit Base Skill Constant: 0
+Maximum Cast Range: 8m
+Skill Effect:
+This skill follow physical mechanic(based on ATK, Physical critical rate, and as well Physical critical damage)
+This skill has Perfect aim attribute
+This skill inflicts Normal Proration. But if this skill was level 10, then inflict 2x Normal Proration
+At level 1-9, only do 4 first hits, without the last hit. Then level 10, will do 4 first hits and last hit.
+First 4 Hits, each hit recovers (3 + Floor((Min[SLv ; 9] - 1)/3) MP, meanwhile Last Hit MP recovery, is four times of that each hit. Note: must hit, no Evasion in order to get that MP, also won't recover mp if hit target that already died
+No Cast Time
+Game Description: “Sends out magic daggers to contain enemy. This skill has “normal attack proration”. Guarantees a hit with a small amount of MP recovered. Additional attack with normal attack proration increases when it becomes Lv10.”
+If First 4 Hits of this skill got evaded, then Last Hit will not land/trigger.
+This skill doesn’t give Magic: Burst stack
+
+
+==================================================
+SKILL: QADAL
+==================================================
+
+Category: Magic Skills
+Tier: III
+Required Level: Level 70
+
+Source Details:
+Lv 3 Skill; Staff Only
+MP Cost: 200
+Skill Effect:
+Using this skill will consume Your HP by 10% of your current HP
+If your previously casted skill is this skill, then using this skill again will cost MP only, no buff nor effect.
+Buff Effect:
+Buff Duration: 180 seconds
+Using this skill will give buff for the next skill to have its MP Cost divided by half and rounded up to the nearest multiple of 100 (e.g. 300/2 = 150 -> 200 MP; 600/2 = 300 -> 300 MP). Also, gives absolute critical buff for the next skill(even physical skills). These halves MP and absolute critical buffs will end when you use any skill.
+MaxHP debuff is same as (QadalCharge%). E.g. if you have Qadal Charge 90%, then you get -90% MaxHP
+Using this skill will give Qadal Charge randomly between (MAX[30 - Floor(TotalDex/25); 10])% and (100 - 5 * Skill Level - Floor(BaseDex/25))%.
+If you reach over Qadal Charge 100% upon using this skill and you don’t get “Full Recovery”, then this skill will not give you absolute crit & halves MP buff, and you will get following one of them below:
+[Full Recovery = get full mp & invincibility 2 seconds] (rare probability)
+[1HP Stunned]
+[1HP Sleep]
+[Dead]
+Skill Level can affect their chance: lower death chance, slightly lower sleep chance, increase stun chance, slightly increase a bit iframe chance.
+[But keep that in mind, these are RNG no confirmed/exact numbers so take this with a grain of salt. Btw i tried lv 1, keep getting dead often and occasionally sleep smh, rarely stun, never iframe but maybe abysmal chance. Also, having higher LUK seem increase chance to get “full recovery” and lower sleep chance, apparently it is expected to be 255 LUK = +10% though]
+Passive Effect:
+This skill has passive that increase your All Magic Tree Skills damage according to battle duration and your Qadal Charge. This passive work as long as you have Qadal Buff Timer ON and must not have "Qadal Halves MP & CR Buff". The longer you fight = the higher dmg bonus.
+Battle Duration will start ticking as soon as you engage/fight the target (no need to activate qadal at the start).
+And battle duration will reset IF:
+• “Your party killed any target in the non-boss map only(even if there is another target alive.. Meanwhile in boss map, battle duration still continues to tick, even when you kill a minion, this one keeps ticking until the end of fight)”
+• OR “no target left”
+• OR “you leave the map”
+• OR “you get knocked out”
+Increase Damage Dealt of Magic Tree skills = +1% every 3 battle seconds duration regardless of Skill Level.
+This Damage Dealt bonus cannot exceed above Qadal Charge% regardless of Skill Level. (Applied multiplicatively at the end of damage calculation after added along with Brave Aura bonus and Mana Recharge reduction)
+Hidden effect: Qadal has another passive that might be a bug or is it even a feature???…. Well until proven otherwise then :/
+Apparently, Qadal can reduce your Final Revive Time by 1 seconds for every 1 Battle Seconds Duration has. But if Battle Duration got reset, then ofc Final Revive Time reduction will get reset too. Since it has this hidden effect, then ofc you will get drawback which is your Base Revive Time will be increased by 150 seconds. [Note: pair it with Play Dead lv10(that reduces Base Revive Time by 150s) and your Base Revive Time will be back to 300 seconds].
+Note: If you do not dying in the normal way, for example you die because of qadal death(even dying due to sleep or stun) or regretless death… your Base Revive Time is set to 300 seconds and no Final Revive Time Reduction per Battle Duration.
+Game Description: “A forbidden technique that places a heavy burden on the mind and body. Consumes current HP and Max HP (random value) to halve the MP Cost of the next skill used and guarantee critical. If the burden gets too heavy from repeated use, then…”
+*※ This absolute critical buff seems buggy[or feature kekw] well as for now(this skill is slow buff register if you’re fast enough or max motion, mostly common issue = next skill after Qadal sometime/always fails to get Qadal buff while in combo).
+※ If there are ongoing attacks such as Magic: arrow/storm/crash between Qadal and the next skill, then it may fail to give buff to the next skill since it is wasted on ongoing attacks. BUG FIXED = no wasted on ongoing attacks anymore
+※ This absolute critical buff can affect DoT(such as Nemesis) only if you don’t do any skills during that DoT time. Otherwise, that DoT won't receive Absolute Critical Buff. BUG FIXED = DoT still receive its buff after doing any skills
+
+
+==================================================
+SKILL: SPELL CALIBRATION
+==================================================
+
+Category: Magic Skills
+Tier: IV
+Required Level: Level 150
+
+Source Details:
+T4; [Ex Skill] Staff/Main Magic Device Only
+Tuning Point: 2 (if Skill Tree Level 5) + Skill Level
+Tuning Point cost: 1 per adjustment. If you choose two adjustments for the same skill, the second adjustment will cost you 3 tuning points.
+Magic: Arrows
+Critical: Guarantees a critical hit.
+Double Shot: Unleashes two shots at a time. Total hits remain the same.
+Magic: Javelin
+Normalize: Normal attacks now have proration. Attack MP Recovery is applied upon successful hit. (* the skill deals normal proration but still uses magic proration; and recovers 100% of character's Attack MP Recovery upon hit).
+Retry: Activates the skill once again if it fails to inflict a status ailment.
+Magic: Wall
+Follow: Deploys the skill around yourself. However, it will no longer knock back enemies. Magic: Wall's area will follow you around.
+Extension: Triples the duration.
+Magic: Lances
+Quick Shot: Fires the shot faster
+Penetration: Gains Magic Pierce equal to the chance of inflicting stop.
+Magic: Blast
+Single: Now targets a single enemy and the cast time is slightly reduced. Base Cast Time -1s.
+Quick Spell: Lowers the chance of inflicting a status ailment ( - Base Ailment Chance * 75%? need further testings because of RNG) to reduce cast time. Base Cast Time -2s.
+-When both Magic: Blast calibrations are activated, Base Cast Time -3s.
+Magic: Impact
+Next Q(uick): Instead of halving MP cost, a swift effect will be applied to the next skill.
+Reinforce: Increases the power (Multiplier +2,5), range (+1m), and chance of inflicting [Tumble] (+35%). Not applicable when used consecutively (does not work when Impact Buff is Active).
+Magic: Storm
+Condensation: Halves its range to increase its power.
+Magic: Storm's base skill multiplier * 2
+Induction: Duration (seconds) changes to number of hits, and it will now slowly chase the target until hits count (depends on Magic: Storm's skill level) reached. Hitting multiple targets will consume hit count quota (e.g. when Magic: Storm level 10 hits 6 targets at once, the skill will end immediately; meanwhile if storm has 1 hit left and hits 3 targets, all targets will be hit before the skill ends).
+Magic: Guardian Beam
+Counter: Now activates even when you take damage.
+Long-Range: The stacks consumed are doubled to increase the activation range of magic attacks.
+Game Description: You can use the skills from Skill Menu
+The ability to adjust magic to suit your needs. Allows you to adjust certain Magic Skills up to Skill Tree Lv3. * It doesn't affect Enchanted Spell.
+
+
+==================================================
+SKILL: MAGIC: LASER
+==================================================
+
+Category: Magic Skills
+Tier: V
+Required Level: Level 240
+
+Source Details:
+T5; [Active] OHS/Staff/Main Magic Device Only
+MP Cost: 200
+Damage Type: Magic
+Base Skill Multiplier: 0.75 * Skill Level + MIN(ROUNDDOWN(remaining MP bar after laser;0);10)/2
+Base Skill Constant: 0
+Maximum Cast Range: 21m
+Buff Effect: Magic Pierce +10% (+5% more with staff)
+Buff duration: 10 seconds
+Ailment: Stop (with Neutral element); Bleed (with Fire element); Dizzy (with Water element); Lethargy (with Wind element); Silence (with Earth element); Dazzled (with Light element); Curse (with Dark element)
+Ailment Chance: 2% * Skill Level
+Ailment Resistance: 10 seconds
+This skill is affected by short/long range damage; affected by long range skill; uses and deals magic proration.
+Game Description: A technique to simplify magic and release it's power with the caster's ability. Power increases based on the remaining MP when activated. Low chance to inflict a status ailment (weapon element). After activation, your Magic Pierce slightly increases.
+Staff Bonus: Slightly boosts the increase in Magic Pierce.
+Magic Device Bonus: The chance to inflict a status ailment is 1.5 times higher.
+OHS Penalty: The chance to inflict a status ailment is halved.

@@ -1,0 +1,306 @@
+Category: Shield Skills
+
+GENERAL INFORMATION
+
+Tier Requirements:
+- Tier I: Level 5
+- Tier II: Level 20
+- Tier III: Level 50
+- Tier IV: Level 110
+- Tier V: Level 225
+
+
+==================================================
+SKILL: SHIELD MASTERY
+==================================================
+
+Category: Shield Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Get better at using a shield, ASPD with shield increases.
+Passive Skill
+Limitation: Shield only
+Effect: By equipping a shield on sub slot a penalty of ASPD-50% is applied, this skill gives ASPD+% to counter that penalty.
+ASPD amount: 5*lvl %
+At Lvl10 the skill completely removes the ASPD penalty.
+
+
+==================================================
+SKILL: SHIELD BASH
+==================================================
+
+Category: Shield Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Bash your shield on the enemy's head to inflict STUN.
+Active Skill (Physical) [Single Target]
+Limitation: Shield only
+MP Cost: 100MP
+Skill Constant: 50 + 5 * Lvl
+Skill Rate: 0.015 * Lvl
+Chance to inflict STUN: 75 + 2.5 * Lvl %
+
+
+==================================================
+SKILL: SHIELD CANNON
+==================================================
+
+Category: Shield Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Throw your shield at a high speed at the enemy to inflict STUN.
+Active Skill (Physical) [Single Target]
+Limitation: Shield only
+MP Cost: 200MP
+Action Range: 5 + Lvl * 1.5 m
+Skill Constant: 100 + 10 * Lvl
+Skill Rate: 0.5 + 0.1 * Lvl
+Chance to inflict STUN: 10 * Lvl %
+If enemy is stunned by using this skill, the skill multiplier and constant will increase for that hit only
+Bonus Skill Multiplier: Skill Rate * Shield refine value (round up to 1 if refine is 0)
+Bonus Skill Constant: +BaseVIT * (1 + Floor(Shield refine value/3))
+Fixed Element: Light
+
+
+==================================================
+SKILL: GUARD STRIKE
+==================================================
+
+Category: Shield Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Gain the ability to reflect back enemy attacks by guarding.
+Passive Skill
+Limitation: No Limit
+Effect: Damage is dealt on the enemy whenever guard procs [Proc Cooldown 0.5 sec, if multiple hits at once]. The damage is dependant on shield refine and guard power. Doesn't prorate and its damage based on Physical Proration
+Details for the damage dealt:
+Active Skill (Physical) [Single Target]
+MP Cost: 0MP
+Action Range: Infinite
+Skill Constant: 10 * Lvl+(Shield Bonus = 60 * ShieldRefine)
+Skill Multiplier: 0.1 * Lvl+(Shield Bonus= GuardPower/100)
+
+
+==================================================
+SKILL: FORCE SHIELD
+==================================================
+
+Category: Shield Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Increase your DEF while having a shield equipped.
+Passive Skill
+Limitation: Shield only
+Effect: The skill gives DEF+, DEF+%, Physical Resistance and a small amount of maxHP+ stat boosts.
+Amount of DEF+ = 2 * Lvl (Flat)
+Amount of DEF+% = 1 * Lvl (%)
+Amount of maxHP+ = 50 * Lvl (Flat)
+Amount of Physical Resistance = 1 * Lvl %
+
+
+==================================================
+SKILL: MAGICAL SHIELD
+==================================================
+
+Category: Shield Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Increase your MDEF while having a shield equipped.
+Passive Skill
+Limitation: Shield only
+Effect: The skill gives MDEF+, MDEF+%, Magic resistance and a small amount of maxHP+ stat boosts.
+Amount of MDEF+ = 2 * Lvl (Flat)
+Amount of MDEF+% = 1 * Lvl (%)
+Amount of maxHP+ = 50 * Lvl (Flat)
+Amount of Magic Resistance = 1 * Lvl %
+
+
+==================================================
+SKILL: PROTECTION
+==================================================
+
+Category: Shield Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Cast a barrier on the party that increase physical resistance.
+Support Skill (Party Buffer)
+Limitation: No Limit
+MP Cost: 300MP (Shield Bonus = -200MP)
+Effect: Increase the Physical Resistance of the party while reducing the Magical Resistance.
+Amount of physical resistance: 10 + (Ceil[Lvl/3]) * 5 %
+Amount of magical resistance: (Ceil[Lvl/3]) * 5 - 35 %
+Duration: (60 * Lvl) seconds or (1 * Lvl) minutes
+
+
+==================================================
+SKILL: AEGIS
+==================================================
+
+Category: Shield Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Cast a barrier on the party that increase magical resistance.
+Support Skill (Party Buffer)
+Limitation: No Limit
+MP Cost: 300MP (Shield Bonus = -200MP)
+Effect: Increase the Magical Resistance of the party while reducing the Physical Resistance.
+Amount of magical resistance: 10 + (Ceil[Lvl/3]) * 5 %
+Amount of physical resistance: (Ceil[Lvl/3]) * 5 - 35 %
+Duration: (60 * Lvl) seconds or (1 * Lvl) minutes
+
+
+==================================================
+SKILL: GUARDIAN
+==================================================
+
+Category: Shield Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Cast an aura which gives various buffs to the party members inside it.
+Connected players are represented with a yellow line.
+Support Skill (Aura)
+Limitation: Shield only
+MP Cost: 600MP
+Aura Radius: 1 + 0.5*Lvl m (Center at the caster)
+I will describe Guardian's buffs separately as:
+-- Self Buffer (applied on caster, the icon below HP bar has a time duration)
+-- Party Buffer (applied on the party members that stand inside the aura)
+SELF BUFFER EFFECTS:
+Effect: Increase guard rate of the caster. Also increase aggro multiplier, AMPR and generate auto aggro per second depending on the number of connected players.
+NumberOfConnectedMembers = Total number of yellow lines connected from the caster = per link(in short)
+ShieldRefine = Refinement value of the shield equipped by the caster.
+- Amount of +aggro% multiplier increase: +(40 + 2 * Lvl + 2 * ShieldRefine) * (per link) %
+NOTES: The aggro increase does not stack with the aggro% stats additively but they do stack multiplicatively.
+- Amount of guard recharge increase: 15 + ShieldRefine %
+- Amount of ATK% reduction: -(20 - Lvl * 1.5) * (per link) %
+- Amount of MATK% reduction: -(30 - Lvl * 2) * (per link) %
+- Amount of AMPR increase: (5 + 1 * Lvl) * (per link)
+- Amount of auto aggro generation: 50 + (32 + ref + MAX[0, ref - 12]) * (per link) every 3 sec
+NOTE: This calculation is already affected by aggro% multiplier from this guardian self buff. The auto aggro generation is activated once every 3 seconds(reset timer when link changes/lost) and is applied to all active base enemies[that has aggro on you or others that receive your link before] in the map and of course it is unaffected by aggro+% equipment. Also, this buff expires first before starting auto-aggro generation. Btw, this auto aggro generation is already based on 1MP = 10 Aggro now.
+Duration:
+--30 + 10 * Lvl seconds for Lvl1-5
+--30 + 10 * Lvl + (Lvl - 5) * 10 seconds for Lvl6-10
+PARTY BUFFER EFFECTS:
+Effect for others(non-guardian): grant a buff Reduce the damage taken by enemy, Reduce aggro multiplier buff, and gives AMPR
+Effect for guardian users: No effects if both guardians that receive aura each other are on the same guardian level. If there guardian that is lower level than other, then lower lvl’s self-buff +aggro% increase will be disabled and will receive higher lvl’s party-buff -aggro% reduction. Also lower lvl’s auto-aggro generate/3sec will be set to 50/3sec and get reduced by higher lvl’s aggro reduction multiplier too. [And higher lvl gain additional auto-aggro generates the same amount as that reduction above?].
+ShieldRefine = Refinement value of the shield equipped by the caster.
+- Amount of damage taken reduced: (20 + 1.5 * Lvl + ShieldRefine) %
+NOTES: This damage reduction acts as an additional resistance on the top of other damage mitigation stats. The % reduction applies on all categories of attacks including fractionals except ailments. Doesn’t work for Guardian users.
+- Amount of Aggro reduced: -(40 + 2 * Lvl + 2 * ShieldRefine) %
+NOTES: The aggro reduction does not stack with the aggro% stats additively but they do stack multiplicatively. May won’t work for Guardian users depending on Guardian lvl.
+- Amount of AMPR increase: 5 + 1 * Lvl
+NOTES: AMPR amount is indeed doubled for DW. Doesn’t work for Guardian users.
+Duration: Ends as soon as you are not connected/move out from the caster's aura or duration ends on the caster.
+
+
+==================================================
+SKILL: SHIELD UPPERCUT
+==================================================
+
+Category: Shield Skills
+Tier: II
+Required Level: Level 20
+
+T2; Shield Only
+MP Cost: 100
+Base Skill Multiplier: 0.15 * Skill Level
+Bonus Skill Multiplier on successful [Tumble]: 0.01 * Skill Level * Shield Refine Level
+Base Skill Constant: 100
+Hit Count: 1
+Maximum Cast Range: 4m
+Ailment: Tumble
+Base Ailment Chance: [10 * Skill Level]%
+Ailment Duration: 3 seconds
+Ailment Resistance: seem same as Sonic Thrust? [+12 seconds more than Sonic Wave/Magic Impact/etc. (at Normal dif), +9(at Hard dif), +3(at Nm dif), +1 or +0(at Ulti dif)]
+Skill Effect:
+Gain increased Skill Multiplier upon successfully inflicting [Tumble]
+Automatically guard incoming attacks from any direction during this skill animation as long as you have guard gauge, plus not in Armor Break ailment or Guard Power Break.
+Also, Reduce Damage Taken/Received during this skill animation by Floor(39 + Skill Level * 3 + Shield Refine * Skill Level/5)%. Note: this damage taken reduction applies after guard reduces damage. Even if you're in Armor Break ailment or Guard Power Break, this reduction still works.
+Game Description: “A powerful uppercut with a shield. Chance to inflict [Tumble]. Damage Reduction and Guard will be activated during this skill.”
+
+
+==================================================
+SKILL: DUAL SHIELD
+==================================================
+
+Category: Shield Skills
+Tier: III
+Required Level: Level 50
+
+T3; Shield Only
+MP Cost: 300
+Increase your Auto Attacks Skill Multiplier by +([0.1 * Skill Level] + BaseVIT/500).
+Auto Attacks Hit Count: 3 hits; damage calculation is done once, then divided between the hits
+Skill Effect:
+Changes auto attack motion. If main wp’s original auto attack range was beyond 3m then reduce the auto attack range down to 3m; no change otherwise. Fortunately, Power Wave still works normally during this auto attack motion changing buff.
+Disables Manual Guard stance, but will automatically Guard any attacks (Light Armor = Front; Heavy Armor = Any Directions) as long as both shields are present during idle/running or auto attack only.
+Dual Shield's “Auto-guard” will consume Guard gauge upon taking damage. Guard gauge consumption of this skill when taking damage will be halved(seem like always Perfect Timed Guard all the time in auto guard huh).
+Dual Shield's "Auto-guard" has Guard MP Recovery.
+Other than that, the rest(guard ailment resist, etc.) are pretty much the same as normal guard.
+Heavy Armor bonus = removes auto attack interval delay and allow automatic Guard from any direction instead of only from the front
+You cannot use this skill if you get inflicted with “Armor Break” Ailment or “Guard Power Break”.
+Cannot be reactivated while the buff is still active; also cannot be activated while another auto attack motion change buff (Rampage, Twin Storm, Knife Combat, Minstrel Songs) is active
+Buff Effect:
+ASPD -[150 - (10 * Skill Level) - (2 * Shield Refine Level)]%
+Accuracy +[(10 * Skill Level) + Shield DEF]
+Buff Duration: [10 + (2 * Skill Level) + Shield Refine Level] sec OR [until you get inflicted with “Armor Break” Ailment or “Guard Power Break”] OR [until you use "Belagerung" Shield Skill]
+-Note: using skills/combos disables Dual Shield state temporary.
+Game Description: “Your iron will is stronger than a castle wall. Equips two shields and maintains the state of Guard during combat. Heavy armor increases Guard range and removes the interval of normal attacks.”
+
+
+==================================================
+SKILL: SHIELD REPAIR
+==================================================
+
+Category: Shield Skills
+Tier: IV
+Required Level: Level 110
+
+T4; Shield Only
+MP Cost: 200
+Base Cast Time: 1 seconds (unaffected by CSPD)
+Skill Effect:
+Recover Guard gauge by [10 + (4 * Skill Level)]% of missing Guard Gauge
+Recovers 1 MP for every 10 “Guard Power Points”
+Note: The number on the displayed guard gauge is the percentage value (example: if you see 130 on screen it means it’s 130% Guard Gauge), and 100 “Guard Power Points” = 1% Guard Gauge.
+FYI
+Missing Guard Gauge is equivalent to (Max Guard Gauge - Current Guard Gauge)
+Game Description: “Repairs your shield and recovers its durability. Recovers the Guard power consumed. Also recovers MP depending on the recovered Guard.”
+
+
+==================================================
+SKILL: BELAGERUNG
+==================================================
+
+Category: Shield Skills
+Tier: V
+Required Level: Level 225
+
+T5; Shield Only
+MP Cost: 600
+Base Skill Multiplier: 4 + 0.35 * Skill Level
+Base Skill Constant: 100 + 10 * Skill Level
+Enhanced Base Skill Multiplier: 6 + 0.525 * Skill Level
+Enhanced Base Skill Constant: 100 + 10 * Skill Level + baseVIT * (1 + floor(Shield Refine Level/5))
+Hit Count: 2 hits; damage calculation is done for each hit
+Maximum Cast Range: 12m
+Hit Range: circular zone of 4m radius around the main target
+Skill Effect:
+AOE Attack skill that hits twice. Ends Dual Shield buff upon using this skill.
+This skill damage is affected by SRD/LRD depend distance, but unaffected by Long Range passive
+When heavy armor is equipped, Each hit will apply one stack of all debuffs below. If this skill lands 2 hits, then its debuff effect will be doubled[in other word, 2 stacks]. Max stack of this skill enemy can take is up to 2 only. Debuff duration: 15 seconds(refreshable)
+• If enemy have this debuff and have crit resistance, then Reduce that enemy’s Crit Resistance by flat (Skill Level * stack) until that enemy has ZERO crit resistance. In another word, this cres debuff won’t make from cres to go under 0 at all aka. won’t go negative cres and no cr bonus against non-cres enemies. So, Actual Cres debuff formula = IF(Cres > 0; MIN[Cres ; Skill Level * stack]; 0) flat cres reduction.
+• Your or allies' attack to the enemy in immobile state during debuff, will have its increased damage dealt by +(0.5 * Skill Level * stack)%. This damage dealt effect is calculated additively with Brave Aura and others said effect.
+• Also, when you or allies auto attack the enemy in immobile state during debuff, then that auto attack will gain more AMPR by +(2 * Skill Level * stack)
+Note: This skill can apply debuff even when this skill misses or gets evaded, however it seems like this skill cannot apply debuff twice(just debuff once as only one of two hits can reach) if this skill doesn’t reach the target at all especially when the target dash or moves away very quickly.
+Game Description: “Only available during the Skill: "Dual Shields". Deals AoE damage twice and ends "Dual Shields". Increases damage to an immobile target.
+"Immobile" refers to [Flinch], [Tumble] and [Stun]. Applies a debuff to the target when equipped with heavy armor. The debuff lasts for 10 seconds. Reduces Critical resistance depending on the level of Belagerung. Increases the damage dealt and Attack MP Recovery if the target is immobile.”

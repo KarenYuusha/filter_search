@@ -1,0 +1,731 @@
+Category: Mononofu Skills
+
+GENERAL INFORMATION
+
+Tier Requirements:
+- Tier I: None
+- Tier II: Level 30
+- Tier III: Level 70
+- Tier IV: Level 150
+- Tier V: Level 240
+
+Shared Rules and Notes:
+Important Note:
+- Using the main katana(not sub-katana), you will passively gain the ability to perform a dash after doing an auto-attack(all you need is auto-attack and move at same time). We named it Enhanced auto-attack buff.
+This buff just doubles your Total auto attack damage(stack multiplicatively with other auto attack modifiers such as Kairiki, Nukiuchi, Berserk, etc.), gain 50% AMPR bonus and also gain Absolute Critical on enhanced auto-attack, this buff will end after you use auto attack.
+- Additionally, you can perform dash after using skill and gain Enhanced auto-attack buff as well. These skills are Pulse Blade, Hasso Happa, Bouncing Blade, Shadowless Slash. Bow+katana can perform this, but cannot get Enhanced auto-attack buff.
+Issen
+Lv 1 Skill; Katana Main/Sub only
+MP Cost: 100
+Damage Type: Physical
+Base Skill Multiplier (First Hit): 0.5
+Base Skill Multiplier (Second Hit): 1 + 0.05 * Skill Level
+Base Skill Constant (First Hit): 0
+Base Skill Constant (Second Hit): 50 + 5 * Skill Level
+Hit Count: 2 hits; damage calculation is done for each hit
+Maximum Cast Range: Defaults to the Katana's Auto Attack Max Range
+Skill Effect:
+- This skill is treated as an Unsheathe Attack
+- The second hit has a Critical Rate boost of 200%;
+the boost is applied as follows:
+
+
+==================================================
+SKILL: ISSEN SECOND HIT CRITICAL RATE = TOTAL CRITICAL RATE * 3
+==================================================
+
+Category: Mononofu Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Source Details:
+Game Description: "Slash an enemy at a blinding speed. High Critical Rate at the second hit."
+
+
+==================================================
+SKILL: PULSE BLADE
+==================================================
+
+Category: Mononofu Skills
+Tier: I
+Required Level: None
+
+Source Details:
+Lv 1 Skill; Katana Main/Sub only
+MP Cost: 100
+Damage Type: Physical
+Base Skill Multiplier (First Hit): 0.5
+Base Skill Multiplier (Second Hit): 0.5 + Skill Level * 0.05
+Base Skill Multiplier (Third Hit): 0.5 + Skill Level * 0.1
+Base Skill Constant: 30 + Skill Level; constant for each hit
+Hit Count: 3 hits; critical calculations are done once then copied for the other hits; the rest of damage calculation is done for each hit
+Maximum Cast Range: 12m
+Skill Effect:
+- This skill is treated as an Unsheathe Attack
+- This skill has a DEF penalty(or might be negative physical pierce%) based on the skill's level and the distance between the caster and the mob;
+the penalty is applied as follows
+Distance Penalty = distance to mob - Katana Max Auto Attack Range; this value cannot go under 0
+Target's Pulse Blade DEF = Target's DEF * (1 + Distance Penalty * (11 - Skill Level)/100)
+- If this skill is used outside of a combo or as the last skill of a combo, and you aren't afflicted with the Slow aliment or the Stop aliment, you can dash to any direction using the movement "trackball" during the sheathing animation of the skill
+Game Description: "Slash an enemy with an aerial slash at a distance. The damage decreases as you get further away from the target. You can move when sheathing the katana."
+
+Triple Thrust
+Lv 2 Skill; Katana Main/Sub only
+MP Cost: 300
+Damage Type: Physical
+Base Skill Multiplier: 1.5 + 0.2 * Skill Level + total AGI/500; total multiplier of all hits
+Base Skill Constant: 0; total constant of all hits
+Hit Count: 3 hits; damage calculation is done once then divided evenly between the hits
+Maximum Cast Range: 12m
+Skill Effect:
+- This skill is treated as an Unsheathe Attack
+- This skill will move you to the other side of your target
+Buff Effect: Increases the Skill Constant of the next attacking skill;
+the increase is calculated as follows:
+
+
+==================================================
+SKILL: TRIPLE THRUST SKILL CONSTANT INCREASE = PLAYER LEVEL/(11 - SKILL LEVEL)
+==================================================
+
+Category: Mononofu Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Source Details:
+Buff Duration: Until an attacking or any skill is used
+Game Description: "Quickly approach and thrust a target. Move behind a target when attacking. Increase the damage of the next skill a little."
+Some skill have specific interactions with Triple Thrust's buff
+
+
+==================================================
+SKILL: HASSO HAPPA
+==================================================
+
+Category: Mononofu Skills
+Tier: III
+Required Level: Level 70
+
+Source Details:
+Lv 3 Skill; Katana Main/Sub only
+MP Cost: 500
+Damage Type: Physical
+Base Skill Multiplier (First Hit): 2.2 (level 1); 2.3 (level 2); 2.4 (level 3); 2.5 (level 4); 2.6 (level 5); 2.7 (level 6); 2.8 (level 7); 2.9 (level 8); 3 (level 9); 6 (level 10)
+Base Skill Multiplier (Other Hits): 2.2 (level 1); 2.3 (level 2); 2.4 (level 3); 2.5 (level 4); 2.6 (level 5); 2.7 (level 6); 2.8 (level 7); 2.9 (level 8); 3 (levels 9 and 10); multiplier for each hit
+Base Skill Constant: 130 + 2 * Skill Level
+First Hit Count: 1 hit (levels 1 to 10)
+Other Hits Count: 0 hit (levels 1 to 3); 1 hits (levels 4 to 6); 2 hits (levels 7 to 10); damage calculation is done for each hit
+Maximum Cast Range: Defaults to the Katana's Auto Attack Max Range
+Hit Range (All Hits): 2m (levels 1 and 2); 3m (levels 3 to 6); 4m (levels 7 to 10); around caster
+Skill Effect:
+This skill is treated as an Unsheathe Attack
+This skill has the Perfect Aim attribute
+If this skill is used outside of a combo or as the last skill of a combo, and you aren't afflicted with the Slow aliment or the Stop aliment, you can dash to any direction using the movement "trackball" during the sheathing animation of the skill
+[Main Katana Only] If you use this skill after Kasumisetsu Getsuka, then you will use enhanced one, Sakura Ranman which is add extra multiplier (+1 + 0.5 + 0.5) (+1 +1 +1) to each corresponding hits compared to hasso original multiplier. Also, grant +300 MP Recovery for every Sakura Ranman successfully hit[cap at 600MP].
+Sakura Ranman Note: Since Kasumisetsu Getsuka grant whatever is it 1 Sakura stack. So to trigger Sakura Ranman, u just need to have that 1 Sakura stack and use Hasso Happa anytime.
+Game Description: "Slash all enemies in a certain space. Deal damage to enemies around you without fail. You can move when sheathing the katana."
+Triple Thrust's Skill Constant buff is divided by the Hit Count
+This skill damage is unaffected affected by Whack, but affected by Short Range Damage modifiers regardless distance
+
+Tenryu Ransei
+Lv 4 Skill; Katana Main/Sub only
+MP Cost: 300
+Damage Type: Physical
+Base Skill Multiplier: 1.5 + 0.25 * Skill Level; total multiplier of all hits
+Base Skill Constant: 10 * Skill Level; total constant of all hits
+Hit Count: 4 hits; damage calculation is done once then spread evenly between the hits
+Maximum Cast Range: Defaults to the Katana's Auto Attack Max Range
+Skill Effect:
+This skill is treated as an Unsheathe Attack
+The skill has a Motion Speed modifier of (125 - 15 * number of stacks[max at 3 stack])%;
+If your last action is Tenryu Ransei, then Using Tenryu Ransei again will not inflict proration. Note: Auto-attack is considered as action, so doing tenryu then auto then tenryu then auto repeat, still doesn't increase tenryu proration dmg.
+Buff Effect:
+Each time the skill is used, you gain one stack; you can have a maximum of 4 stacks
+This skill's MP Cost becomes 100
+You cannot refresh the duration of the buff by using this skill
+If you attack successfully with "Madagachi" or "Kasumisetsu Getsuka" OR you parry an attack successfully with Zantei Settetsu while the buff is active, Tenryu Ransei's buff is extended, but you lose all stacks; you can refresh the duration of the buff with Madagachi or Zantei Settetsu or Kasumisetsu Getsuka; if the buff duration expires right after doing so, the buff is reactivated; the stack reset applies after Tenryu Ransei: Zannou/Zanyu
+
+
+==================================================
+SKILL: TENRYU RANSEI: ZANNOU WITH ZANTEI SETTETSU CANNOT INFLICT ARMOR BREAK
+==================================================
+
+Category: Mononofu Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Source Details:
+Attack Accuracy of Tenryu Ransei +(1 + number of stacks) * 10; this effect only activates if you have at least 1 stack; only takes a maximum of 3 stacks into account
+Base Skill Multiplier * (1 + number of stacks); only takes a maximum of 3 stacks into account
+As long as you don't have the Paralysis ailment, your auto attack delay is set to 0; this does not include the delays from Fear or tapping a part
+Buff Effect: 10 seconds (with Tenryu Ransei); 30 seconds (with Madagachi and Zantei Settetsu); 10 + number of stack Tenryu Ransei buff * 10 seconds (with Kasumisetsu Getsuka)
+Game Description: "Furiously slash consecutively. Power increases for a while everytime you use the skill (4 times at Most). Special attack is applied to Madagachi/Zantei Settetsu by meeting certain conditions and the buff duration increases."
+
+
+==================================================
+SKILL: GARYOU TENSEI
+==================================================
+
+Category: Mononofu Skills
+Tier: IV
+Required Level: Level 150
+
+Source Details:
+Lv 4 Skill; Katana Main/Sub only
+MP Cost: 500
+Damage Type: Physical
+Base Skill Multiplier: MAX[0.2* Skill Level; (0.2 * Skill Level + number of stacks/10) * number of stacks]
+Base Skill Constant: 100
+Hit Count: 1 hit
+Maximum Cast Range: Defaults to the Katana's Auto Attack Max Range
+Skill Effect:
+This skill has Critical Rate -(110 - 10 * Skill Level)
+On use, this skill will remove Kairiki Ranshin's buff. As exchange of that, Kairiki can give 100 flat crit rate and 100% physical pierce of this skill
+If the target has the Armor Break ailment, the Skill Constant is multiplied by 10
+After you use this skill, it will give buffs that can reduce your damage taken by (5% x number of stacks). And its duration = (number of stacks) seconds
+NOT Unsheathe Attack
+If you use this skill level 10 and have fully 10/10 stacks during Shadowless Slash animation, this skill will become Divine Slash
+Buff Effect:
+Each time an attacking skill from the Mononofu Skill Tree is used or everytime you do enhanced normal attack(attack after dash) with main ktn, this skill gains a stack; you can have a maximum of 10 stacks
+Buff Effect: Until you cast Garyou Tensei
+Passive Effect:
+Each Garyou stack increase +2% damage of all Mononofu Skills(that includes Garyou Tensei and Divine Slash) regardless of Garyou level. However, passive dmg buff always set to +20% regardless of current garyou stack if you have garyou dmg reduction buff in present/active(this happens after you use garyou/divine. And its duration ofc depends on garyou stack which is +1s per stack).
+Game Description: "The ultimate slash. The power increases everytime you use certain Mononofu Skills (10 times at Most). Power increases against targets inflicted with [Armor Break]. Critical Rate is extremely low."
+
+
+==================================================
+SKILL: POMMEL STRIKE
+==================================================
+
+Category: Mononofu Skills
+Tier: I
+Required Level: None
+
+Source Details:
+Lv 1 Skill; Katana Main/Sub only
+MP Cost: 200
+Damage Type: Physical
+Element: Neutral
+Base Skill Multiplier: 1 + 0.05 * Skill Level
+Base Skill Constant: 100 + 10 * Skill Level
+Hit Count: 1 hit
+Maximum Cast Range: Defaults to the Katana's Auto Attack Max Range
+Skill Effect: If the target already has the Paralysis ailment, it will inflict the Stun ailment instead
+Primary Ailment: Paralysis
+Primary Ailment Chance: 50% + (5 * Skill Level)%
+Primary Ailment Duration: 10 seconds
+Primary Ailment Resistance: None
+Secondary Ailment: Stun
+Secondary Ailment Chance: (5 * Skill Level)%
+Secondary Ailment Duration: 5 seconds
+Secondary Ailment Resistance: 25 seconds (Easy, Normal, Hard and Nightmare); 30 seconds (Ultimate)
+Game Description: "Strike an enemy with the pommel. Chance to inflict [Paralysis]. Chance to inflict [Stun] if the target is paralyzed."
+Mind's Eye will stop the skill if the target has the Paralysis ailment
+
+
+==================================================
+SKILL: MAGADACHI
+==================================================
+
+Category: Mononofu Skills
+Tier: II
+Required Level: Level 30
+
+Source Details:
+Lv 2 Skill; Katana Main/Sub only
+MP Cost: 300
+Damage Type: Physical
+Base Skill Multiplier: 2 + 0.3 * Skill Level
+Base Skill Constant: 100 + 10 * Skill Level
+Tenryu Ransei: Zannou Skill Multiplier: 13 + Floor(Base Skill Multiplier of Tenryu * 100 * number of stacks on Tenryu Ransei buff/2)/100
+Tenryu Ransei: Zannou Skill Constant: 300
+Hit Count: 1 hit
+Maximum Cast Range: Defaults to the Katana's Auto Attack Max Range
+Skill Effect:
+If the buff isn't removed before the the katana lifting animation ends, the skill will simply deal damage; if the buff is removed before the katana lifting animation ends, the skill animation changes and you deal no damage
+If the first scenario of the previous effect occurs while Tenryu Ransei's buff is active, the normal attack is replaced by Tenryu Ransei: Zannou; it is considered as an Unsheathe Attack, gives invincibility for 2 seconds OR until 0.5 seconds after the animation ends and has the Perfect Aim attribute
+Buff Effect:
+Reduce Physical damage and Fractional damage taken by 90%; reduce Magic Damage taken by 45%
+If the damage taken would still kill you while you're at 20% of your Max HP or higher, you will live with 1 HP
+Negate any ailment associated with the hit of damage reduced
+Recover 100 + (10 * Skill Level) MP if the buff is removed from taking damage. However if this skill used in combo, then -100 MP recovery
+Buff Duration: Until the katana lifting animation ends OR until you take one hit of damage
+Game Description: "Parry an enemy's attack and reduce damage only once. Nullify aliments, recover MP a little, and remain at least 1 HP when taking fatal damage at certain amount of HP. Just deal damage if you don't parry."
+This skill will not prorate when successfully parrying.
+Triple Thrust's Skill Constant boost is applied to the normal attack, but not to Tenryu Ransei: Zannou.
+
+
+==================================================
+SKILL: ZANTEI SETTETSU
+==================================================
+
+Category: Mononofu Skills
+Tier: III
+Required Level: Level 70
+
+Source Details:
+Lv 3 Skill; Katana Main/Sub only
+MP Cost: 400
+Damage Type: Physical
+Base Skill Multiplier: 1 + 0.2 * Skill Level; total multiplier of all hits
+Base Skill Multiplier (Counter): 5 + 1 * Skill Level
+Base Skill Constant: 10 * Skill Level; total constant of all hits
+Base Skill Constant (Counter): 30 * Skill Level
+Tenryu Ransei: Zannou Skill Multiplier: 13 + Floor(Base Skill Multiplier of Tenryu * 100 * number of stacks on Tenryu Ransei buff/2)/100
+Tenryu Ransei: Zannou Skill Constant: 300
+Hit Count: 4 hits; damage calculation is done once then divided evenly between the hits
+Counter Hit Count: 1 hit; critical calculation is copied from the previous 4 hits; the rest of the damage calculation is done independently from the 4 hits
+Maximum Cast Range: Defaults to the Katana's Auto Attack Max Range
+Skill Effect:
+- This skill is treated as an Unsheathe Attack
+- If the buff is removed before the slashing animation ends, the skill's sheathing animation is replaced by an additional attack
+- If the previous effect occurs while Tenryu Ransei's buff is active, the counter attack is replaced by Tenryu Ransei: Zannou; it is considered as an Unsheathe Attack, gives invincibility for 2 seconds OR until 0.5 seconds after the animation ends and has the Perfect Aim attribute. But cannot inflict Armor break
+Buff Effect:
+- Reduce damage taken to 0 (it still counts as taking damage)
+- Negate any Flinch, Tumble, Stun or Knockback associated with the nullified hit
+Buff Duration: Until the slashing animation ends OR until you take one hit of damage
+Counter Ailment: Armor Break
+Counter Ailment Chance: 50% + (5 * Skill Level)%
+Counter Ailment Duration: 5 seconds
+Counter Ailment Resistance: None
+Game Description: "Furiously slash an enemy taking its attack. Nullify damage once and do additional attack. Chance to inflict [Armor Break] with it."
+Triple Thrust's Skill Constant boost is applied to the first 4 hits, but not to the counter hit nor to Tenryu Ransei: Zannou
+
+
+==================================================
+SKILL: BUSHIDO
+==================================================
+
+Category: Mononofu Skills
+Tier: I
+Required Level: None
+
+Source Details:
+Lv 1 Skill; No Limit/Katana Main only (depends on effect)
+Passive Effect:
+- Max HP +(10 * Skill Level); Max MP +(10 * Skill Level); Accuracy +(Skill Level)
+- Weapon ATK +(3 * Skill Level)%; ATK +1% (levels 1 and 2)/ +2% (levels 3 to 7)/ +3% (levels 8 to 10); these effects only apply if you're using a Katana on the main weapon slot
+Game Description: "Learn how to be a Mononofu. HP, MP and Accuracy increase a little. ATK increases when equipping a Katana."
+
+Two-Handed
+Lv 1 Skill; No Limit/Katana Main only (depends on effect)
+Passive Effect:
+- Weapon ATK +(Skill Level)%; Accuracy +(Skill Level)%; Critical Rate +(Skill Level); Stability +(Skill Level)%; these effects only apply if you have no equipment on your sub weapon slot
+- If you're using a Katana on the main weapon slot, have no equipment on your sub weapon slot[except Ninjutsu scroll with passive ninjutsu skill “Ninja Spirit”], and you use an auto attack or skill that crits, your total ATK is increased by (5 * Skill Level)% for that attack;
+the increase is calculated as follows:
+
+
+==================================================
+SKILL: TWO-HANDED CRIT ATK = TOTAL ATK * (1 + 0.05 * SKILL LEVEL)
+==================================================
+
+Category: Mononofu Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Source Details:
+Game Description: "Wield the weapon with both hands. Various stats are enhanced if Sub-Weapon is empty. Critical Damage with a Katana greatly increases."
+Non-Katana Main penalty: Critical Rate bonus is halved
+Non-Katana Main penalty: Stability bonus is halved
+Do NOT believe this skill description when it says "Critical Damage"; it's very misleading
+
+
+==================================================
+SKILL: MEIKYO SHISHUI
+==================================================
+
+Category: Mononofu Skills
+Tier: II
+Required Level: Level 30
+
+Source Details:
+Lv 2 Skill; No Limit
+MP Cost: 200
+Damage Type: None
+Buff Effect:
+- Critical Rate +20 + (2 * Skill Level)
+- DEF -(100 * (11 - Skill Level)); MDEF -(100 * (11 * Skill Level))
+- Critical Damage -(15 - Skill Level)%
+Buff Duration: 10 seconds + (2 * Skill Level) seconds OR until you use a skill
+Next Skill after this skill, can get this effect crit rate bonus and crit dmg penalty
+Game Description: "Sharpen your focus. Critical Rate greatly increases for a short time and Critical Damage, DEF, and MDEF decrease. The effect ends when you use another skill."
+Katana Main/Sub bonus: Critical Rate +25
+Katana Main/Sub bonus: Critical Damage% reduction is nullified
+Katana Main/Sub bonus: Buff Duration is doubled
+If you use Decoy after this skill, then decoy can enjoy crit rate bonus all the time until decoy ends.
+
+
+==================================================
+SKILL: SHUKUCHI
+==================================================
+
+Category: Mononofu Skills
+Tier: III
+Required Level: Level 70
+
+Source Details:
+Lv 3 Skill; No Limit
+MP Cost: 0
+Damage Type: None
+Maximum Cast Range: Theoretically infinite (limited to 24m by auto attack targeting limit; becomes infinite for skills if the target was hit at least once)
+Passive/Skill Effect:
+- When you use an auto attack or a Mononofu attacking skill while out of range and you aren't afflicted with the Slow aliment or the Stop aliment, you will move towards the target in a dash animation, gain a buff and the action used is queued to be used at the end of the dash
+- If an auto attack is queued and used at the end of the dash, it becomes an Unsheathe Attack
+Buff Effect:
+- Increases the next auto attack's Skill Multiplier by (0.05 * Skill Level)
+- Attack MP Recovery +0 (level 1)/ +1 (level 2)/ +2 (level 3)/ +4 (level 4)/ +6 (level 5)/ +9 (level 6)/ +12 (level 7)/ +16 (level 8)/ +20 (level 9)/ +25 (level 10)
+Buff Duration: Until a skill is used or an auto attack is "cast"
+Game Description: "A technique to move fast. Quickly move within the range when doing normal attacks. Increase the ability of the next normal attack. Unavailable during [Slow/Stop]."
+Katana Main bonus: Attack MP Recovery of buff is doubled
+If Rampage is active, the First 10 Auto Attacks Skill Multiplier is increased by the Skill Multiplier boost additively, but not the Final Blow Skill Multipliers
+The auto attack's Skill Multiplier boost only applies to the main hand of Dual Swords
+The dash can be cancelled by moving; if you cancel it, you'll lose the buff and the next auto attack you do won't be an Unsheathe Attack
+If the auto attack is cancelled before it could hit, the buff is removed
+
+
+==================================================
+SKILL: KAIRIKI RANSHIN
+==================================================
+
+Category: Mononofu Skills
+Tier: IV
+Required Level: Level 150
+
+Source Details:
+Lv 4 Skill; No Limit
+MP Cost: 200
+Damage Type: None
+Skill Effect: Cast Ignite on yourself for 5 seconds (level 1)/ 6 seconds (levels 2 and 3)/ 7 seconds (levels 4 and 5)/ 8 seconds (levels 6 and 7)/ 9 seconds (levels 8 and 9)/ 10 seconds (level 10) with no Resistance Time
+Buff Effect:
+- ATK +(10 * Skill Level)
+- Attack MP Recovery +6 (level 1)/ +7 (level 2)/ +8 (level 3)/ +9 (level 4)/ +10 (level 5)/ +16 (level 6)/ +17 (level 7)/ +18 (level 8)/ +19 (level 9)/ +25 (level 10)
+- Increases your auto attacks' Skill Multiplier by (0.05 * Skill Level)
+- Critical Rate of Garyou Tensei +(10 * Skill Level)
+- Physical Pierce of Garyou Tensei +(10 * Skill Level)%
+Buff Duration: 5 seconds (level 1)/ 6 seconds (levels 2 and 3)/ 7 seconds (levels 4 and 5)/ 8 seconds (levels 6 and 7)/ 9 seconds (levels 8 and 9)/ 10 seconds (level 10) OR until you use Garyou Tensei
+Game Description: "Release the demonic power inside. Increase ATK/ Attack MP Recovery/Normal Attack Power. Enhance Defense Pierce/Critical Rate of Garyou Tensei. Inflict [Ignition] on yourself when activated."
+Katana Main/Sub bonus: auto attack Skill Multiplier boost +0.5
+Katana Main/Sub bonus: Buff Duration is tripled
+If Rampage is active, the First 10 Auto Attacks Skill Multiplier is increased by the Skill Multiplier boost additively, but not the Final Blow Skill Multipliers
+The auto attack's Skill Multiplier boost only applies to the main hand of Dual Swords
+
+
+==================================================
+SKILL: BOUNCING BLADE
+==================================================
+
+Category: Mononofu Skills
+Tier: III
+Required Level: Level 70
+
+Source Details:
+Lv 3 Skill; Main Katana Only
+MP Cost: 100
+Damage Type: Physical
+Base Skill Multiplier: 2 + 0.2 * Skill Level
+Base Skill Constant: 100 * 10 Skill Level
+Hit Count: 1 hit
+Maximum Cast Range: Default to the Katana's Auto Attack Max Range
+Skill Effect:
+If you receive damage once during this skill animation, then this skill will deal damage in return and you will gain Garyou stack by (+current garyou stk you have + 2).
+E.g. using it when you have 4 garyou stacks, then successfully parry, you will gain 4 + 2 = 6 stacks.
+If you didn't receive damage, then this skill doesn’t deal damage nor inflict proration. Immune to Flinch, Tumble, Stun during receives damage
+Buff Effect:
+When receiving damage with this skill, it will recover your HP based on how much damage was taken. Recover HP +(Skill Lvl * 10)% of damage taken
+After successfully receiving damage with this skill, the next skill’s mp cost will be halved. Also, gives Accuracy by (Base Accuracy * Total Weapon Atk * (0.05 + 0.02 * Skill Lvl)%)
+Game description: A defense technique using scabbard. A counterattack is carried out 1 time only if you get hurt while holding a scabbard. If successful, some HP will be restored. MP Cost of the next skill used is reduced and accuracy increases.
+
+
+==================================================
+SKILL: KASUMISETSU GETSUKA
+==================================================
+
+Category: Mononofu Skills
+Tier: V
+Required Level: Level 240
+
+Source Details:
+Lv 5; Katana only
+MP Cost: 500
+Damage Type: Physical
+First 4 Hits Base Skill Multiplier: 7.5 + 0.75 * Skill Level
+First 4 Hits Base Skill Constant: 500
+First Hit Count: 4 hits; damage calculation is done once then spread evenly between the hits
+Last Hit Base Skill Multiplier: 1 + Total Dex/250
+Last Hit Base Skill Constant: 200
+Tenryu Ransei Zanyu Multiplier: (1.5 + 0.25 * Tenryu’s Skill Level) * Tenryu stk + TotalDex/(50 * (5 - Tenryu stk))
+Tenryu Ransei Zanyu Constant: 200
+Last Hit/Zanyu Count: 1 hit; hit/miss/graze/evasion/critical/guard checks doesn’t copy previous first 4 hits
+Maximum Cast Range: Defaults to the Weapon's Auto Attack Max Range
+Skill Effect:
+This skill is treated as an Unsheathe Attack
+If you have Tenryu Ransei buff, then using this skill, its last hit becomes Tenryu Ransei: Zanyu, which can deal more damage and Tenryu Ransei buff duration will be longer as more Tenryu stack. Its duration = 10 + (number of stack Tenryu Ransei buff * 10) sec [Bowtana penalty = -10 sec duration].
+Using this skill will consume 3 Tenryu stacks, even if you don’t have enough Tenryu stacks, you can still use it without penalty. However, if you successfully parry with this skill, then you will consume 2 Tenryu stacks instead of 3 Tenryu stacks.
+However, using this skill with tenryu buff doesn’t give invincibility and no Perfect Aim unlike Tenryu Ransei Zannou Magadachi & Zantei Settetsu. But rest assured, you can use this skill straight away without parry conditions.
+It has slightly Physical/Magic Damage taken reduction during this skill animation = (Skill Level * 9 - (MAX[0 ; Skill Level * 9 - 50]/2))%
+For Main Katana Only, Last Hit of this skill & Zanyu has +(BaseSTR/5)Critical Rate. And also, has +(BaseDex/5)Physical Pierce%
+You're immune to FTS & Knockback ailment during this skill animation(even absolute ailment)
+[Main Katana Only] Using Hasso Happa after this skill, will perform new action "Sakura Ranman"
+Game Description: “Attacks the target with a series of slashes and slightly reduces the damage received while it is active. Performs a special attack if Tenryu Ransei is in effect, and the number of times it is used determines the duration of the power increase.”
+Bowtana using this skill, its cast range default to bow auto attack max range.
+If you use this skill, when you don’t have a Tenryu stack. Then this skill won’t refresh Tenryu Ransei buff.
+
+Shadowless Slash
+Lv 5; Katana only
+MP Cost: 300
+Damage Type: Physical
+Base Skill Multiplier: 4 + 0.5 * Skill Level + Base Dex/200 + Base AGI/200; multiplier of all hits
+Base Skill Constant: 300
+Hit Count: 5 hits; damage calculation is done once then spread evenly between the hits
+Maximum Cast Range: Defaults to the Weapon's Auto Attack Max Range
+Skill Effect:
+This skill is treated as an Unsheathe Attack
+This skill is unaffected affected by SRD% regardless of distance
+This skill gives +2 garyou stack in total.
+Accuracy of this skill increased by 200 * Skill Level
+Also, in addition, gain the ability to perform dash after using this skill. Gain Enhanced-auto attack buff after successfully performing dash(bowtana cannot get this enhanced buff).
+MAIN Katana Only: If you have Garyou stack 10/10 and your Garyou acquired is maxed level, then using Garyou during Shadowless animation, will become Divine Slash that deals tremendous damage, and it is affected by unsheathe and srd%. You can put skill between them and still trigger Divine Slash, but must trigger Divine Slash during Shadowless hit animation!
+Divine Slash has perfect aim, Invincible on yourself for 2s
+Divine Slash have (10 * Kairiki lvl)cr and (10* Kairiki lvl)physical pierce%.
+Performing this Divine Slash, will automatically get Kairiki Ranshin buff(its effect follow Kairiki Ranshin lvl)
+Divine Slash cannot be evaded too unless absolute/forced evasion phase such as Evil Crystal Beast.
+Divine Slash Multiplier: 30 + Base watk/100
+Divine Slash Constant: 500(no Armor break) or 1000(with Armor break)
+Hit count: 1
+Note: Base Watk, doesn’t include refine, watk% from equip/etc. Base watk from dauntless might be included.
+Buff Effect: Unsheathe Attack +TRUNC((Total STR + Total DEX)/51)%
+Buff Duration: after Divine Slash lands; 10 seconds
+Proration Info
+-Shadowless Slash uses physical proration at the moment of cast, even though the damage appears later.
+
+
+==================================================
+SKILL: -SHADOWLESS SLASH INFLICTS PHYSICAL PRORATION AT THE VERY END OF THE SKILL.
+==================================================
+
+Category: Mononofu Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Source Details:
+-If Shadowless Slash is recast before the damage log appears, the proration is canceled.
+-Divine Slash calculations are done as soon as the text appears, not at the moment of landing.
+-Therefore, Shadowless -> Divine Slash leaves -2 physical proration, but Shadowless and Divine Slash themselves won't get affected by that.
+Game Description: “Rapidly slashes the enemy. It’s so fast that even the enemy doesn’t know when the katana leaves its scabbard. Attacks with high accuracy and grants 2 of Garyou Tensei’s buffs. You can move when sheathing the katana.”
+Bowtana using this skill, its cast range default to bow auto attack max range.
+Using the combo "Shadowless→Garyou", proration damage of Divine Slash is same as Shadowless proration.
+
+
+==================================================
+SKILL: NUKIUCHI SENNOSEN
+==================================================
+
+Category: Mononofu Skills
+Tier: V
+Required Level: Level 240
+
+Source Details:
+Lv 5; Main Katana only
+Passive Effect:
+Glowing effect on the katana will appear after you charge it for (12 - Skill Level)seconds by not doing attacks at all or otherwise charge time will reset. This glowing effect lasts until you use auto attack or attacking skills. Additionally, performing katana dash also can reduce glowing charge time by 1 second. So at Level 10, after you do katana dash, you will get this passive effect instantly.
+Glowing effect: Replace your total Shukuchi Auto Attack’s Skill Multiplier into (400% auto attack’s Multiplier). And its constant increased as your hp decreases = (1000 * (100% - Current HP%)). This Nukiuchi Auto’s Attack Multiplier can be stacked additively with Kairiki, Berserk, etc. Meanwhile, Enhanced katana auto attack simply doubles Nukiuchi’s auto attack total damage.
+Also, this glowing effect can turn Pulse Blade into Swift Pulse Blade. That can multiply Pulse Blade damage by 5x than normal. No pulse damage changes with different HP. Do note that Swift Pulse Blade doesn’t inflict prorate.
+Game Description: “A sword-drawing technique that is like a miracle. When not attacking for a certain period of time, the normal attack with Shukuchi will be greatly enhanced. The less HP you have, the more powerful it is.”
+
+
+==================================================
+SKILL: DAUNTLESS
+==================================================
+
+Category: Mononofu Skills
+Tier: V
+Required Level: Level 240
+
+Source Details:
+Lv 5; Main Katana only
+Passive Effect:
+This Dauntless effect starts to gain stack once you engage miniboss or boss. Every (12 - Skill Level) sec add 1 Dauntless point/stack. Max at 100 stacks. Killing miniboss will cost -10% current Dauntless stacks you have and if there are no miniboss or boss in present then 1 stack will decrease every 2 seconds.
+Successfully parrying will give 2 Dauntless stacks. (Parry skills: Magadachi, Zantei Settetsu, Bouncing Blade)
+Following skill below, All effects still same regardless of Skill level:
+• When Dauntless reaches 10 stacks,
+Increases Accuracy = +(Stack/10 * 10)
+• When Dauntless reaches 20 stacks,
+Flat Watk increased by +(Stack/10 * 5)
+• When Dauntless reaches 30 stacks,
+Unsheathe% increased by +(Stack/10)%
+• When Dauntless reaches 40 stacks,
+Motion speed% increased by 12.5%
+• When Dauntless reaches 50 stacks, Grant 2 buff effects
+Passively gains the ability to reduce any damage taken to 0 one time only during katana slide animation(same as zantei iframe, that can prevent gsw/aura disappear from getting hit).
+Reduce Kasumisetsu Getsuka consumption on Tenryu stack by 1 stack.
+Increase Tenryu Ransei's Base Skill Multiplier by +1.
+• When Dauntless reaches 60 stacks,
+Flat Base Watk increased by (Stack/10 * 5)
+• When Dauntless reaches 70 stacks,
+Increase Unsheathe% again furthermore by +(Stack/10)%
+• When Dauntless reaches 80 stacks,
+Motion speed% increased again by 12.5%
+• When Dauntless reaches 90 stacks,
+Halves mp cost of all mononofu skills
+• When Dauntless reaches 100 stacks,
+Weapon Refine Value +1 (+15 a.k.a +S refine becomes +16)
+Game Description: “A strong determination to confront the enemy. Dauntless automatically accumulates when fighting against a powerful enemy. Grants various buffs for every 10 Dauntless points accumulated. The effects end when the enemy is defeated.”
+
+
+==================================================
+SKILL: AUSPICIOUS WIND
+==================================================
+
+Category: Mononofu Skills
+Tier: II
+Required Level: Level 30
+
+Source Details:
+T2; [Passive] Katana
+Passive Effect:
+Stack gain chance: 10% * Skill Level
+Duration: 30s; extended/refreshed to 30s by gaining a stack. Can't extend after full stk.
+Max stack: 3
+Accuracy: + 10 * Skill Tree Level * stack
+Short Range Damage: + 1% * Skill Tree Level * stack
+Critical Damage: +Skill Tree Level * stack
+Game Description: Activates by chance when your attack misses (dodged/evaded; 1 stack per damage log) or when you manage to dodge with [Evasion]. For 30 sec, Close-range attack Power/Critical Damage/Accuracy slightly increases, stacking up to a maximum of 3 stacks. The effect increases based on the Mononofu skill tree level (level this up from the library).
+
+
+==================================================
+SKILL: GUST
+==================================================
+
+Category: Mononofu Skills
+Tier: III
+Required Level: Level 70
+
+Source Details:
+T3; [Active] Katana
+MP Cost: 300
+Damage type: Physical
+Activation Effect:
+Removes and converts Unsheathe stat into:
+ATK% = 0.1 * Skill Level * Unsheathe%
+Basic Weapon Attack = 0.1 * Skill Level * Unsheathe%
+Flat ATK = 0.1 * Skill Level * Flat Unsheathe
+-Basic Weapon Attack is the ATK shown on your weapon in game.
+Enables Gust Stack 1/3 2/3 3/3.
+Pulls out another katana. Changes auto attack animation, power, and effect:
+Auto Attack 1 (2 hits) [Gust Stack 1/3 → 2/3]
+Auto Attack Skill Multiplier: 1 + 0.05 * Skill Level
+Auto Attack Skill Constant: 0
+Auto Attack 2 (2 hits) [Gust Stack 2/3 → 3/3]
+Auto Attack Skill Multiplier: 2 + 0.1 * Skill Level
+Auto Attack Skill Constant: 100
+Auto Attack 3 (3 hits) [Gust Stack 3/3 → 1/3]
+Auto Attack Skill Multiplier: 6 + 0.3 * Skill Level
+Auto Attack Skill Constant: 200
+-All auto attack damage calculation is done once, then spread evenly between the hits.
+Enables seasons attacks upon recast + key input (direction reference = you to mob):
+Still Wind [Gust + no direction]
+Parries all monster attacks during animation. Upon successful parry, you will deal 1 additional hit with Still Wind:
+Base Skill Multiplier (Still Wind Counter): 5 + 0.5 * Skill Level
+Base Skill Constant (Still Wind Counter): 300
+-Maximum cast range: 20m
+-All monster attack during this skill animation deals 0 damage to you. You can still get inflicted with ailments and immobilization when parrying using this Still Wind, and your "untouched" (e.g. Brave Aura, Godspeed Wield) buffs will be gone as well.
+-This skill is affected by short range damage; affected by long range skill; uses and deals physical proration.
+-While using "Still Wind", if you use direction input, you will activate directional wind skill for 0 mp. From doing so, Still Wind Counter uses physical proration and deals no proration and the directional wind skill uses and deals normal proration.
+Easterly Wind [Gust + ← ] 🌸
+Base Skill Multiplier: 5 + 0.3 * Skill Level + Gust Stack
+Base Skill Constant: 300
+-Maximum cast range: 20m; but only hits from 5m or below, else will miss.
+-The movement from this skill is treated as [Evasion].
+-This skill is affected by short range damage; affected by long range skill; uses and deals normal proration.
+Southerly Wind [Gust + ↓ ] ☀️
+Base Skill Multiplier: 3.5 + 0.2 * Skill Level + Gust Stack * 1.5
+Base Skill Constant: 300
+-Unlock condition: learn "Kairiki Ranshin".
+-Maximum cast range: 20m. Upon using this skill, your character moves backwards 4m, then launch an exact 16m range linear AOE attack.
+-This skill is forced to be affected by short range damage; affected by long range skill; uses and deals normal proration.
+Northerly Wind [Gust + ↑ ] 🍁
+Base Skill Multiplier: 8.5 + 0.2 * Skill Level - 1.5 * Gust Stack
+Base Skill Constant: 300
+-Unlock condition: learn "Shukuchi".
+-Hit Count: 2 Hits; damage calculation is done once then spread evenly between the hits.
+-Maximum cast range: 20m. Upon using this skill, your character teleports to 0m in front of the enemy.
+-This skill uses physical pierce * 4 of your total physical pierce%.
+-This skill is forced to be affected by short range damage; affected by long range skill; uses and deals normal proration.
+Westerly Wind [Gust + → ] ❄️
+Base Skill Multiplier: 2.5 + 0.6 * Skill Level + 0.5 * Gust Stack
+Base Skill Constant: 300
+-Hit Count: 2 Hits; damage calculation is done once then spread evenly between the hits.
+-Maximum cast range: 20m; but only hits from 5m or below, else will miss.
+-This skill has perfect aim attribute.
+-This skill is affected by short range damage; affected by long range skill; uses and deals normal proration.
+While gust is active, you can't use "Divine Slash".
+🍁 ❄️ Four Seasons ☀️ 🌸
+This is an interaction of Gust Skill's Seasons Attacks.
+Activation Condition: Successfully do ⬅️ Easterly Wind > ⬇️ Southerly Wind > ⬆️ Northerly Wind > ➡️ Westerly Wind > Nukiuchi Sennosen Glowing Effect, and then recast "Gust" skill. The Seasons/Directional Gust Skills activation has to be in the correct order and must not be repeated before casting "Four Seasons". Getting immobilized also causes "Four Seasons" to fail; though, you may cast any other skills or walk around before continuing with each rituals.
+Base Skill Multiplier:
+1st Attack (2 hits): 20.5 + 0.2 * Skill Level - 1.5 * Gust Stack
+2nd Attack (2 hits): 17 + 0.6 * Skill Level + 0.5 * Gust Stack
+3rd Attack (1 hit): 17 + 0.2 * Skill Level + 1.5 * Gust Stack
+4th Attack (1 hit): 20.5 + 0.3 * Skill Level + Gust Stack
+Base Skill Constant: 300
+-for 1st and 2nd attack, damage calculation is done once then spread evenly between 2 hits.
+-Four Seasons has perfect aim attribute, 100% physical pierce, and always stronger element against enemy.
+The entire animation of Four Seasons will nullify all damage taken, but decreases it's next attack damage: 2nd Attack -50% damage, 3rd Attack -40% damage, 4th Attack -25% damage. You can still get inflicted by ailments and immobilization during this skill animation and your "untouched" (e.g. Brave Aura, Godspeed Wield) buffs will be gone as well.
+Four Seasons will not activate when fighting against small monsters (non boss/miniboss).
+Maximum Cast Range: 20m
+Four Seasons is affected by short/long range damage; affected by long range skill; uses normal proration and deals physical proration.
+Game Description: Assumes a dual-katana stance. Removes and converts Unsheathe Power into ATK and Weapon ATK. Reactivating Gust while it's in effect will produce a different effect based on the key input. The effect ends when you move while sheathing your katana (katana slide animation).
+Katana Bonus: Still wind, Northerly Wind, Easterly Wind, Westerly Wind and Southerly Wind can be activated with key input without ending the effect of Meikyo Shisui. After assuming the "Still Wind" stance, you can still transition into the corresponding skill with a key input. (MP is only consumed when activating Still Wind).
+
+
+==================================================
+SKILL: ZEPHYR RUSH
+==================================================
+
+Category: Mononofu Skills
+Tier: IV
+Required Level: Level 150
+
+Source Details:
+T4; [Active] Katana
+MP Cost: 400
+Damage type: Physical
+Base Skill Multiplier: 0.6 * Skill Level + Invincibility Duration Bonus
+Invincibility Duration Bonus:
+-1-2s (icon shows 4-3s): 3 multiplier
+-3s (icon shows 2s): 6 multiplier
+-4s (icon shows 1s): 9 multiplier
+-5s-descend (icon shows 0s or auto descend): 12 multiplier
+Base Skill Constant: 100
+Invincible frame: 5 seconds (cancel by using key input)
+Maximum Cast Range: infinite
+This skill is affected by short range damage; affected by long range skill; uses and deals physical proration.
+Game Description: Escapes Danger like a sudden breeze (only while in Gust state). Gains invincibility while in the air, then descends and performs a slash after some time or upon key input. The power increases based on the duration of invincibility, but it will be a MISS if there's no target at the landing point.
+
+
+==================================================
+SKILL: SUPER GUST
+==================================================
+
+Category: Mononofu Skills
+Tier: V
+Required Level: Level 240
+
+Source Details:
+T5; [Passive] Katana
+Passive Effect:
+Increase Base Skill Multiplier of "Gust" derivates by:
+Auto Attack 1: +0.05 * Skill Level
+Auto Attack 2: +0.1 * Skill Level
+Auto Attack 3: +0.3 * Skill Level
+Still Wind: +0.5 * Skill Level
+Easterly Wind: +0.45 * Skill Level
+Southerly Wind: +0.35 * Skill Level
+Northerly Wind: +0.3 * Skill Level
+Westerly Wind: +0.45 * Skill Level
+Four Seasons
+1st Attack: +0.3 * Skill Level
+2nd Attack: +0.45 * Skill Level
+3rd Attack: +0.35 * Skill Level
+4th Attack: +0.45 * Skill Level
+Game Description: Improves dual-wielding technique through daily training. Increases the power of "Gust's" normal attack (all 3 stages) and all skills it changes to.

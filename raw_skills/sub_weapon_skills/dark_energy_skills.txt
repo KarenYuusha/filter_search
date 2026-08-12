@@ -1,0 +1,374 @@
+Category: Dark Energy Skills
+
+GENERAL INFORMATION
+
+Tier Requirements:
+- Tier I: None
+- Tier II: Level 60
+- Tier III: Level 120
+- Tier IV: Level 180
+
+
+==================================================
+SKILL: BLOODY BITE
+==================================================
+
+Category: Dark Energy Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Active Skill (Physical) [Single Target]
+MP Cost: 100MP
+Action Range: 4m
+Skill Multiplier: 1 + SkillLvl*0.1
+Skill Constant: 100
+Effect: Deal damage to the enemy and heal HP based on the damage dealt.
+Amount of HP healed [BASE]: (Damage Dealt) * (SkillLvl * 10%)
+Maximum HP healed: PlayerLvl * 10
+Effect2: Heal additional HP if Dark Stinger buff is active
+Additional HP healed: (100) * (Dark Stinger Stack)^2
+NOTES:
+---Additional HP healed not affected by Max HP heal limit. Max HP limit is only applicable to base heal so as such actual max limit is max limit + additional heal.
+---Dark Stinger buff is removed if this skill is used while the buff is active
+
+
+==================================================
+SKILL: DARK STINGER
+==================================================
+
+Category: Dark Energy Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Active Skill (Physical) [AOE straight ahead]
+MP Cost: 200MP
+Action Range: 8m
+Length: 8m ahead
+Width: 1m (+1m if [SkillLvl > 5])
+Fixed Element: Dark
+Skill Multiplier: 1 + SkillLvl * 0.3 + (baseSTR + baseVIT)/100
+Additional Skill Multiplier: +[(CurrentHP) * 0.1 - 1000]/3000(Only applied if currentHP higher than 10000)
+Skill Constant: 0
+Additional Skill Constant: +CurrentHP * 0.1 (Maximum 1000 constant)
+[Dark Stinger buff]
+Effect: Reduce maxHP% based on the amount of times the skill has been used consecutively
+Amount of maxHP% reduced: 5*(Stack)%
+Stack: Number of times the skill has been consecutively used before it runs out of duration
+Duration: 30seconds
+NOTE:
+---This skill consumes 10% of currentHP for every use.
+---Additional Constant and Rate applied to the damage calculation before the currentHP% cost and maxHP reduction buff are applied.
+
+
+==================================================
+SKILL: RED TEAR
+==================================================
+
+Category: Dark Energy Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Active Skill (Physical) [AOE circular around the enemy] {Placed}
+MP Cost: 300MP
+Action Range: 4m
+Radius of AOE: floor([Lvl+3] * 0.25)
+Fixed Element: Dark
+Cast Time: 0.5second [Affected by CSPD]
+Skill Multiplier: 1.8 + 0.02 * SkillLvl
+Skill Constant: 0
+Number of Hits: 1 + |round_down((SkillLvl - 2)/2)| every 1 second [floor part only for SkillLvl > 2]
+Physical pierce: (10 * SkillLv)%
+Effect: This skill has physical Pierce based on skill level and hits once every second after placed
+[Red Tear Buff]
+Effect: Remove the HP cost of Dark Energy skills that require it.
+Duration: 2 + floor[(SkillLvl - 2)/2] seconds after placed [floor part only for SkillLvl > 2]
+NOTES:
+---This skill multiplies and applies magic proration rate.
+---This skill is considered chanting similar to maximizer meaning magic flinch can be inflicted on it despite it being physical.
+---This skill is permanent non critical
+---The Red Tear Buff will not prevent maxHP% reduction buff of Dark Stinger it will only prevent the currentHP% cost.
+---This skill inflicts bleed to the user if the target has user's aggro and is not at maxHP when action start (Unaffected by ailment resistance) [Bleed duration is 5 seconds]
+Aggro Reduction:{This part is only tested for SkillLvl10 and may not have accurate numbers, feel free to test yourself if you need more reliable numbers}
+---This skill gets reduced aggro generation on every enemy that gets hit and is not targetting the user
+Reduced aggro = 300 - (60*CurrentAggroPointsOnEnemy)/100
+Minimum reduced aggro is 0 (This skill can not generate negative aggro)
+
+
+==================================================
+SKILL: SACRIFICE
+==================================================
+
+Category: Dark Energy Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Active Skill (Special) [Single Target]
+MP Cost: 100MP
+Action Range: 4m
+Skill Multiplier: 5+ 1 * SkillLvl (Max Value 10)
+Skill Constant: MaxHP * 0.1
+Stability: 60 + (SkillLvl - 5) * 5 (SkillLvl part only for SkillLvl > 5) [+10 if SkillLvl = 10]
+Effect: Consume 10% of your maxHP to deal special damage
+---If your currentHP is less than 10% of your maxHP you get reduced to 1HP and get inflicted by stun for 3 seconds [Unaffected by ailment resistance]
+NOTES:
+---This skill's base damage dealt only depends on its Skill Rate/Constant, its own Stability stat, enemy's resistance(Physical) stat and enemy's DamageLimit stat.
+---This skill's HIT reaction is applied as a physical skill as such it can graze/miss,critical,Get evaded/guarded [Being critical the damage is not multiplied by the CDMG stat, It only acts as a bypass for enemy dodge]
+---This skill does not inflict any proration
+
+
+==================================================
+SKILL: DEMON CLAW
+==================================================
+
+Category: Dark Energy Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Active Skill (Physical) [AOE Circular around the user]
+MP Cost: 400MP
+Action Range: 8m
+Radius of AOE: 8m
+Fixed Element: Dark
+Skill Multiplier: (1+SkillLvl * 0.1) * Mult/12
+Mult: Floor((100 - CurrentHP%)/10) * 10 [Maximum 90]
+Skill Constant: 40 * SkillLvl
+Ailment Inflict: Fatigue
+Chance to ailment inflict: Mult/(11 - SkillLvl)
+NOTES:
+---This skill can only do damage to active enemies within the radius of AOE
+---The total damage is divided for every enemy hit
+---This skill can only hit up to the first 10 active enemies within the radius of AOE
+
+
+==================================================
+SKILL: REGRETLESS
+==================================================
+
+Category: Dark Energy Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Support Skill [Self Buffer]
+MP Cost: 200MP
+Effect: Increase AMPR, MaxMP, ATK, MATK, Physical/Magical resistance at the cost of maxHP%. Also heal the user's HP completely.
+Effect2: User is defeated if the buff runs out of duration.
+---You start out at 0 stacks and gain 1 for every use.
+Max Stack=10, effects don't change after Max stack is reached(excluding the HP reduction and duration), it will refresh the duration only.
+Amount of AMPR increase: +10 * (stack)
+Amount of Physical resistance increase: +SkillLvl * (stack) %
+Amount of Magical resistance increase: +SkillLvl * (stack) %
+Amount of ATK increase: +[1 + floor({SkillLvl -1} * 0.5)] * (stack)
+Amount of MATK increase: +[1 + floor({SkillLvl -1} * 0.5)] * (stack)
+Amount of MaxMP increase: +100 * (stack)
+Amount of MaxHP% reduction: -10% * (stack) Note: +flat HP isn't affected by this reduction
+Duration: (30 - 2 * [stack - 1]) seconds
+NOTES:-
+---Revive droplet, First Aid, Heal/Mini Heal will not work if you die from this skills effect. Play dead and other revive time reduction stats are still applied.
+---Dying in any way while using regretless is counted as regretless death. Can not first aid etc.
+---Death can be prevented by airplane mode only if you successfully reconnect back before duration ends.
+---The buff is only removed when loading screen appears not immediately after the boss is defeated so the skill can cause death during the rank reward screen.
+---If you got regretless death and you have registlet "Final Resistance", also you're the last people in party(must not solo) to be knocked out, then Final Resistance will trigger as soon you got regretless death, but you will die again in 1-10 seconds later due to Final Resistance
+
+Soul Hunter
+This skill has two action name = first Soul Hunter, then Death Reaper in one use/animation/skill. We just call it SH aka. Soul Hunter
+
+
+==================================================
+SKILL: SOUL HUNTER
+==================================================
+
+Category: Dark Energy Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Active Skill (Single Target No Damage)
+Mp Cost: 400mp
+Maximum Cast Range/Hit Range: Weapon Dependant
+Skill Effect:
+Everytime Hp lost by skill happens(such as Quick Aura, Eternal Nightmare, Saber Aura, Combo Tags, etc.), 1 Soul Stack is gained.
+When you use this skill, consumes stack for Recover MP by (5 * Skill Lvl * Stacks). Max. Stacks is 10
+This skill has a chance of inflicting [Fear] on enemies when casted.
+Base Ailment Chance:
+
+Skill lvl% ^ 2
+
+Skill lvl% ^ 2 * 0.15
+
+(Skill lvl% ^ 2) /2
+
+(Skill lvl% ^ 2) /2
+
+(Skill lvl% ^ 2) /4
+Death Reaper
+Active Skill (Physical) [AOE Circular around the user]
+Skill Type - Proration: Physical - Magical Proration (Using any magic skill before this skill will lower its damage, since this skill damage depends on Magic Proration. Also this skill inflicts magic proration)
+Element: First Hit is fixed Dark, and Second Hit is depend on main weapon or arrow first(if bow/bowgun)
+Base Skill Constant(for all hit): 100 + 30 * Skill Lvl
+Base Skill Multiplier(First Hit): 7.5 + 0.25 * Skill Lvl
+Base Skill Multiplier(Second Hit): 5 + Stacks
+Radius of AOE: 5m
+Skill Effect:
+When you use this skill, consumes stack for enhance Second Hit damage
+Gain [INVINCIBLE] for 1-2 seconds during this skill Death Reaper(Shrinked if swift tag is on or have high motion speed%)
+If target is inflicted with Fear, 100% critical hit is guaranteed
+This skill is affected by Short Range Damage, Long Range Damage(bow/bg over 7m), Long Range Shot Tree(md/bow/bg, weapon above 7m cast range)
+Weapon Bonus + Penalty:
+If KATANA:
+Base Skill Multiplier(First Hit) +(baseDex/100)
+If OHS:
+Base Skill Multiplier(First Hit) +(baseStr/200)
+If THS (same for HALBERD):
+Radius of AOE +2m Range
+If BOW (same for BOWGUN):
+Base Skill Multiplier(First Hit) -5
+Activation AOE Circular is focused on target instead user
+If STAFF (same for MAGIC DEVICES):
+Chance to Inflict [Fear] drops by -50%
+MP Heal amount is doubled
+If KNUCKLES:
+Base Skill Multiplier(First Hit) +(baseAgi/200)
+
+
+==================================================
+SKILL: ETERNAL NIGHTMARE
+==================================================
+
+Category: Dark Energy Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Support Skill [Self Buffer]
+Lvl 4 Skill; No limit
+MP Cost: 300 MP
+Buff effect:
+Eternal Nightmare's passive buff enhances Dark Resistance (+5%) but lowers Light Resistance (-5%)
+Increase MaxHP% by 2% * SkillLvL.
+While the buff is active you will start losing 1% MaxHP every 2 sec (Minimum 100; meaning if you have below 10k hp, always 100 hp lost). The effect ends when the player reaches 100 hp
+Eternal Nightmare's DEF/MDEF reduction effect is affected by Total Dark Power Skills Level, which means: Total Dark Skills points * Eternal Nightmare's LvL * 0.5
+Enhances Dark Skill Tree below Tier 3(for more detail check below)
+Buff duration: 5min
+Notes:
+During this skill buff, you cannot regen HP over time(Natural HP regen), except MP
+Party members also enjoy boss' reduced DEF/MDEF, but won't suffer HP draining effect, and also no maxhp%, dark resistance, and light resistance
+Eternal Nightmare reduces DEF/MDEF before physical pierce%/magic pierce%.
+Also, Reduces boss' DEF/MDEF before boss difficulty def bonus apply, so it is like this:
+Normal: 50% DEF/MDEF reduction
+Hard: 25% DEF/MDEF reduction
+Nightmare: 12,5% DEF/MDEF reduction
+Ultimate: 8,33% DEF/MDEF reduction.
+Eternal Nightmare(Enm) enhances Dark Skills tier 1-3:
+Bloody Bite HP recovery limit increased by (10% * Enm Lvl).
+Dark Stinger = Additional Skill Multiplier(if +10k current hp) formula got enhanced
++[(CurrentHP) * 0.1 - 1000]/(3000 - 100 * Enm Lvl)
+Total Red Tear's hits are increased.
+(1 + Enm Lvl * 0.3) * Total Red Tear Hits
+So, both(Enm & Red tear) at lv 10 = 20 hits
+Sacrifice's stability is increased by (Enm Lvl)%
+Demon Claw's Multi Formula got enhanced into
+Floor((100 - CurrentHP% + Enm Lvl)/10) * 10 [Maximum 90]
+When your currentHP% reach 20%, then demon claw will deal max damage
+Regretless' regret effect now has a slight chance to be nullified (1% * Enm Lvl)
+
+
+==================================================
+SKILL: INTIMIDATING EVIL EYE
+==================================================
+
+Category: Dark Energy Skills
+Tier: I
+Required Level: None
+
+T1; [Active] All Weapons
+MP Cost: 100 MP
+Damage Type: Magic (uses MATK)
+Maximum Cast Range: 12m
+Element: Dark
+Base Skill Multiplier: 0.01 * Skill Level
+Base Skill Constant: 20 * Skill Level
+Ailment: Flinch; if [Flinch] fails, inflicts [Slow]
+Ailment Chance [Flinch]: (Player Level + Eternal Nightmare Skill Level - Monster Level)% * Skill Level
+-This Flinch ailment chance can bypass Flinch Resistance.
+Ailment Chance [Slow]: 100%
+This skill is affected by short/long Range Damage; affected by long range skill; uses and deals magic proration.
+Game Description: Makes the target flinch with a sharp glare. The lower the target's level, the higher the chance to inclict [Flinch]. If unsuccessful, inflicts [Slow]. Not expected to deal much damage.
+The level of Eternal Nightmare increases the chance to inflict [Flinch].
+
+
+==================================================
+SKILL: BEWITCHING EVIL EYE
+==================================================
+
+Category: Dark Energy Skills
+Tier: II
+Required Level: Level 60
+
+T2; [Active] All Weapons
+MP Cost: 300 MP
+Damage Type: Magic (uses MATK)
+Maximum Cast Range: 14m
+Element: Dark
+Against Non-charmed enemies:
+Base Skill Multiplier: 0.01 * Skill Level
+Base Skill Constant: 0
+Against Charmed Enemies:
+Base Skill Multiplier: Skill Level
+Base Skill Constant: MIN(Enemy Level * Skill Level; 10,000)
+Ailment: Charm
+Ailment Chance: Skill Level² %
+Ailment Duration: 10 + Eternal Nightmare Level seconds
+Ailment Resistance: 30 seconds
+This skill is affected by short/long Range Damage; affected by long range skill; uses and deals magic proration.
+Game Description: Pins the target in place with evil power. Chance to inflict [Charm] on the target. Increases damage if the target is already charmed.
+Charm duration is extended based on the level of Eternal Nightmare. Resistance duration remains unchanged.
+
+
+==================================================
+SKILL: BLACK FLAME EVIL EYE
+==================================================
+
+Category: Dark Energy Skills
+Tier: III
+Required Level: Level 120
+
+T3; [Active] All Weapons
+MP Cost: 100 MP
+Damage Type: Magic (uses ATK/MATK, whichever is higher)
+Maximum Cast Range: 16m
+Element: Dark
+Base Skill Multiplier: 10 + Skill Level + 0.5 * Eternal Nightmare Level
+Base Skill Constant: 100
+-This skill has Absolute Critical when aggroed by skill's target.
+Explosion Behavior:
+Skill has a hidden counter that starts from 0 on first cast and increases by 1 for every use after the first cast (can only be reset by changing map).
+The game generates a random number from 0 to 100
+If that random number is smaller than the hidden counter, you explode.
+Explosion Effects:
+-Doubles Black Flame Evil Eye Skill Multiplier.
+-Hidden counter is halved and rounded down.
+-Your character take a Max HP Damage as much as: MAX(1000; INT(Character's Max HP * 30%)). If the character were to get knocked out from the explosion, they are left with 1 HP and Stunned.
+This skill is affected by short/long Range Damage; affected by long range skill; uses and deals magic proration.
+Game Description: Uses dark flames to burn the target who makes direct eye contact. Deals magic damage absed on ATK or MATK, whichever is higher. Critical hit guaranteed when the enemy is targeting you. Overusing black flames comes at a price...
+*Power increases based on the level of Eternal Nightmare.
+
+
+==================================================
+SKILL: CHAOTIC EVIL EYE
+==================================================
+
+Category: Dark Energy Skills
+Tier: IV
+Required Level: Level 180
+
+T4; [Active] All Weapons
+MP Cost: 500 MP
+Damage Type: Magic (uses MATK)
+Maximum Cast Range: 12m
+Element: This skill always gains the element which is the weakness of the target.
+Base Skill Multiplier: 5 + Skill Level
+Base Skill Constant: 50 * Skill Level
+-Ignores Guard when you are aggroed, does not bypass Absolute Guard.
+-When Ailment is Successful: Chaotic Evil Eye Skill Multiplier * 2.5
+Ailment: Blind/Fear/Lethargy/Paralysis/Fatigue/Dizzy/Silence/Stop/Curse/Freeze
+Ailment Chance: 100%
+This skill is affected by short/long Range Damage; affected by long range skill; uses current highest proration type and deals current lowest proration type (magic proration if all proration value is equal).
+Game Description: Swirling chaos torments the enemy. Exploits the target's weak element to deal magic damage and inflicts a status ailment (randomly selected from 10 types). Damage greatly increases if successful. Ignores Guard when the enemy is targeting you.

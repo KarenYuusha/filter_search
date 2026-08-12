@@ -1,0 +1,107 @@
+Category: Ninja Skills
+
+GENERAL INFORMATION
+
+Tier Requirements:
+- Tier I: None
+- Tier II: Level 100
+- Tier III: Level 200
+
+
+==================================================
+SKILL: NINJUTSU
+==================================================
+
+Category: Ninja Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Have Passive and Active Skill
+Passive Effect: Allow you to use Scroll Skills and Craft Scroll with Ex Skill. Leveling up this skill will make Scroll Skills get more damage and other effect only(does not affect craft scroll)
+Ninjutsu level can affect damage mostly, so i recommend max it if you want deal dmg
+- Fire Release and Blazing Explosion = Damage and Ignite Chance
+- Thunder Release and Lightning Flash = Damage
+- Wind Release and Skull Breaker = Damage, flat Cr Buff & Unsheathe Buff
+- Water Release = Duration and negate debuff. Rapid Aqua Vortex = Damage. Both(water & vortex) = AOE Radius
+- Earth Release = Long Range Dmg Reduction, number of Stack and Duration
+- Cloning Decrease = MaxHP lost penalty
+- Demon Wind Shuriken = Damage
+- Kunai = Recover MP
+[From here this is just a theory about crafting scroll, might be incorrect.]
+Getting Scroll Atk is based on Weapon(currently it is Potential Weapon, idk whether base or total, maybe base). But it has Max Scroll Atk you can acquire from craft depending on Player Level.
+Max Scroll Atk = 1.25 * Player Lvl
+Craft Scroll Atk is similar to Stability. Let’s say N - Max Scroll Atk. That N is the numbers from Sacrifice three weapons to craft scroll. Crafting with 3 High Potential Weapon will give more scroll atk and crafting might be stable. If not high, then lesser scroll atk and not stable.
+Example = If Your Char Lvl 230 and N is above(+287) or the same as Max Scroll Atk(287), then always get 287 scroll atk everytime you craft a scroll (287 - 287 = 100% - 100%, similar to stability ok?). But if N is lower(let’s say uh 40) than Max Scroll Atk(287), then you will get random scroll atk between 40 - 287 scroll atk and not stable at all.
+About N formula from sacrifice 3 weapons to craft scroll. Still unknown
+We got proof that uh.. Potential Weapon affects scroll atk. Why? Because you know, out of all weapons that we can sacrifice for craft scroll, all of them have potential(even hidden base pots). Also, thanks to savar for testing this one, there is one of all npc weapons that we cannot sacrifice for craft scroll, it is no other than Zono Short Bow. You know Zono Short Bow doesn’t have a base pot, does that ring a bell?
+But, the problem is Weapon/Item Craft Level might make sense(zero item craft level = no craft scroll). We need to check that later in Anniv, because Anniversary weapons have lower item levels than others that have the same potential. So, Please Stand By
+~ from cy-grimoire's Researcher/tester
+Note: Leveling up Ninjutsu doesn’t affect crafting scroll atk at all, proof is in video below.
+[That is all theory from Joji. Also, thanks to savar for detail https://www.youtube.com/watch?v=J3lB0NIfa_o]
+About getting Scroll Type/Name, It is Random Pick(rng) among all guaranteed scroll skills(excluding "???") in one scroll crafted. Also, provides stats depending on the scroll type.
+Fire Scroll = Fire Release => 1% matk, with Staff 5% m.pierce
+Lightning Scroll = Thunder Release => 5% stab, with Katana 10% acc
+Metal Scroll = Demon Wind Shuriken or Kunai => 5cr
+Water Scroll = Water Release => 5% ail res, with MD -10% aggro
+Earth Scroll = Earth Release => 10% maxhp, with Ohs 10% frac barrier
+Wind Scroll = Wind Release => 250 aspd, with Katana 5cr
+Dark Scroll = Cloning => -10% aggro
+[Example: You want to craft a scroll with Ohs - Halb - Ths, that scroll will give Wind Release - Thunder Release - Fire Release. Then the scroll type/name randomly picks one among Wind Scroll, Lightning Scroll, Fire Scroll.
+If you craft with Ths - BG - Staff, and that scroll is Water Release - ??? - ???. Then the scroll type/name always picks Water Release, ignores that “???”.
+If craft scroll and got Demon Wind Shuriken - Kunai - ???. Then scroll type/name always picks Metal Scroll, because shuriken and kunai are in the Metal Scroll category and the rest “???” got ignored.]
+Beside Scroll Atk, or let’s say in Stability position. There is a bracket with two numbers between “/”. On Left Number, it is MP Cost Reduction, meanwhile on right, it is Cast Time Reduction.
+Example: (2 / 0.7) = meaning 2mp bar cost reduction and 0.7s cast time reduction.
+Those effects(including Scroll Atk as well) only apply on three Scroll Skills in that scroll (2 / 0.7).
+MP Cost Reduction cannot make Scroll Skill mp’s cost go under 1MP(no 0mp for y all)
+Cast Time Reduction applied after Cspd calculated, so it is possible to go instant cast without worrying 10k cspd. Also, It is similar to how Magic: Burst cast time is calculated.
+Getting MP Cost Reduction and Cast Time Reduction are based on (still unknown, maybe Rng). Max MP Cost Reduction/Cast Time Reduction still unknown too(might increase as players level up and high scroll atk?).
+For now, the highest MP cost reduction = 3
+Meanwhile Cast time reduction = 1.5
+Active Skill: Randomly cast one of all Scroll Skills
+Limitation: None
+MP Cost: 100
+Action Range: 12m need to target to use this skill
+Note:
+Scroll Atk can affect this skill damage(Ninjutsu Active Skill). But MP Cost Reduction and Cast Time Reduction in scroll, cannot
+It has Base Charge Time, at level 1 = long charge time(above 5 sec i think). Meanwhile at level 10 = it is 1 sec. Note: This Base Charge Time is for All Scroll Skills casted through Ninjutsu Active Skill !
+This skill cannot be put in combo
+Game Description: “Foreign and unconventional ninja magic. Activates a random ninjutsu when used. If a Ninjutsu Scroll skill is activated, the level will be the same as the level of this skill. EX Skill “Create Ninjutsu Scroll” can be used.”
+
+
+==================================================
+SKILL: NINJA SPIRIT
+==================================================
+
+Category: Ninja Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Game Description: “Learns the rules of shinobi (ninja). Slightly boosts Dodge and reduces Aggro a little. If this skill is Lv10, the skill “Two-Handed” will be applicable even if a Ninjutsu Scroll is equipped”
+Gives Dodge+ by +(Lvl) and -aggro% = at level 10, still less than -5%(weird)
+If this skill at level 10 and equip scroll as sub, then Two-Handed will work/apply.
+
+
+==================================================
+SKILL: NINJA DRILL I
+==================================================
+
+Category: Ninja Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Game Description: “Enhances the skills activated with Ninjutsu”
+Add Drill Lvl by +(Skill Level)
+Notes: Ninjutsu Drill Level can add additional skill multiplier of all Scroll Skills
+
+
+==================================================
+SKILL: NINJA DRILL II
+==================================================
+
+Category: Ninja Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Game Description: “Enhances the skills activated with Ninjutsu. It doesn’t matter whether you learn Ninjutsu Drill I or II first because the enhancement value will be the same.”
+Add Drill Lvl by +(Skill Level)
+Notes: Ninjutsu Drill I and II both are same skill, if both max, then think it as level 20

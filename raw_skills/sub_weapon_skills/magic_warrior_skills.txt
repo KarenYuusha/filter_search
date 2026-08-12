@@ -1,0 +1,468 @@
+Category: Magic Warrior Skills
+
+GENERAL INFORMATION
+
+Tier Requirements:
+- Tier I: None
+- Tier II: Level 60
+- Tier III: Level 120
+- Tier IV: Level 180
+- Tier V: Level 260
+
+
+==================================================
+SKILL: MAGIC WARRIOR MASTERY
+==================================================
+
+Category: Magic Warrior Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Passive Skill
+Limitation: MD sub weapon only
+Effect: Reduce the negative effect of equipping MD as a sub weapon and slightly increase MATK and CSPD.
+Passive Effect:
+When you equip magic device as a sub-weapon, you already have -15% atk penalty to begin. So, leveling this skill can nullify this penalty by +(Skill Level)% atk. OHS Bonus: furthermore nullify penalty by +5% atk
+Amount of MATK = +SkillLvl * 2 + Max([SkillLvl - 5],0)
+Amount of CSPD = +SkillLvl * 10
+Amount of CSPD% = +SkillLvl * 1% + Max([SkillLvl - 5],0)%
+Note:
+max(A, B). Output value is the highest value. If A = 5 and B = 1, then output is A
+this skill just change/set atk% penalty into less instead of add +atk%. Just to let you know in case, we had to calculate with Dual Bringer that absolute negative%.
+
+
+==================================================
+SKILL: CONVERSION
+==================================================
+
+Category: Magic Warrior Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Passive Skill
+Limitation: OHS/THS/BG/Knuckle only
+Effect: Increase MATK slightly and allow MATK gain through weaponATK.
+Amount of MATK = +SkillLvl * 2
+Effect: When equipping OHS/THS/BWG/KN, Weapon ATK affects MATK like Staffs and Magic Devices.
+OHS/THS/BWG gains extra base MATK per 1 INT: +0.1 * Skill Level
+-This means OHS/THS/BWG will gain a total of 4 base MATK per 1 INT at Skill Level 10.
+MATK Gain through WeaponATK = (SkillLvl * SkillLvl)/100 multiplied by weaponATK
+NOTE: weaponATK includes base weaponATK and bonus weaponATK from refine, equipment and skills.
+This matk bonus from this skill is treated as Flat Matk, so it is not affected by Matk% Extra base MATK from this skill is affected by MATK%; meanwhile MATK gained through WeaponATK from this skill is treated as Flat Matk.
+Knuckle Penalty: MATK Gain from this skill will be halved. Because knuckle already have 50% TotalWeaponATK into MATK which is affected by Matk%
+Following below only OHS/BWG/KN sub MD can use this active skill
+Active Skill Effect:
+This skill can swap Physical & Magic Properties of all attacking Magic Blade skills only.
+Following below are the list of them that can be swapped:
+Physical Properties
+Physical damage
+Based on ATK
+Need Physical Pierce(vs DEF)
+Enemy Physical Resistance
+Physical DTE
+Physical Crit Rate
+Physical Crit Dmg
+Physical Stability
+Damage based on Physical Proration
+Inflict Physical Proration
+Bleed disable
+RNG Hit chance
+Whack proc
+Magic Properties
+Magic damage
+Based on MATK
+Need Magic Pierce(vs MDEF)
+Enemy Magic Resistance
+Magic DTE
+Magic Crit Rate
+Magic Crit Dmg
+Magic Stability
+based on Magic Proration
+Inflict Magic Proration
+Silence disable
+Never miss nor graze(magic)
+Concentration proc
+Note
+Some magic blade skills have fixed properties(that cannot be swapped) especially Union Sword/Reunion Sword use ATK+MATK as base damage regardless of physical or magic(conversion) mode..
+
+
+==================================================
+SKILL: RESONANCE
+==================================================
+
+Category: Magic Warrior Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Support skill (Self Buffer)
+Limitation: MD sub weapon only
+MP Cost: 0MP
+Effect: Balance CurrentHP with CurrentMP % wise and give a random out 3 set buff.
+Formula: (CurrentHP% + CurrentMP%)/2 for both Hp and Mp
+Example: If your currentHP is 80% of maxHP and you have 0 CurrentMP out of 2000 maxMP(which is 0%). Then using this skill, will make Your CurrentHP become 40% maxHP because (80% + 0%)/2 and your CurrentMP become 800 because (80% + 0%)/2.
+[SET A,B,C]
+SET A:
+ATK = +SkillLvl * 2 + RefineOfMD * 2
+MATK = +SkillLvl * 2 + RefineOfMD * 2
+SET B:
+ASPD = +SkillLvl * 25 + RefineOfMD * 50
+CSPD = +SkillLvl * 25 + RefineOfMD * 50
+SET C:
+HIT = +35 +SkillLvl * 2 + RefineOfMD * 3
+Critical Rate = 10 + SkillLvl * 2 + RefineOfMD*3
+Buff Duration: 30 sec
+NOTE:
+--This skill can not be reused until its own buff ends
+--This skill can not be used if your maxHP is lower than your maxMP
+
+
+==================================================
+SKILL: ETHER FLARE
+==================================================
+
+Category: Magic Warrior Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Active skill (single target) {Magic}
+Limitation: MD sub weapon only
+MP Cost: 100MP
+Action Range: 6m
+Element: This skill always gains the element which is the weakness of the target.
+Base Skill Multiplier: 2.5 + baseINT/100
+Base Skill Constant: 50 + SkillLvl*5 [Note: this base skill constant will be doubled if this skill ele strong against target]
+Ailment Inflict: IGNITE
+Ailment Inflict Chance: 30 + 7 * SkillLvl %
+Self Buff: Activate Self Buff upon succesfully inflict Ignite Ailment
+Self Buff Effect: Increase AMPR
+AMPR Buff: 15 + Floor(Skill Level/6) * 5 + Floor(Skill Level/5) * 5
++15 for Lvl1-4
++20 for Lvl5
++25 for Lvl6-9
++30 for Lvl10
+Buff Duration: 10seconds
+
+
+==================================================
+SKILL: ELEMENT SLASH
+==================================================
+
+Category: Magic Warrior Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Active skill (single target) {Magic}
+Limitation: MD sub weapon only
+MP Cost: 200MP
+Action Range: Same as the range of MD sub
+Element: This skill always gains the element which is the weakness of the target.
+Base Skill Multiplier: 1 + SkillLvl * 0.5+ SkillLvl * (MAX[baseINT ; baseSTR] * 0.08)/100
+Base Skill Constant: 50 + 15 * SkillLvl
+Ailment Inflict: WEAKEN
+Ailment Inflict Chance: 10 * SkillLvl %
+Ailment Duration: 5 sec
+NOTES:
+-- Despite being a magic skill element slash can miss/graze/evade. HIT/Evade check is done similar to a physical skill. This skill magic mode Not Miss anymore, but Physical/Conversion mode still miss normally.
+
+
+==================================================
+SKILL: ENCHANT SWORD
+==================================================
+
+Category: Magic Warrior Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Active Skill (Single Target) {Physical}
+Limitation: OHS/THS/BG/Knuckle only
+MP Cost: 300MP
+Action Range: Default to weapon attack range. [But for Bowgun = 6m]
+Element: This skill always gains the element which is the weakness of the target.
+Base Skill Multiplier(for All hits not each): 4 + Max(BaseSTR; BaseINT)/100 + 0.6 * Skill Level
+Base Skill Constant: 300 + Bonus Skill Constant
+Bonus Skill Constant: [Sub MD WATK * (100 + Sub MD Refine^2)%] * [Sub MD base Stability]/2. This bonus skill constant cap at 300
+Hit Count = 1 hit (for OHS/THS/Knuckle only) or 8 hits (for Bowgun only)
+BG Recoil Distance = 1.5m(?)
+Skill Effect:
+If you have md as sub weapon, then Gain 1 Enchant Burst stack upon using this skill.
+During Physical Mode, This skill has Critical Rate bonus by (Skill Level + Sub MD Refine * 3).
+During Magic/Conversion mode, This skill has Magic Pierce bonus by (Skill Level + [Sub MD WATK * (100 + Sub MD Refine^2)%] * [Sub MD base Stability]/30)%
+If you use this skill when you have Enchanted Burst Sword buff[this buff after use Enchanted Burst or Enchanted Grip], then this skill will become enhanced aka. Enchant Burst Sword. This enhanced skill will make OHS get 180% E.sword damage than normal with 2 hits count[it is like using E.sword twice but in 1 button], meanwhile BG & Knuckle only get 140% E.sword damage with 1 hit count.
+NOTES:
+--This skill gets bonus from unsheathe stats. Not Treated as Unsheathed attack anymore. Even with Enchant Burst Sword not affected...
+Two-Handed Sword bonus: Bonus critical rate is multiplied by 10
+Two-Handed Sword bonus: Base skill multiplier+2
+Two-Handed Sword penalty: Skill Action Time Modifier seem longer than normal
+
+
+==================================================
+SKILL: ENCHANTED SPELL
+==================================================
+
+Category: Magic Warrior Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Passive Skill
+Limitation: MD sub weapon only
+Effect: Creates new Magic Blade EX. Which is to set what auto-cast skill & what action to trigger
+Enchant Spell can be triggered with one of following below:
+Auto Attack
+Combo finished successfully
+When Not enough MP
+Damage Received from targeted monster
+Use Guard(just perform, not every dmg received during guard)
+Use Evasion
+Trigger Chance to auto-cast skill = (10 + Skill Level * 4.5 + sub MD Refine * 3)%
+When successfully auto-cast skill, this skill will enters cooldown depending on what auto cast skill
+List of each auto cast skill and their cooldown
+M.Arrows: (15 - ESpell lvl) sec
+M.Javelin & M.Wall: (16 - ESpell lvl) sec
+M.Lances, M.Blast, M.Impact, Punish Ray, & Mini Heal: (18 - ESpell lvl) sec
+M.Storm, Recovery: (20 - ESpell lvl) sec
+Holy Light & Exorcism: (22 - ESpell lvl) sec
+Auto-cast skill has its max level depending on this skill level. Max Auto-cast Magic's level = (Skill Level).
+[Example = If this skill is at level 6 and the arrow is at lv 10, then the auto-cast arrow is at level 6. If the arrow is at lv 2 instead lv 10, then auto-cast arrow is at level 2]
+Notes:
+Auto-cast Skill doesn’t cost MP, doesn’t require cast time(instant cast) and action animation time, plus always activate/trigger as soon as auto-cast success (only if there no skill in present that is same as your auto-cast skill in your battle)
+Auto-cast of attacking Skills from Magic Tree can add Magic: Burst stack
+Auto-cast Skills can inflict proration
+Auto-cast Skill elements depending on the Magic Device Sub Weapon. Cannot change ele on the skill that has fixed ele e.g. impact neutral.
+Using this Auto-cast Skill is count as using skill with bh sub-md, this mean auto-cast skill can only enjoy sub md bonus effect[even you as staff-md] and completely ignore ohs cr penalty on Punish Ray buff as ohs-md.
+Auto-cast Skill Maximum Cast Range: Theoretically infinite (but need target to trigger)
+
+
+==================================================
+SKILL: ENCHANTED BURST
+==================================================
+
+Category: Magic Warrior Skills
+Tier: Not explicitly specified in source
+Required Level: Not explicitly specified in source
+
+Active Skill (Single Target) {Magic}
+Limitation: Sub MD/THS only
+MP Cost: 100MP
+Action Range: 100m (however, need target 24m at first)
+Element: This skill always gains the element which is the weakness of the target.
+This skill damage based on which higher ATK or MATK.
+Base Skill Constant = 100 + [Sub MD Base ATK] * 0.4 * Eburst stack
+Base Skill Multiplier = Skill Level
+Extra Skill Multiplier:
+1st Eburst stack gives +5 mult regardless of lvl
+2nd Eburst stack gives +(2.5 + SkillLv) mult
+3rd Eburst stack gives +(6.25 + SkillLv) mult
+Hit count = 1 hit
+Skill Effect:
+You can gain 1 Enchant Burst stack via Enchant Sword, Enchanted Grip & Siphon Barrier. [for KMD, to get these stack, you must not have Energy Control or Annihilator Buff]
+Max Eburst stack can be stored up to 9, but only consume up to 3 stacks per this skill cast.
+Using this skill will grant Enchant Burst Sword buff(its icon Enchant Sword btw)
+Enchant Burst Sword buff duration: (4 + Skill Lvl) * (Eburst stack consumed^2) seconds. Can extend/refresh this buff.
+Note: low duration [due to low eburst stack for example] won't refresh/reset current Enchant Burst Sword buff timer if current buff timer has longer time!
+This skill can inflict Weaken regardless of ele sub md and depend on this skill level and Eburst stack
+Ailment Chance = MAX{0 ; 100 * MIN(1 ; -2 + Eburst Stack + Floor[Skill Level/5])}%
+Ailment Duration = MAX {0 ; (-2 + Eburst Stack + Floor[Skill Level/5]) * 5}
+In case you’re having a hard time calculating those formulas above. Here simple one
+At lv 1-4, only 3 stack can inflict Weaken for 5 sec
+At lv 5-9, only 2 stack can inflict Weaken for 5 sec, but 3 stack can inflict Weaken too for 10 sec
+At lv 10, 1 stack now can inflict Weaken for 5 sec, 2 stack can for 10 sec, 3 stack can for 15 sec
+Enchanted Grip (Enchanted Burst Conversion Mode)
+Active Skill (Single Target) {Physical}
+MP Cost: 100MP
+Action Cast Range: 100m (however, need target 24m at first)
+Element: This skill always gains the element which is the weakness of the target.
+This skill damage based on ATK
+Base Skill Multiplier: 10 + 0.5 * Skill Level
+Base Skill Constant: 100
+Hit Count: 1 hit
+Enchant Grip uses magic critical rate and physical hit rate [same as old Element Slash] NOT ANYMORE SINCE IT IS BUGGED, GOT REVERTED TO USE PHYSICAL CRITRATE
+Skill Effect:
+Grants 1 Enchant Burst stack if this skill lands a non-miss hit (graze and [Evasion] will still give stack as they’re both “non-miss”)
+Also, Gain Enchant Burst Sword buff upon using this skill. Its buff duration is (1 + Skill Level) * [number of EBurst Stack upon cast, max 3 stk] seconds Not anymore, u only need to use Enchanted Burst to get Enchant Burst Sword Buff for now.
+This skill gives a unique debuff "+" mark to the target that can make teammates recover their MP upon casting attack skill on that debuffed target. MP Recovery is (Attacker’s MaxMP/20) per attacking skill cast and that debuff will end when already proc MP recovery (Skill Level) times[shared with 1 party].
+Note: You can apply debuff to another target, as previous debuff on target won't disappear. Also, if 1 AOE skill hits both 2 or more targets that have debuff, then it will result in multiple MP Recovery from hitting those targets that have debuff.
+
+
+==================================================
+SKILL: SIPHON BARRIER
+==================================================
+
+Category: Magic Warrior Skills
+Tier: I
+Required Level: None
+
+T1; MD Only
+MP Cost: 100
+Skill Effect:
+Gives Physical/Magic Resistance during this skill animation by (9 * lv)% [this is same as Cross Parry that give phy/magic resistance]
+If you receive physical damage first during this skill animation, recover your MP by 10MP. However, if you receive magic damage first instead, then recover your MP by 50MP. Note: This mp recovery only triggers once per cast, even successfully reducing multiple hits. Though… the only benefit from reducing multiple hits is to accumulate more total MP gain for Drain Recall MP recovery calc.
+Unaffected by any motion speed modifier (including Swift combo tag)
+Gain 1 E.Burst stack after successfully parrying Physical or Magic damage with this skill [Doesn't give stack if parrying frac hits since this skill cannot reduce frac dmg tho]
+Seina Note: can gain 2 Eburst stack instead 1 stack but that need precise timing.
+Siphon Barrier’s “valid parry animation” is the entire skill animation, and it can generate 2 E.Burst stack if the 2 hits parried are exact 16 frames away from each other [inside a single Siphon cast], and this 16 frames cooldown resets to 0 if 2 hits are parried in 2 consecutive Siphon casts
+Game Description: “A defense technique converted into mana through a barrier. Reduces physical/magic damage received during the skill and slightly restores MP. The amount restored increases if magic damage gets reduced.”
+One-Handed Sword bonus: MP recovery from receiving physical/magic damage will be doubled
+
+
+==================================================
+SKILL: TELEPORT
+==================================================
+
+Category: Magic Warrior Skills
+Tier: II
+Required Level: Level 60
+
+T2; MD Only
+MP Cost: 200
+Skill Effect:
+This skill will teleport you 8 meters away based on your movement pad input
+Has fixed cast time of 3 seconds but will be removed instantly upon teleporting; basically this is more like to represent the amount of time you’re still allowed to teleport rather than anything
+Unaffected by other motion speed modifier (including Swift combo tag), instead has its own motion speed modifier of +(5 * SkillLv)%
+This skill can give M.Cannon Charge by (40 * Cast Time Reduction)
+Cast Time Reduction =
+First 1000 cspd, every 20 cspd = 1% reduction
+then the next 1k cspd, every 180 cspd = 1% reduction
+Game Description: “A technique to dodge attacks by instantly moving to another point. While casting Teleport, press a direction key to instantly move to that direction.”
+One Handed-Sword bonus: Base MP Cost -100
+
+
+==================================================
+SKILL: DRAIN RECALL
+==================================================
+
+Category: Magic Warrior Skills
+Tier: III
+Required Level: Level 120
+
+T3; Sub MD Only
+Passive Effect:
+When Siphon Barrier successfully reduces damage received, you will get MP Regen buff which is (Skill Level * 5 + 5MP every physical damage received + 25MP every magic damage received) per 2 seconds.
+[One-Handed Sword bonus: MP Recovery from everytime receive physical/magic damage will be doubled]
+Total Sum of all MP from every physical and every magic dmg received during this skill animation, cannot exceed over +150MP(even with ohs bonus, still cap at +150MP).
+This passive effect last for (2 * Skill Level) seconds.
+[There is a shorter alternative version of this mp regen formula = Skill Level * 5 + total mp gain from Siphon Barrier / 2. This formula still cap at (Skill Level * 5 + 150)MP]
+Game Description: “Gets an additional status that continues to restore MP when damage is successfully reduced by Siphon Barrier. The heal amount changes based on the value obtained from Siphon Barrier.”
+Staff Penalty: MP Regen buff will be halved
+
+
+==================================================
+SKILL: FLOAT DASH
+==================================================
+
+Category: Magic Warrior Skills
+Tier: IV
+Required Level: Level 180
+
+T4; Sub MD only
+MP Cost: 300
+Buff Effect:
+Auto Attack will be disabled during this buff
+Multiplies your character movement speed by (1 + 0.1 * Skill Level)x
+The next skill has its MP Cost divided by half and rounded up to the nearest multiple of 100 (e.g. 300/2 = 150 -> 200 MP; 600/2 = 300 -> 300 MP)
+Buff Duration: 10 Seconds
+Game Description: “Urgently deploys magic device for high-speed flight. Movement speed greatly increases for 10 seconds in exchange for being unable to perform a normal attack. The effect ends when any skill is activated. MP Cost of the activated skill is halved.”
+One Handed-Sword bonus: Remove Slow and Stop Ailment
+If you use this skill before engaging Battle Mode(Off battle), then you can auto attack during this buff, but it will end this skill buff immediately. Likewise, movement speed bonus doesn’t apply during off-battle. Only halves mp buff work during off-battle.
+This skill cannot be put in combo
+This skill cannot be reused if the buff is already active
+This skill cannot be activated while another auto attack motion change buff (Rampage, Twin Storm, Minstrel Songs, etc.) is active
+
+
+==================================================
+SKILL: MAGIC SKIN
+==================================================
+
+Category: Magic Warrior Skills
+Tier: V
+Required Level: Level 260
+
+T5; Sub MD Only
+Passive Effect:
+Increase Refine Resistance% by (Sub-MD Refine)%, just like sub shield refine
+Reduce physical/magic damage taken by (Current MP/400 * Skill Level)% [It does multiplies with Asura and Siphon Barrier]
+When you receive final damage that is higher than your MaxHP, then there is a chance(Skill Level * 10)% you will survive at 1 HP, and its cooldown is 120 seconds when activated. And in addition, this skill physical/magic damage taken reduction will be unavailable during this cooldown period.
+Somehow the survive effect only triggers if you take a lethal hit which is higher than your MaxHP
+Regretless death by regretless buff timer end, bypasses this survive effect
+Game Description: “The refinement value of magic device will have the same damage reduction effect as that of shield. Furthermore, the more MP left, the more often physical/magic damage will be reduced.”
+
+
+==================================================
+SKILL: DUAL BRINGER
+==================================================
+
+Category: Magic Warrior Skills
+Tier: V
+Required Level: Level 260
+
+T5; Sub MD only
+MP Cost: 400
+Buff Effect for All Skill from Magic Blade Tree only:
+Buff Duration: MAX[10; Floor(Base MD watk / 5)] seconds [regardless level]
+Your magic attacks/skills against weakened target, you will receive following one of two options below:
+If your Total INT > Total STR, then you will get extra magic critical damage ratio by +(2.5 * Skill Level)% Magic Critical Damage Ratio/Conversion regardless of element. Stack additively with Spellburst extra mcd ratio.
+If your Total STR ≥ Total INT and strong element vs target[no need strong], then you will get extra magic critical rate ratio by +(2.5 * Skill Level)% Weaken Magic Critical Rate Ratio/Conversion. Stack additively with Weaken ail, Staff Magic Neutral dmg, Spellburst extra mcr ratio.
+Refer to ⁠📚critical-formula💥 for more detail about magic critical.
+[All weapons; ohs, knuckle, bg, staff still same +mcr%/+mcd% effect]
+Using this skill will balance/equalise your final ATK & final MATK. This balance ATK & MATK buff only works for all Magic Blade skills only. Note: Any skills casted through Enchanted Spell are not affected by this balance buff.
+For now about the balance ATK MATK formula, I'll use A and B term, A is higher than B. If Atk>Matk, then A is Atk and B is Matk, and vice versa for Matk>Atk.
+(Final A > Final B formula) = (Final ATK > Final MATK formula) = (Final MATK > Final ATK formula)
+Here complete formula
++B hidden value = MAX[0 ; (Final A - Final B) * (100% - Total negative B%) * SkillModifier% - Final B * Total negative B%]
+Note:
+If you have -19 Atk% or Matk%, then total negative B% = 19%
+SkillModifier% = MIN[100% ; (Skill Level * "Number of Magic Blade skills learned")%]
+Max Number of Magic Blade skills can be learned is up to 15 skills instead of 10 skills
+[This probably due to when we already learn Dual Bringer, it is already at least 5 skills learned to begin.. so desc that say max 10 skills, then add 5(mw mastery + conversion + reso + espell + db) = max 15 skills learned. But the thing is Skill Modifier% cap to 100% so with Dual Bringer lv 10 then just need at least 10 skills learned to hit cap anyway]
+tldr, At level 10 plus +10 Magic Blade Skills learned and without having negative atk%/matk% from any source, then using this skill will make you get following two option below:
+If your Final MATK > your Final ATK, then your final ATK will become same amount as final MATK
+If your Final ATK > your Final MATK, then your final MATK will become same amount as final ATK
+Important Note:
+Just make sure you don't have negative atk%/matk% from any source at all cost, since positive atk%/matk% from any source cannot nullify that negative atk%/matk%! Or else like this formula at level 10 plus +10 magic blade skills learned if you somehow have negative%.
+MAX[0 ; (Final A - Final B) * (100% - total negative B%) - Final B * total negative B%] = +B hidden value
+Example: If you have -10% MATK, and have +15% MATK.
+Then let’s say you have 1000 Final ATK & 500 Final MATK, so here you go:
+(1000 - 500) * (100% - 10%) - 500 * 10% = 500 * 90% - 50 = 450 - 50 = 400 Hidden MATK gain from this skill
+Making it like 1000 Final ATK and 900 Final MATK after using this skill !!
++15% MATK still doesn’t negate/nullify that -10% MATK into +5% MATK. Hence, that’s why you should avoid having negative atk%/matk% at all !!!
+Note: if you somehow got a negative result with the calculation above due to having too many negative atk%/matk% or not enough final matk/atk, then the result will be always set to 0 value aka no balance atk/matk effect at all, or id say nothing happened other than crit effect kekw.
+For OHS Only, when have Dual Bringer Buff.
+All Skill from Magic Tree can enjoy Dual Bringer’s buff (ATK/MATK Balance and Magic Crit Rate/Damage Buff)
+All Skill from Magic Tree’s element that is based on Main Weapon ele, will be changed to depend on Sub MD Element instead. [Not Dual Ele, and cannot change skill that has fixed ele already]
+Gain +1 Eburst stack every time you use finale, mburst, mcannon, mcrash.
+Note: these 4 skills above must land hit to gain 1 Eburst stack.
+Game Description: “Keeps ATK and MATK high through resonance during the effect duration that depends on the ability of magic device. Gets a critical bonus when attacking a weakened target. This skill effect is only for Magic Blade Skills.”
+Magic Warrior Mastery doesn't add atk% to negate sub md penalty -15% atk, but instead it changes sub md penalty -15% atk into a certain number depending on your main weapon & mw mastery lvl!!! (Which is explain why this mw mastery can nullify sub md penalty by change -atk%)
+Magic Skills activated via Espell, also affected by Dual Bringer ATK/MATK Balance and its Magic Crit Buff, even as non-ohs.
+
+
+==================================================
+SKILL: UNION SWORD
+==================================================
+
+Category: Magic Warrior Skills
+Tier: V
+Required Level: Level 260
+
+T5; THS and Sub MD
+MP Cost: 500
+Maximum Cast Range: 12 meter
+Base “Cast Time”: 2 seconds (not actually "cast time" as there is no indicator and the "casting" is in fact part of the skill animation, thus can be reduced with motion speed)
+Union uses ATK+MATK as base value to calculate damage
+Base Skill Multiplier: 10 + 0.5 * Skill Level
+Base Skill Constant: 500
+Hit Count: 1
+Hit Range: length of 16m and radius of 4m [Stadium shape]; from the caster toward the target's position upon cast
+Reunion uses ATK+MATK as base value to calculate damage
+Reunion Sword Multiplier: 20 + Skill Level
+Reunion Sword Constant: 500
+Hit Count: 1
+Hit Range: length of 8m and radius of 0.5m [Stadium shape]; from the caster toward the target's position upon casting Union Sword (rather than upon casting Reunion)
+Skill Effect:
+This skill damage is not treated as Unsheathe Attack
+If you have Enchant Burst Sword buff, then using this skill will consume 30 seconds of that buff to skip this cast animation. And if said buff still remains at the end of Union Sword's attack animation, holding forward direction will consume all of the remaining duration of the buff to perform Reunion Sword.
+Union has damage taken reduction(physical/magic/fractional) during swing union sword animation(this happen after done chant to make sword, then there swing union sword animation for like 0.8 ~ 0.5 seconds if max motion) by (80 + Skill Level)%
+Reunion has 100% resistance to any ailments(even absolute ailments) during the Reunion entire animation.
+Reunion with Physical ver has Guaranteed Absolute Critical, meanwhile with Conversion/Magic ver has Guaranteed Guard Break.
+Reunion is not affected by character's motion speed but affected by motion modifying skills and swift combo tag.
+Union Sword inflicts proration before Reunion Sword hits, thus reducing the proration modifier of the latter.
+Game Description: “A secret technique of wielding a colossal sword created with mana. Performs a wide range attack in a straight line. When under the enhancement effect of Enchanted Burst, it will activate quickly by consuming its effect duration.”

@@ -1,0 +1,218 @@
+Category: Survival Skills
+
+GENERAL INFORMATION
+
+Tier Requirements:
+- Tier I: Level 1
+- Tier II: Level 20
+
+
+==================================================
+SKILL: PLAY DEAD
+==================================================
+
+Category: Survival Skills
+Tier: I
+Required Level: 1
+Type: Passive
+
+Description:
+Reduces the revive time of a defeated character.
+
+Base Revive Time:
+300 seconds
+
+Revive Time Reduction:
+5 * SkillLvl %
+
+Notes:
+The base revive time is 300 seconds.
+
+
+==================================================
+SKILL: EXP GAIN UP
+==================================================
+
+Category: Survival Skills
+Tier: I
+Required Level: 1
+Type: Passive
+
+Description:
+Increases EXP gained.
+
+EXP Gain Increase:
+SkillLvl %
+
+Notes:
+- EXP Gain% from this skill stacks additively with EXP Gain% from emblems and other sources.
+
+
+==================================================
+SKILL: DROP GAIN UP
+==================================================
+
+Category: Survival Skills
+Tier: I
+Required Level: 1
+Type: Passive
+
+Description:
+Increases drop rate chance.
+
+Drop Rate Increase:
+SkillLvl %
+
+Notes:
+- Drop Rate% from this skill stacks additively with Drop Rate% from events and other sources.
+- The tier list in the source refers to this skill as "Drop Rate Up".
+
+
+==================================================
+SKILL: SAFE REST
+==================================================
+
+Category: Survival Skills
+Tier: I
+Required Level: 1
+Type: Passive
+
+Description:
+Increases Natural HP Regen while outside combat.
+
+Effect:
+When outside battle, increases Natural HP Regen at the end of the regeneration calculation.
+
+Flat Natural HP Regen Increase:
+10 * SkillLvl
+
+Natural HP Regen% Increase:
+10 * SkillLvl %
+
+Base Natural HP Regen Formula:
+BaseNHPR =
+MaxHP / 25 * (100% + TotalEquipmentNHPR%) + 10 + TotalEquipmentFlatNHPR
+
+Final Natural HP Regen Formula:
+FinalNHPR =
+BaseNHPR * (100% + TotalSkillNHPR%) + TotalSkillFlatNHPR
+
+Notes:
+- Natural HP Regen from equipment and avatars is included in the base NHPR value.
+- Natural HP Regen from skills is applied after base NHPR is calculated.
+
+
+==================================================
+SKILL: SHORT REST
+==================================================
+
+Category: Survival Skills
+Tier: I
+Required Level: 1
+Type: Passive
+
+Description:
+Increases Natural MP Regen.
+
+Flat Natural MP Regen Increase:
+SkillLvl
+
+Natural MP Regen% Increase:
+5 * SkillLvl %
+
+Base Natural MP Regen Formula:
+BaseNMPR =
+MaxMP / 100 * (100% + TotalEquipmentNMPR%) + 1 + TotalEquipmentFlatNMPR
+
+Final Natural MP Regen Formula:
+FinalNMPR =
+BaseNMPR * (100% + TotalSkillNMPR%) + TotalSkillFlatNMPR
+
+Notes:
+- Natural MP Regen from equipment and avatars is included in the base NMPR value.
+- Natural MP Regen from skills is applied after base NMPR is calculated.
+
+
+==================================================
+SKILL: HP BOOST
+==================================================
+
+Category: Survival Skills
+Tier: II
+Required Level: 20
+Type: Passive
+
+Description:
+Increases the character's maximum HP.
+
+Flat Max HP Increase:
+100 * SkillLvl
+
+Max HP% Increase:
+2 * SkillLvl %
+
+
+==================================================
+SKILL: FIGHTER'S HIGH
+==================================================
+
+Category: Survival Skills
+Tier: II
+Required Level: 20
+Type: Passive
+
+Description:
+Regenerates HP during combat. The healing amount is small.
+
+Recovery Interval:
+Every 3 seconds while in combat.
+
+HP Recovery Amount:
+1 * SkillLvl % * BaseNaturalHPRegen
+
+Base Natural HP Regen:
+BaseNHPR =
+INT(INT(MaxHP / 25) * (1 + TotalNHPR% / 100)) + 10 + TotalFlatNHPR
+
+
+==================================================
+SKILL: MP BOOST
+==================================================
+
+Category: Survival Skills
+Tier: II
+Required Level: 20
+Type: Passive
+
+Description:
+Increases the character's maximum MP.
+
+Flat Max MP Increase:
+30 * SkillLvl
+
+
+==================================================
+SKILL: SOBER ANALYSIS
+==================================================
+
+Category: Survival Skills
+Tier: II
+Required Level: 20
+Type: Passive
+
+Description:
+Regenerates MP both inside and outside combat. The recovery amount is small.
+
+Recovery Interval:
+Every 3 seconds.
+
+MP Recovery Amount:
+5 * SkillLvl % * BaseNaturalMPRegen
+
+Base Natural MP Regen:
+BaseNMPR =
+INT(INT(MaxMP / 100) * (1 + TotalNMPR% / 100)) + 1 + TotalFlatNMPR
+
+Notes:
+- Total NMPR% excludes Sunbath Registlet.
+- Total NMPR% excludes Emotion NMPR boosts.

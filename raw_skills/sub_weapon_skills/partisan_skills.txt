@@ -1,0 +1,203 @@
+Category: Partisan Skills
+
+GENERAL INFORMATION
+
+Tier Requirements:
+- Tier I: None
+- Tier II: Level 160
+- Tier III: Level 250
+
+
+==================================================
+SKILL: L BOOMERANG
+==================================================
+
+Category: Partisan Skills
+Tier: I
+Required Level: None
+
+T1; THS only
+MP Cost: 200
+Base Skill Constant: 200
+Base Skill Multiplier: 2 + Skill Level * 0.25 + Base Dex/100 for each hit
+Hit Count: 2 hits; Single Target
+Maximum Cast Range: 10m
+Skill Effect:
+Using this skill will make your Boomerang travel 10m towards the target then travel back to you. You will get 100MP if your boomerang comes back/returns.
+This skill will gain Base Skill Multiplier bonus additively if you learn L Boomerang II and L Boomerang III.
+Learn L Boomerang II = +(2 + 0.25 * L Boomerang II level) boomerang I multi
+Learn L Boomerang III = +(2 + 0.25 * L Boomerang III level) boomerang I multi
+This skill inflicts Normal Auto Attack proration. Its damage is based on Normal Auto Attack Proration.
+This skill won't deal damage if you don't have a boomerang.
+If a boomerang collides with a wall, then that boomerang will return to you instantly but no 100MP gain.
+This skill damage is unaffected by srd%/lrd%/Long Range(Shot tree)
+Game Description: “Throws Lepage's boomerang sword. It will only hit the target and return after traveling a certain distance with the chance of hitting the target again. The skill will do no damage without a boomerang.”
+
+
+==================================================
+SKILL: L BOOMERANG II
+==================================================
+
+Category: Partisan Skills
+Tier: II
+Required Level: Level 160
+
+T2; THS only
+MP Cost: 100
+Base Skill Constant: 100
+Base Skill Multiplier: Half of L Boomerang I’s Base Skill Multiplier
+Hit Count: 2 hits; Single Target
+Maximum Cast Range: 24m
+Skill Effect:
+Using this skill will make your Boomerang travel 10m towards the target then travel back to you. You will get 100MP if your boomerang comes back/returns.
+Using this skill will also make you backstep 5m at the cost of low damage. Note: since this skill can be casted beyond 10m or due to backstep… in order for this skill to deal damage, you need to be within 7m range or less so that backstep to 12m or less…. Or else no damage due to out of reach.
+This skill inflicts Normal Auto Attack proration. Its damage is based on Normal Auto Attack Proration.
+This skill won't deal damage if you don't have a boomerang.
+If a boomerang collides with a wall, then that boomerang will return to you instantly but no 100 MP gain.
+This skill damage is unaffected by srd%/lrd%/Long Range(Shot tree)
+Game Description: “Throws the boomerang while moving backward, however, it is less powerful. Without a boomerang, you will only move backward.”
+
+
+==================================================
+SKILL: L BOOMERANG III
+==================================================
+
+Category: Partisan Skills
+Tier: III
+Required Level: Level 250
+
+T3; THS only
+MP Cost: 400
+Base Skill Constant: 400
+Base Skill Multiplier: L Boomerang I’s Base Skill Multiplier
+Hit Count: 2 hits; Single Target
+Maximum Cast Range: 10m
+Skill Effect:
+Using this skill will make your Boomerang travel 10m towards the target then travel back to you. You will get 100MP if your boomerang comes back/returns.
+This skill has Physical Pierce by +(5 * Skill Level)%
+Also, this skill has Critical Rate by +(10 * Skill Level)cr.
+This skill inflicts Normal Auto Attack proration. Its damage is based on Normal Auto Attack Proration.
+This skill won't deal damage if you don't have a boomerang.
+If a boomerang collides with a wall, then that boomerang will return to you instantly but no 100MP gain.
+This skill damage is unaffected by srd%/lrd%/Long Range(Shot tree)
+Game Description: “Critical Rate and Physical Pierce go up. The boomerang will go after the target. It will return after traveling a certain distance or colliding with an obstacle with the chance of hitting the target again. The skill will do no damage without a boomerang.”
+
+
+==================================================
+SKILL: HEALING SHOT
+==================================================
+
+Category: Partisan Skills
+Tier: I
+Required Level: None
+
+T1; Bow/Bowgun only
+MP Cost: 0
+Skill Effect:
+Using this skill will make you use your MaxHP in order to shoot “heal buff” to the furthest ally target within 16m and to yourself. Note: this skill may miss easily if the ally moves too quick or teleports or dash away.
+Your HP Cost = MAX[100; (25 - 2 * Skill Level)% of your Max HP]. Note: Cannot use this skill if you don't have enough HP.
+Heal Radius = 2m around the furthest target
+Heal amount to players = +(50 * Skill Level + Floor((Skill Level + 2)/3)% of theirs MaxHP) per interval
+Bow and Bowgun have the same total heal amount to the player but different interval time.
+Bow, heal every 2 seconds that last for 10 seconds.
+Bowgun, heal every 1 second that lasts for 5 seconds.
+On the other hand.. for pets/merc seem to get only one heal time per use(with bow or bowgun) instead of heal buff per second which is for players only…
+Heal amount to pets/merc = Floor((5 + Skill Level)/3)% of their hp?
+Game Description: “Consumes your own HP (min 100) and shoots a straight healing arrow toward the furthest party member. The heal amount is different for mercenary, partner, and pet.”
+You cannot heal yourself from this skill!
+This skill can be put in combo, but cannot be put as opener due to 0mp
+
+
+==================================================
+SKILL: ARROW SHARPENING
+==================================================
+
+Category: Partisan Skills
+Tier: II
+Required Level: Level 160
+
+T2; Bow/Bowgun only
+MP Cost: 100
+Buff Effect:
+Auto Attack will have its Physical Pierce increased by +MAX(Skill Level ; Base STR/50 * Skill Level)%
+Auto Attack will get critical damage bonus by +MAX(Skill Level ; Base DEX/25 * Skill Level)% [this is same as +cd% from eq etc.]
+Auto Attack will have its animation speed increased by +MAX(Skill Level ; Base AGI/? * Skill Level) Motion Speed%?
+Buff Duration: until you auto attack 1 times
+Game Description: “Enhances the next normal attack used. STR increases Physical Pierce, AGI increases Action Speed, and DEX increases critical performance.”
+
+
+==================================================
+SKILL: SURVIVAL INSTINCT
+==================================================
+
+Category: Partisan Skills
+Tier: III
+Required Level: Level 250
+
+T3; Bow/Bowgun only
+Passive Effect:
+When other player(not merc) or pet knocked down, you get additional HP by (500 * Skill Level HP + Skill Level% MaxHP) for 20 seconds.
+Also, you will gain Fractional Damage Reduction by (2.5 * Skill Level)% for 20 seconds.
+Other players or pets have to be knocked down in a normal way to get these passive effects, not from other ways such as Regretless death, etc.
+
+
+==================================================
+SKILL: N DRAGON TOOTH
+==================================================
+
+Category: Partisan Skills
+Tier: III
+Required Level: Level 250
+
+T3; Halberd only
+MP Cost: 500
+Base Skill Constant (First Hit): 0
+Base Skill Multiplier (First Hit): 0.75 * Skill Level
+Base Skill Constant (Second Hit): 0
+Base Skill Multiplier (Second Hit): 0.75 * Dragon Tooth Level
+Hit Count: 2 hits
+Maximum Cast Range: Defaults to the weapon's Auto Attack Max Range
+Skill Effect:
+Using this skill will make you leap towards the target, then backstep 8m toward the direction where your starting position is when using this skill.
+This skill has innate Physical Pierce +(10 * Skill Level)%.
+Upon using this skill, it gives you Physical Pierce buff for next attacking skill by +(2 * Skill Level)%.
+Negates Flinch, Tumble and Stun during the skill's animation.
+Restores MP when the skill succeeds without taking damage. The amount of MP restored increases when the retreat distance is extended using directional input, and it depends on the level of "Dragon Tooth" acquired.
+MP Recovery Amount:
+MP Recovery: 10 * Dragon Tooth Skill Level
+MP Recovery (retreat): 30 * Dragon Tooth Skill Level
+Game Description: “The Dragon Tooth invented by Nino. Attacks the target and moves backward. Slightly raises the piercing power of the next skill used. Acquiring the skill "Dragon Tooth" will increase the power further.”
+
+
+==================================================
+SKILL: FRONTLINER
+==================================================
+
+Category: Partisan Skills
+Tier: I
+Required Level: None
+
+T1; No Limit
+MP Cost: 100
+Skill Effect:
+Upon using this skill, you will gain fixed (100 + 15 * Skill Level) MP Aggro. This aggro generation work like Party Buff(so you don't need to hit or engage them, despite this skill being self buff)
+Buff Effect:
+Gain your Physical Barrier by (100 * Skill Level * number of players in your party). Note: it has to be players that are alive and don't have aggro. Doesn't work with merc/pets.
+Gain your +Aggro% by +(2 * Skill Level)% [note: it is additively with eq etc.]
+Buff duration: 60 seconds
+Game Description: “The determination to never back down. Increases your own Aggro and raises the increase of Aggro for 60 seconds. Additionally gains Physical Barrier according to the number of nontarget members.”
+
+
+==================================================
+SKILL: FRONTLINER II
+==================================================
+
+Category: Partisan Skills
+Tier: II
+Required Level: Level 160
+
+T2; No Limit
+Passive Effect:
+Allow you to gain Magic Barrier by (100 * Skill Level * number of players in your party). Note: it has to be players that are alive and don't have aggro. Doesn't work with merc/pets.
+Passively gain your MaxHP by (100 * Skill Level + Player Level * 10)
+Game Description: “Gains Magic Barrier too when gaining Physical Barrier from the skill "Frontliner". Additionally, there is a passive effect that increases MaxHP permanently in line with skill acquisition.”
