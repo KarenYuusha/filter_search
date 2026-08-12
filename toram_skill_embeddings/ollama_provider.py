@@ -9,6 +9,9 @@ from toram_skills.semantic_search import EmbeddingIndexError, EmbeddingUnavailab
 
 
 class OllamaEmbeddingProvider:
+    provider_name = "ollama"
+    config_id = "default"
+
     def __init__(
         self,
         model_name: str,
@@ -28,8 +31,7 @@ class OllamaEmbeddingProvider:
             options["host"] = host
         self._client = client_factory(**options)
 
-    def embed(self, texts: Sequence[str]) -> tuple[tuple[float, ...], ...]:
-        inputs = [str(text) for text in texts]
+    def _embed_inputs(self, inputs: list[str]) -> tuple[tuple[float, ...], ...]:
         try:
             response = self._client.embed(model=self.model_name, input=inputs)
         except ollama.ResponseError as exc:
@@ -59,6 +61,20 @@ class OllamaEmbeddingProvider:
                 f"Ollama returned {len(vectors)} vectors for {len(inputs)} inputs"
             )
         return vectors
+
+    def embed_documents(
+        self,
+        texts: Sequence[str],
+    ) -> tuple[tuple[float, ...], ...]:
+        return self._embed_inputs([str(text) for text in texts])
+
+    def embed_query(self, text: str) -> tuple[float, ...]:
+        vectors = self._embed_inputs([str(text)])
+        if len(vectors) != 1:
+            raise EmbeddingIndexError(
+                f"Ollama returned {len(vectors)} vectors for one query"
+            )
+        return vectors[0]
 
 
 __all__ = ["OllamaEmbeddingProvider"]
