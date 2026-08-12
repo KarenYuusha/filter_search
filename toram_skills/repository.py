@@ -188,6 +188,17 @@ class SkillRepository:
                 _issues_to_json(tree.issues),
             ),
         )
+        self.connection.executemany(
+            """
+            INSERT INTO skill_tree_weapon_restrictions(
+                tree_id, position, weapon, normalized_weapon
+            ) VALUES (?, ?, ?, ?)
+            """,
+            [
+                (tree.id, position, weapon, normalize_skill_name(weapon))
+                for position, weapon in enumerate(tree.weapon_restrictions)
+            ],
+        )
 
     def insert_skill(self, skill: SkillDraft) -> None:
         self.connection.execute(
@@ -237,16 +248,34 @@ class SkillRepository:
             ],
         )
         self.connection.executemany(
-            "INSERT INTO skill_ailments(skill_id, position, name) VALUES (?, ?, ?)",
-            [(skill.id, position, name) for position, name in enumerate(skill.ailments)],
+            """
+            INSERT INTO skill_ailments(skill_id, position, name, normalized_name)
+            VALUES (?, ?, ?, ?)
+            """,
+            [
+                (skill.id, position, name, normalize_skill_name(name))
+                for position, name in enumerate(skill.ailments)
+            ],
         )
         self.connection.executemany(
-            "INSERT INTO skill_weapon_requirements(skill_id, position, weapon) VALUES (?, ?, ?)",
-            [(skill.id, position, weapon) for position, weapon in enumerate(skill.weapon_requirements)],
+            """
+            INSERT INTO skill_weapon_requirements(skill_id, position, weapon, normalized_name)
+            VALUES (?, ?, ?, ?)
+            """,
+            [
+                (skill.id, position, weapon, normalize_skill_name(weapon))
+                for position, weapon in enumerate(skill.weapon_requirements)
+            ],
         )
         self.connection.executemany(
-            "INSERT INTO skill_weapon_restrictions(skill_id, position, weapon) VALUES (?, ?, ?)",
-            [(skill.id, position, weapon) for position, weapon in enumerate(skill.weapon_restrictions)],
+            """
+            INSERT INTO skill_weapon_restrictions(skill_id, position, weapon, normalized_name)
+            VALUES (?, ?, ?, ?)
+            """,
+            [
+                (skill.id, position, weapon, normalize_skill_name(weapon))
+                for position, weapon in enumerate(skill.weapon_restrictions)
+            ],
         )
 
     def _ordered_values(self, table: str, column: str, skill_id: str) -> tuple[str, ...]:
