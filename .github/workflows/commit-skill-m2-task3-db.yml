@@ -1,0 +1,51 @@
+name: Commit Skill M2 Task3 Database
+
+on:
+  pull_request:
+    branches:
+      - feat/skill-hybrid-retrieval
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/skill-hybrid-retrieval
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install rapidfuzz python-dotenv ollama discord.py
+      - name: Rebuild FTS-enabled database
+        run: python build_skills.py --source raw_skills --database coryn_data/database/skills.sqlite --json-report /tmp/skill-import.json
+      - name: Verify generated database
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from toram_skills.repository import SkillRepository
+          from toram_skills.source_inventory import discover_skill_sources, source_manifest_hash
+          expected = source_manifest_hash(discover_skill_sources(Path('raw_skills')))
+          with SkillRepository(Path('coryn_data/database/skills.sqlite')) as repo:
+              docs = repo.connection.execute('SELECT COUNT(*) FROM skill_search_documents').fetchone()[0]
+              fts = repo.connection.execute('SELECT COUNT(*) FROM skill_fts').fetchone()[0]
+              assert repo.get_metadata('schema_version') == '2'
+              assert repo.get_metadata('source_manifest_hash') == expected
+              assert repo.get_metadata('search_document_manifest_hash')
+              assert docs > 0 and docs == fts
+          PY
+      - name: Commit only generated skill database
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add coryn_data/database/skills.sqlite
+          test "$(git diff --cached --name-only)" = "coryn_data/database/skills.sqlite"
+          if git diff --cached --quiet; then
+            echo 'Database already current'
+          else
+            git commit -m 'build: add skill search documents and fts'
+            git push origin HEAD:feat/skill-hybrid-retrieval
+          fi
