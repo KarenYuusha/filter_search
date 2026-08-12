@@ -1,0 +1,22 @@
+name: Scan Skill M2 Lexical Terms
+
+on:
+  pull_request:
+    branches:
+      - feat/skill-hybrid-retrieval
+
+jobs:
+  scan:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Locate source-backed lexical terms
+        run: |
+          echo '=== AMPR ==='
+          grep -Rni -m 20 -E '\bAMPR\b|Attack MP Recovery' raw_skills || true
+          echo '=== Tumble ==='
+          grep -Rni -m 20 -E '\bTumble\b|\btumble\b' raw_skills || true
+          echo '=== Venom ==='
+          grep -Rni -m 20 -E '\bVenom\b|\bvenom\b' raw_skills || true
+          echo '=== remaining MP ==='
+          grep -Rni -m 20 -E 'remaining MP' raw_skills || true
