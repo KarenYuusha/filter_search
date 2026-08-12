@@ -1,0 +1,31 @@
+name: Verify Skill M2 Task2 GREEN
+
+on:
+  pull_request:
+    branches:
+      - feat/skill-hybrid-retrieval
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install rapidfuzz python-dotenv ollama discord.py
+      - run: python -m compileall -q toram_skills build_skills.py
+      - name: Rebuild schema v2 database in workspace
+        run: python build_skills.py --source raw_skills --database coryn_data/database/skills.sqlite --json-report /tmp/skill-import.json
+      - name: Verify schema v2 metadata
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from toram_skills.repository import SkillRepository
+          with SkillRepository(Path('coryn_data/database/skills.sqlite')) as repo:
+              assert repo.get_metadata('schema_version') == '2'
+              assert repo.count_trees() == 34
+              assert repo.count_skills() == 481
+          PY
+      - run: python -m unittest tests.test_skill_structured_search tests.test_skill_repository tests.test_skill_importer -v
+      - run: python -m unittest discover -s tests -v
