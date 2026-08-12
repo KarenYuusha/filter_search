@@ -1,0 +1,42 @@
+name: Verify Skill M2 Golden Deterministic Cases
+
+on:
+  pull_request:
+    branches:
+      - feat/skill-hybrid-retrieval
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install rapidfuzz python-dotenv ollama discord.py
+      - name: Verify exact and lexical golden cases
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from toram_skills.lexical_search import lexical_search
+          from toram_skills.repository import SkillRepository
+
+          cases = json.loads(Path('tests/fixtures/skill_retrieval_golden.json').read_text(encoding='utf-8'))['cases']
+          failures = []
+          with SkillRepository(Path('coryn_data/database/skills.sqlite')) as repo:
+              for case in cases:
+                  expected = set(case['expected_skill_ids'])
+                  if case['kind'] == 'exact':
+                      ids = [skill.id for skill in repo.resolve_skill_name(case['query'])][:1]
+                  elif case['kind'] == 'lexical':
+                      ids = [hit.skill_id for hit in lexical_search(repo, case['query'], limit=case['top_k'])]
+                  else:
+                      continue
+                  ok = bool(expected.intersection(ids))
+                  print(case['id'], 'PASS' if ok else 'FAIL', ids)
+                  if not ok:
+                      failures.append((case['id'], ids, sorted(expected)))
+          if failures:
+              raise SystemExit(f'Deterministic golden failures: {failures}')
+          PY
