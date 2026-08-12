@@ -78,6 +78,21 @@ class CoreModuleBoundaryTests(unittest.TestCase):
 
         self.assertEqual(offenders, [])
 
+    def test_toram_skills_stays_independent_of_search_discord_and_ollama(self):
+        forbidden = {"search_items", "discord_bot", "toram_discord", "toram_search", "ollama"}
+        offenders = []
+        for path in sorted((PROJECT_ROOT / "toram_skills").glob("*.py")):
+            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    for alias in node.names:
+                        if alias.name.split(".", 1)[0] in forbidden:
+                            offenders.append(str(path.relative_to(PROJECT_ROOT)))
+                elif isinstance(node, ast.ImportFrom) and node.module:
+                    if node.module.split(".", 1)[0] in forbidden:
+                        offenders.append(str(path.relative_to(PROJECT_ROOT)))
+        self.assertEqual(offenders, [])
+
     def test_editor_repository_stays_separate(self):
         from toram_data.repository import ItemRepository as EditorItemRepository
 
