@@ -1,0 +1,65 @@
+name: Scan Skill M2 Golden Candidates
+
+on:
+  pull_request:
+    branches:
+      - feat/skill-hybrid-retrieval
+
+jobs:
+  scan:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install rapidfuzz python-dotenv ollama discord.py
+      - name: Print candidate skill identities and source-backed snippets
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from toram_skills.repository import SkillRepository
+
+          names = [
+              'magic: finale','magic: impact','magic: arrows','assassin stab','shadow walk',
+              'venom injection','corrosive poison','arcane strike','critical up','magic up',
+              'power shot','snipe','cross fire','asura aura','shukuchi','mp charge','maximizer',
+              'power wave','decoy shot','quick aura','guardian','p. defense','healing song',
+              'battle anthem','magic cannon','chakra','war cry','high cycle','kairiki ranshin',
+              'two-handed','aggravate','twin storm','hunting buddy','rapid charge'
+          ]
+          terms = [
+              'evasion','poison stack','remaining mp','attack mp recovery','invinc',
+              'normal attack range','charge mp','restore mp','decoy','three concentric',
+              'tumble','attack speed','protect party','damage reduction','singing',
+              'critical rate','matk','cross fire','shukuchi','guardian'
+          ]
+          with SkillRepository(Path('coryn_data/database/skills.sqlite')) as repo:
+              print('=== IDENTITIES ===')
+              for name in names:
+                  matches = repo.resolve_skill_name(name)
+                  if matches:
+                      print(name, '=>', [(s.id, s.name) for s in matches])
+                  else:
+                      rows = repo.connection.execute(
+                          "SELECT id, name FROM skills WHERE normalized_name LIKE ? ORDER BY id LIMIT 10",
+                          (f'%{name.casefold()}%',),
+                      ).fetchall()
+                      print(name, '=> NONE; LIKE', [(r['id'], r['name']) for r in rows])
+              print('=== TERM EVIDENCE ===')
+              for term in terms:
+                  rows = repo.connection.execute(
+                      """
+                      SELECT d.skill_id, s.name, d.id, substr(replace(d.text, char(10), ' '), 1, 220) AS snippet
+                      FROM skill_search_documents AS d
+                      JOIN skills AS s ON s.id=d.skill_id
+                      WHERE lower(d.text) LIKE ?
+                      ORDER BY d.skill_id, d.position
+                      LIMIT 12
+                      """,
+                      (f'%{term.casefold()}%',),
+                  ).fetchall()
+                  print('\nTERM', term)
+                  for row in rows:
+                      print(row['skill_id'], '|', row['name'], '|', row['id'], '|', row['snippet'])
+          PY
