@@ -284,6 +284,18 @@ def parse_standard_skill_file(source: SkillSource) -> ParsedSkillFile:
     tree_id = skill_tree_id(source.relative_path)
     tree_name = _tree_name(source)
     issues: list[ParseIssue] = []
+    if len(matches) != source.marker_count:
+        issues.append(
+            ParseIssue(
+                level="error",
+                code="skill_marker_count_mismatch",
+                source_file=source.relative_path,
+                skill_name=None,
+                message=(
+                    f"Found {source.marker_count} SKILL markers but parsed {len(matches)} standard blocks"
+                ),
+            )
+        )
     skills: list[SkillDraft] = []
     seen_names: set[str] = set()
 
