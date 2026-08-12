@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import inspect
+import math
 import os
 from types import SimpleNamespace
 import unittest
@@ -125,49 +127,180 @@ class OllamaEmbeddingProviderTests(unittest.TestCase):
 
 
 class EmbeddingBenchmarkSelectionTests(unittest.TestCase):
-    def test_selection_prefers_top5_then_top3_then_top1_then_latency(self):
-        results = (
-            ModelBenchmarkResult(
-                "a",
-                RetrievalMetrics(top1=0.70, top3=0.85, top5=0.95, median_ms=20.0, p95_ms=30.0),
-            ),
-            ModelBenchmarkResult(
-                "b",
-                RetrievalMetrics(top1=0.75, top3=0.90, top5=0.95, median_ms=30.0, p95_ms=40.0),
-            ),
-            ModelBenchmarkResult(
-                "c",
-                RetrievalMetrics(top1=0.80, top3=0.88, top5=0.94, median_ms=10.0, p95_ms=15.0),
-            ),
-        )
-        self.assertEqual(select_embedding_model(results).model, "b")
+    @staticmethod
+    def _result(
+        provider: str,
+        model: str,
+        dimensions: int,
+        metrics: RetrievalMetrics,
+    ) -> ModelBenchmarkResult:
+        """Construct against old or new API so RED tests reach selection behavior."""
+        try:
+            return ModelBenchmarkResult(provider, model, dimensions, metrics)
+        except TypeError:
+            return ModelBenchmarkResult(f"{provider}:{model}", metrics)
 
-    def test_latency_breaks_complete_relevance_tie(self):
+    @staticmethod
+    def _model_name(result: ModelBenchmarkResult) -> str:
+        value = result.model
+        return value.split(":", 1)[1] if ":" in value and not hasattr(result, "provider") else value
+
+    def test_lightweight_model_wins_inside_two_point_top5_window(self):
         results = (
-            ModelBenchmarkResult("slow", RetrievalMetrics(1.0, 1.0, 1.0, 30.0, 40.0)),
-            ModelBenchmarkResult("fast", RetrievalMetrics(1.0, 1.0, 1.0, 10.0, 20.0)),
+            self._result(
+                "sentence-transformers",
+                "mini",
+                384,
+                RetrievalMetrics(0.70, 0.88, 0.96, 7.0, 10.0),
+            ),
+            self._result(
+                "sentence-transformers",
+                "bge",
+                1024,
+                RetrievalMetrics(0.73, 0.90, 0.98, 70.0, 90.0),
+            ),
         )
-        self.assertEqual(select_embedding_model(results).model, "fast")
+        selected = select_embedding_model(results)
+        self.assertEqual(self._model_name(selected), "mini")
+
+    def test_quality_gain_over_two_points_excludes_lightweight_model(self):
+        results = (
+            self._result(
+                "sentence-transformers",
+                "mini",
+                384,
+                RetrievalMetrics(0.70, 0.88, 0.94, 7.0, 10.0),
+            ),
+            self._result(
+                "sentence-transformers",
+                "gte",
+                768,
+                RetrievalMetrics(0.76, 0.92, 0.97, 20.0, 30.0),
+            ),
+        )
+        selected = select_embedding_model(results)
+        self.assertEqual(self._model_name(selected), "gte")
+
+    def test_exact_two_point_boundary_is_inside_quality_window(self):
+        results = (
+            self._result(
+                "sentence-transformers",
+                "mini",
+                384,
+                RetrievalMetrics(0.70, 0.88, 0.96, 5.0, 8.0),
+            ),
+            self._result(
+                "sentence-transformers",
+                "bge",
+                1024,
+                RetrievalMetrics(0.80, 0.95, 0.98, 50.0, 70.0),
+            ),
+        )
+        self.assertEqual(self._model_name(select_embedding_model(results)), "mini")
+
+    def test_p95_breaks_median_latency_tie(self):
+        results = (
+            self._result(
+                "sentence-transformers",
+                "spiky",
+                384,
+                RetrievalMetrics(0.80, 0.90, 0.97, 10.0, 40.0),
+            ),
+            self._result(
+                "sentence-transformers",
+                "steady",
+                768,
+                RetrievalMetrics(0.75, 0.88, 0.96, 10.0, 20.0),
+            ),
+        )
+        self.assertEqual(self._model_name(select_embedding_model(results)), "steady")
+
+    def test_relevance_breaks_equal_latency_after_quality_admission(self):
+        results = (
+            self._result(
+                "sentence-transformers",
+                "lower",
+                384,
+                RetrievalMetrics(0.70, 0.88, 0.97, 10.0, 20.0),
+            ),
+            self._result(
+                "sentence-transformers",
+                "higher",
+                768,
+                RetrievalMetrics(0.75, 0.91, 0.96, 10.0, 20.0),
+            ),
+        )
+        self.assertEqual(self._model_name(select_embedding_model(results)), "higher")
+
+    def test_smaller_dimensions_break_full_metric_tie(self):
+        results = (
+            self._result(
+                "sentence-transformers",
+                "large",
+                1024,
+                RetrievalMetrics(0.80, 0.90, 0.97, 10.0, 20.0),
+            ),
+            self._result(
+                "sentence-transformers",
+                "small",
+                384,
+                RetrievalMetrics(0.80, 0.90, 0.97, 10.0, 20.0),
+            ),
+        )
+        self.assertEqual(self._model_name(select_embedding_model(results)), "small")
+
+    def test_result_identity_contains_provider_and_dimensions(self):
+        result = self._result(
+            "sentence-transformers",
+            "mini",
+            384,
+            RetrievalMetrics(1.0, 1.0, 1.0, 1.0, 1.0),
+        )
+        self.assertEqual(getattr(result, "provider", None), "sentence-transformers")
+        self.assertEqual(getattr(result, "dimensions", None), 384)
+
+    def test_invalid_selection_inputs_are_rejected(self):
+        invalid = (
+            self._result("", "model", 384, RetrievalMetrics(1.0, 1.0, 1.0, 1.0, 1.0)),
+            self._result("st", "", 384, RetrievalMetrics(1.0, 1.0, 1.0, 1.0, 1.0)),
+            self._result("st", "model", 0, RetrievalMetrics(1.0, 1.0, 1.0, 1.0, 1.0)),
+            self._result("st", "model", 384, RetrievalMetrics(1.0, 1.0, math.nan, 1.0, 1.0)),
+        )
+        for result in invalid:
+            with self.subTest(result=result), self.assertRaises(ValueError):
+                select_embedding_model((result,))
+        with self.assertRaises(ValueError):
+            select_embedding_model((), quality_window=-0.01)
 
     def test_empty_results_are_rejected(self):
         with self.assertRaises(ValueError):
             select_embedding_model(())
 
-    def test_retrieval_config_is_rendered_from_selected_values(self):
-        text = render_retrieval_config(
-            "qwen3-embedding:0.6b",
-            FusionConfig(rrf_k=20, lexical_weight=1.5, semantic_weight=0.5),
-        )
+    def test_retrieval_config_signature_and_output_include_provider_provenance(self):
+        parameters = tuple(inspect.signature(render_retrieval_config).parameters)
         self.assertEqual(
-            text,
-            "from toram_skills.hybrid_search import FusionConfig\n\n"
-            "DEFAULT_EMBEDDING_MODEL = 'qwen3-embedding:0.6b'\n"
-            "DEFAULT_FUSION_CONFIG = FusionConfig(\n"
-            "    rrf_k=20,\n"
-            "    lexical_weight=1.5,\n"
-            "    semantic_weight=0.5,\n"
-            ")\n",
+            parameters,
+            ("selected_provider", "selected_model", "selected_config_id", "fusion"),
         )
+        if parameters == ("selected_provider", "selected_model", "selected_config_id", "fusion"):
+            text = render_retrieval_config(
+                "sentence-transformers",
+                "sentence-transformers/all-MiniLM-L6-v2",
+                "ir-default",
+                FusionConfig(rrf_k=20, lexical_weight=1.5, semantic_weight=0.5),
+            )
+            self.assertEqual(
+                text,
+                "from toram_skills.hybrid_search import FusionConfig\n\n"
+                "DEFAULT_EMBEDDING_PROVIDER = 'sentence-transformers'\n"
+                "DEFAULT_EMBEDDING_MODEL = 'sentence-transformers/all-MiniLM-L6-v2'\n"
+                "DEFAULT_EMBEDDING_CONFIG_ID = 'ir-default'\n"
+                "DEFAULT_FUSION_CONFIG = FusionConfig(\n"
+                "    rrf_k=20,\n"
+                "    lexical_weight=1.5,\n"
+                "    semantic_weight=0.5,\n"
+                ")\n",
+            )
 
 
 if __name__ == "__main__":
