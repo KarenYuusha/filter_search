@@ -9,6 +9,19 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install rapidfuzz python-dotenv ollama discord.py
+      - name: Diagnose non-sluggable Magic markers
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          from toram_skills.parsing import _SKILL_BLOCK_RE, normalize_skill_name
+          text = Path('raw_skills/weapon_class_skills/magic_skills.txt').read_text(encoding='utf-8')
+          for match in _SKILL_BLOCK_RE.finditer(text):
+              name = match.group('name').strip()
+              slug = re.sub(r'[^a-z0-9]+', '-', normalize_skill_name(name)).strip('-')
+              if not slug:
+                  print('NON_SLUGGABLE:', repr(name))
+          PY
       - run: python -m compileall -q toram_data toram_search toram_discord toram_skills search_items.py discord_bot.py
       - run: python -m unittest tests.test_skill_parsing -v
       - run: python -m unittest discover -s tests -v
