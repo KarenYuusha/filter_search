@@ -20,6 +20,7 @@ jobs:
         run: |
           python -m unittest tests.test_skill_semantic_search -v
           python -m unittest tests.test_skill_embedding_providers -v
+          python -m unittest tests.test_skill_embedding_dependencies -v
           python -m unittest tests.test_skill_embedding_benchmark -v
           python -m unittest tests.test_skill_embedding_cli -v
           python -m unittest tests.test_core_module_boundaries -v
