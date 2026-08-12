@@ -2,7 +2,7 @@ from pathlib import Path
 import unittest
 
 from toram_skills.source_inventory import SkillSource, discover_skill_sources
-from toram_skills.parsing import parse_standard_skill_file
+from toram_skills.parsing import parse_skill_file, parse_standard_skill_file
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -62,6 +62,27 @@ Second.
         parsed = parse_standard_skill_file(source)
         self.assertEqual(len(parsed.skills), 2)
         self.assertIn("duplicate_skill_name", {issue.code for issue in parsed.issues})
+
+    def test_minstrel_uses_embedded_tier_roster(self):
+        parsed = parse_skill_file(self._source("assist_skills/minstrel_skills.txt"))
+        names = [skill.name for skill in parsed.skills]
+        self.assertIn("Healing Song", names)
+        self.assertIn("Beat Blast", names)
+        self.assertIn("Battle Anthem", names)
+        self.assertEqual(next(s for s in parsed.skills if s.name == "Healing Song").tier, 1)
+        self.assertEqual(next(s for s in parsed.skills if s.name == "Battle Anthem").tier, 3)
+        self.assertIn("Acoustic Buff", parsed.tree.general_text)
+        self.assertEqual(parsed.tree.tier_requirements, ((1, None), (2, 60), (3, 120)))
+        self.assertIn("bow", {item.casefold() for item in parsed.tree.weapon_restrictions})
+
+    def test_every_real_source_has_registered_deterministic_strategy(self):
+        parsed = [parse_skill_file(s) for s in discover_skill_sources(ROOT / "raw_skills")]
+        unhandled = [
+            result.tree.source_file
+            for result in parsed
+            if any(issue.code == "unsupported_source_format" for issue in result.issues)
+        ]
+        self.assertEqual(unhandled, [])
 
 
 if __name__ == "__main__":
