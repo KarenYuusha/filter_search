@@ -388,27 +388,48 @@ Chain Stack Duration: 1 Chain stack lost per 30 seconds(can refresh duration eve
 Game Description: "Efficiently cast magic. The cast speed of the magic skill used after "Magic: Arrows" increases. Additional effect granted with staff or magic device (main): Casting speed, MATK, and magic stability increase each time an attack skill that has a casting time hits. This effect can be obtained up to 10 times.”
 The Motion Speed boost stacks multiplicatively with the effects of Freeze and the combo tag "Swift"
 
-Power Wave
-Lv 3 Skill; No Limit
-Damage Type: Neutral
-Maximum Power Wave Auto Attack Range: 5m + (0.5 * Skill Level)m
-Passive Effect: Whenever you're out of your default auto attack range, but within the Power Wave Auto Attack range, you can use an auto attack that still recovers MP through Attack MP Recovery and still inflicts neutral proration, but its total damage is decreased by (100 - 5 * Skill Level)%
-Game Description: "Shoot a magic wave if the target is out of range. Available from 5m or less away. The range extends up to 10m as the skill levels up. Attack MP Recovery is applied to this skill."
-Staff bonus: Maximum Power Wave Auto Attack Range +2m
-Staff bonus: Auto attack damage penalty -40%
-Magic Device bonus: Auto attack damage penalty -70%; a negative damage "penalty" results in a positive damage boost
-On Dual Swords, the damage calculation formula for Power Wave auto attacks changes: both their main hand and subhand auto attack damage are summed before being spreading the result evenly between the hits
-
 
 ==================================================
-SKILL: POWER WAVE IS DISABLED WHEN RAMPAGE IS ACTIVE
+SKILL: POWER WAVE
 ==================================================
 
 Category: Magic Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: 70
 
-Source Details:
+Damage Type:
+Neutral
+
+Maximum Power Wave Auto Attack Range:
+5 + (0.5 * SkillLvl) meters
+
+Passive Effect:
+Whenever the player is outside their default auto attack range but within Power Wave's auto attack range, they can perform a ranged auto attack.
+
+Power Wave Auto Attack Effects:
+- Recovers MP through Attack MP Recovery.
+- Inflicts Neutral Proration.
+- Total damage is decreased according to the damage penalty.
+
+Auto Attack Damage Penalty:
+(100 - 5 * SkillLvl)%
+
+Staff Bonus:
+- Maximum Power Wave Auto Attack Range: +2 meters
+- Auto Attack Damage Penalty: -40%
+
+Magic Device Bonus:
+- Auto Attack Damage Penalty: -70%
+- If the resulting damage penalty becomes negative, it becomes a positive damage boost.
+
+Dual Swords Interaction:
+For Dual Swords, the main-hand and sub-hand auto attack damage are added together before the resulting damage is divided evenly between the hits.
+
+Restriction:
+Power Wave is disabled while Rampage is active.
+
+Game Description:
+Shoot a magic wave if the target is out of range. Available from 5m or less away. The range extends up to 10m as the skill levels up. Attack MP Recovery is applied to this skill.
 
 
 ==================================================
@@ -522,47 +543,135 @@ Note: i don’t know if this bugged or not… well that -2% still there when we 
 
 
 ==================================================
-SKILL: -
+SKILL: MAGIC: MAGIC CANNON
 ==================================================
 
 Category: Magic Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: V
+Required Level: Level 240
 
 Source Details:
-The charge animation of this skill is not affected by motion speed from character's status, but can use "swift" combo tag's motion speed modifier.
-Magic cannon charge mechanics
-CAST SPEED MODIFIER
+Lv 5; No Limit
+MP Cost: 0 (buff cast) / 700 (attack cast)
+Damage Type: Magic
+Base Skill Constant: 700 + Charge
+Base Skill Multiplier: 0.03 * Skill Level * Charge (for each hit up to 20% charge, restart to a new hit every 20%); starts increasing again in a similar manner after 100% (+0.03 * Skill Level * Charge, switch to the next hit after every 20%), up to +0.6 * Skill Level multiplier for all hits each at 200%
+Hit Count: 1 hit every 20%, max 5 hits
+Maximum Cast Range: Infinite, limited to 24m (maximum targeting range)
+Hit Range: Length of 100m and width of 2m, from the caster towards the main target
+
+Skill Effect:
+
+* The skill will Miss if cast at 0%.
+* This skill has chance to not get guarded by MAX[0 ; (MCannon Charge - 100)]%.
+* If the attack cast has the same Combo Tag as the buff cast did, the Combo Tag of the attack cast will be ignored.
+* The Combo Multiplier carries over from the buff cast; this takes into account if the attack cast's Combo Tag is ignored; the total Combo Multiplier is calculated as follows:
+
+Magic: Cannon Total Combo Multiplier = Attack Cast Combo Multiplier + Buff Cast Combo Multiplier - 100
+
+* Out of all combo tags, only Bloodsucker (lifesteal) and Mind’s Eye (always graze/no miss) tags cannot apply on the buff (Charge) cast, but Bloodsucker after-effect (Spirit = boost dmg), Smite, Save and the rest can apply on the buff cast.
+* This skill is affected by Concentrate, Long Range passive, Short Range Damage and Long Range Damage stats.
+* Long Range Damage stat will be applied to the entire skill instead of Short Range Damage stat if at least 1 enemy hit by this skill is at 8m or further from the caster, regardless of where the other enemies are.
+
+Buff Effect:
+
+* The next cast of Magic: Cannon becomes 700 MP.
+* Gains charge over time, 1% charge every second, reduces to 1% every 2 seconds after reaching 100% charge.
+* Can only gain up to 200% charge, after which you cannot gain charge anymore by any means.
+* Buff Duration: Until you cast Magic: Cannon (attack cast) again OR upon taking damage from Mana Explosion.
+* If you get Mana Explosion from enemies, then your charge over time remains unchanged until 100% (over 100%, will stop charge) and disables your ability to gain charge% from magic skills.
+* Using this skill will clear Mana Explosion ailment if you are afflicted with it.
+* Using certain skills also gives charge depending on its Final Cast Time [seconds], your Cast Time reduction from CSPD and this skill’s level.
+* Final Cast Time is after reduction from CSPD, Magic: Burst stack, Chain Cast, etc.
+
+List of all skills that can gain this charge%:
+
+Magic Skills:
+All Magic skills, except MP Charge, Qadal, Chrono Shift, Enchanted Barrier and Guardian Beam
+
+Priest:
+Bless, Gloria, Royal Heal, Holy Light, Prayer
+
+Magic Blade:
+Ether Flare, Enchant Sword
+
+Wizard:
+Mana Crystal, Imperial Rays
+
+Others:
+Red Tear (Dark Tree), Punish Ray (Halberd Tree)
+
+Note:
+The source notes a possible bug where a -2% effect is still present at 0-400 CSPD, but no longer appears above 800 CSPD.
+
+The charge animation of this skill is not affected by Motion Speed from the character's status, but can use the Swift combo tag's Motion Speed modifier.
+
+Magic Cannon Charge Mechanics
+
+Cast Speed Modifier:
 CastSpeedModifier (CSM%) is how much CSPD speeds up casting and affects Magic Cannon charge.
-Up to 1000 CSPD: Every 20 CSPD adds 1 CSM%
-Beyond 1000 CSPD: Every 180 CSPD adds 1 CSM%
-CSM% is capped at 100% (10.000 CSPD).
+
+* Up to 1000 CSPD: Every 20 CSPD adds 1 CSM%.
+* Beyond 1000 CSPD: Every 180 CSPD adds 1 CSM%.
+* CSM% is capped at 100% (10000 CSPD).
+
 Skills are divided into 3 categories:
-◇ Instant Cast Skills (Guardian beam...)
-If CSPD ≤ 1000: Charging = 80 × CSM%
-If CSPD > 1000: Charging = 20 + (40 × CSM%)
-◇ Skills with Casting Time (Magic: Storm, Crash, Arrows...)
-If CSPD ≤ 1000: Charging = (Cast Time × 10) + (80 × CSM%)
-If CSPD > 1000: Charging = 20 + (Cast Time × 10) + (40 × CSM%)
-◇ Skills with no cast time but not "instant" (Resonance, Enchanted Sword...)
-If CSPD ≤ 1000: Charging = 40 × CSM%
-If CSPD > 1000: Charging = 10 + (20 × CSM%)
-CHARGE PENALTIES
+
+Instant Cast Skills (Guardian Beam, etc.)
+
+If CSPD <= 1000:
+Charging = 80 * CSM%
+
+If CSPD > 1000:
+Charging = 20 + (40 * CSM%)
+
+Skills with Casting Time (Magic: Storm, Crash, Arrows, etc.)
+
+If CSPD <= 1000:
+Charging = (Cast Time * 10) + (80 * CSM%)
+
+If CSPD > 1000:
+Charging = 20 + (Cast Time * 10) + (40 * CSM%)
+
+Skills with no Cast Time but not "Instant" (Resonance, Enchanted Sword, etc.)
+
+If CSPD <= 1000:
+Charging = 40 * CSM%
+
+If CSPD > 1000:
+Charging = 10 + (20 * CSM%)
+
+Charge Penalties:
 After reaching 100% charge, all charging skills receive a x0.5 charge penalty. However, the transition from below to above 100% can affect the charged amount.
-Breakpoint mechanic
-When a skill is used below 100% but above the breakpoint%, it gets a reduced x0.75 penalty instead.
-Breakpoint% = 100% - (Skill’s Charge / 2)
-When a skill is used below the breakpoint%, even if it goes over 100% charge, it gives the full intended charge, bypassing the 75% and 50% penalties.
-Example
-I cast Magic: Arrows with 2840 total CSPD.
-CSM% = 50% (from first 1000 CSPD) + ((2840 - 1000)/180 ≈ 10.22%) = 60.22%
-Charge% (cast time skill) = 20 + (0.77 × 10) + (40 × 60.22%) ≈ 20 + 7.7 + 24.09 ≈ 51.79 = 51%
+
+Breakpoint Mechanic:
+When a skill is used below 100% but above the Breakpoint%, it gets a reduced x0.75 penalty instead.
+
+Breakpoint% = 100% - (Skill's Charge / 2)
+
+When a skill is used below the Breakpoint%, even if it goes over 100% charge, it gives the full intended charge, bypassing the 75% and 50% penalties.
+
+Example:
+Magic: Arrows is cast with 2840 total CSPD.
+
+CSM% = 50% (from first 1000 CSPD) + ((2840 - 1000) / 180 ≈ 10.22%) = 60.22%
+
+Charge% (cast time skill) = 20 + (0.77 * 10) + (40 * 60.22%) ≈ 20 + 7.7 + 24.09 ≈ 51.79 = 51%
+
 Breakpoint% = 100 - (51 / 2) = 74%
-At 73% or less ➔ Gives the full charge amount (+51%)
-At 75% or more ➔ Only 75% of the charge amount (+38%)
-At 100% or more ➔ Only 50% charge amount (+25%)
-Game Description: “A magic cannon that mows down enemies in a straight line (Charge Skill). Charge it to increase its power and hit count. Using a skill that involves casting will speed up the charging.”
-Staff bonus: Skill Multiplier per hit +baseINT/100
+
+At 73% or less:
+Gives the full charge amount (+51%).
+
+At 75% or more:
+Only 75% of the charge amount (+38%).
+
+At 100% or more:
+Only 50% charge amount (+25%).
+
+Game Description: "A magic cannon that mows down enemies in a straight line (Charge Skill). Charge it to increase its power and hit count. Using a skill that involves casting will speed up the charging."
+
+Staff bonus: Skill Multiplier per hit +BaseINT/100
 Magic Device bonus: Skill Constant gained per charge is tripled
 Magic Device bonus: Width +1m
 
@@ -623,16 +732,50 @@ For MD = MAX(0 ; MP restored/50 - MAX[0 ; (Magic pierce - 16)])
 
 
 ==================================================
-SKILL: - RAPID CHARGE BUFF DURATION: MAX[40; 10 * (SKILL LEVEL - 1)] SEC
+SKILL: RAPID CHARGE
 ==================================================
 
 Category: Magic Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: V
+Required Level: Level 240
 
 Source Details:
-Game Description: “Slightly accelerates MP Charge. (Up to Lv5). Enhances MATK and Magic Pierce (max 50%) that depends on MP Heal Amount when followed by the activation of Maximizer. *Starting from Lv6, it will only extend the buff duration.”
-Fyi, this is complicated ngl… as staff, if u have 0% m.pierce, then u get 30% m.pierce from this skill. However, starting from 21% m.pierce, it is capped to 50%, in exchange of increases matk furthermore. Until you have over 50% m.pierce to make this skill, don't give m.pierce buff at all.
+Lv 5; Staff/Magic Device only
+Passive Effect:
+
+* Reduce MP Charge cast time by (0.2 * Skill Level) seconds.
+* Maximum cast time reduction: 1 second.
+* After using MP Charge followed by instant Maximizer, grants MATK based on the amount of MP restored by Maximizer and the player's total Magic Pierce%.
+
+Flat MATK Buff Increase:
+
+For Staff:
+(MP Restored) / 10 + MAX[0 ; MIN((Magic Pierce - 20) * 5 ; 150) - (1500 - MP Restored) / 10]
+
+For Magic Device:
+(MP Restored) / 10 + MAX[0 ; MIN((Magic Pierce - 16) * 5 ; 170) - (1700 - MP Restored) / 10]
+
+Magic Pierce Buff:
+This skill grants Magic Pierce% only if the player does not already have more than 50% Magic Pierce.
+
+For Staff:
+MAX(0 ; MP Restored / 50 - MAX[0 ; (Magic Pierce - 20)])
+
+For Magic Device:
+MAX(0 ; MP Restored / 50 - MAX[0 ; (Magic Pierce - 16)])
+
+Rapid Charge Buff Duration:
+MAX[40 ; 10 * (Skill Level - 1)] seconds
+
+Game Description:
+"Slightly accelerates MP Charge. (Up to Lv5). Enhances MATK and Magic Pierce (max 50%) that depends on MP Heal Amount when followed by the activation of Maximizer. Starting from Lv6, it will only extend the buff duration."
+
+Notes:
+
+* As Staff, with 0% Magic Pierce, the source states that this skill grants 30% Magic Pierce.
+* Starting from approximately 21% existing Magic Pierce, the resulting Magic Pierce buff reaches the 50% cap while additional benefit shifts toward MATK.
+* If the player already has more than 50% Magic Pierce, this skill does not grant a Magic Pierce buff.
+
 
 
 ==================================================
