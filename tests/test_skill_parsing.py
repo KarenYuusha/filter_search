@@ -63,6 +63,19 @@ Second.
         self.assertEqual(len(parsed.skills), 2)
         self.assertIn("duplicate_skill_name", {issue.code for issue in parsed.issues})
 
+    def test_unparsed_skill_marker_is_an_explicit_error(self):
+        source = SkillSource(
+            path=Path("broken.txt"),
+            relative_path="assist_skills/broken.txt",
+            tree_group="assist",
+            text="Category: Broken Skills\nSKILL: BROKEN\nMP Cost: 100\n",
+            declared_category="Broken Skills",
+            marker_count=1,
+        )
+        parsed = parse_skill_file(source)
+        self.assertIn("skill_marker_count_mismatch", {issue.code for issue in parsed.issues})
+        self.assertEqual(parsed.discovered_skill_blocks, 0)
+
     def test_minstrel_uses_embedded_tier_roster(self):
         parsed = parse_skill_file(self._source("assist_skills/minstrel_skills.txt"))
         names = [skill.name for skill in parsed.skills]
