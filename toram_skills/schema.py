@@ -26,6 +26,9 @@ REQUIRED_COLUMNS: dict[str, frozenset[str]] = {
         "id", "skill_id", "position", "kind", "label", "text", "text_hash",
     }),
     "skill_fts": frozenset({"document_id", "skill_id", "name", "tree_name", "text"}),
+    "skill_embedding_vectors": frozenset({
+        "document_id", "model", "dimensions", "text_hash", "vector",
+    }),
 }
 REQUIRED_TABLES = frozenset(REQUIRED_COLUMNS)
 
@@ -148,6 +151,14 @@ def create_schema(connection: sqlite3.Connection) -> None:
             tree_name,
             text,
             tokenize='unicode61 remove_diacritics 2'
+        );
+
+        CREATE TABLE skill_embedding_vectors (
+            document_id TEXT PRIMARY KEY REFERENCES skill_search_documents(id) ON DELETE CASCADE,
+            model TEXT NOT NULL,
+            dimensions INTEGER NOT NULL,
+            text_hash TEXT NOT NULL,
+            vector BLOB NOT NULL
         );
         """
     )
