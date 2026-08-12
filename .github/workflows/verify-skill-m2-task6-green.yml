@@ -1,0 +1,19 @@
+name: Verify Skill M2 Task6 GREEN
+
+on:
+  pull_request:
+    branches:
+      - feat/skill-hybrid-retrieval
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install rapidfuzz python-dotenv ollama discord.py
+      - run: python -m compileall -q toram_skills
+      - run: python -m unittest tests.test_skill_hybrid_search tests.test_skill_embedding_benchmark tests.test_skill_semantic_search tests.test_skill_lexical_search tests.test_skill_structured_search -v
+      - run: python -m unittest discover -s tests -v
