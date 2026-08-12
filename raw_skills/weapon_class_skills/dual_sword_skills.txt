@@ -369,98 +369,272 @@ While the buff is active and not on cooldown, Shukuchi is disabled
 If you got hit and survive at 1hp thanks to this skill, then your decoy will disappear
 Regretless' instant kill effect bypasses this buff's effect
 
-Aerial Cut
+==================================================
+SKILL: AERIAL CUT
+==================================================
+
+Category: Dual Sword Skills
+Tier: V
+Required Level: Level 240
+
+Source Details:
 Lv 5; Dual Sword only
 MP Cost: 100
 Damage Type: Physical
 Element: Wind, but has the Dual Element attribute (gets extra element from subhand sword)
-Base Skill Multiplier (Main Hits): 2.15 + Spinning Slash’s Level * 0.085 + Floor(DEX/10)% * Skill Level
-Base Skill Constant (Main Hits): 50 + Spinning Slash’s Level * 5
+
+Base Skill Multiplier (Main Hits): 2.15 + Spinning Slash's Level * 0.085 + Floor(DEX/10)% * Skill Level
+Base Skill Constant (Main Hits): 50 + Spinning Slash's Level * 5
 Main Hit Count: 3 Hits; damage calculation is done once then spread evenly between the hits
+
 Base Skill Multiplier (Additional Hit): 5 + Skill Level + BaseSTR/100
-Base Skill Constant (Additional Hits): 20 * Skill Level
+Base Skill Constant (Additional Hit): 20 * Skill Level
 Additional Hit Count: 1 Hit
+
 Maximum Cast Range: 12m
+
 Main Hits Ailment: Blind
-Main Hits Ailment Chance: 25% [I wonder if it is same as Spinning Slash ail? Or is it really Spinning Slash Blind Chance?]
-Main Hits Ailment Duration: 10 sec
+Main Hits Ailment Chance: 25% [Source note: uncertain whether this is the same as Spinning Slash's Blind chance]
+Main Hits Ailment Duration: 10 seconds
 Main Hits Ailment Resistance: None
+
 Skill Effect:
-This skill is not treated as Unsheathed. Meanwhile, srd and lrd can affect this. Long Range too can affect.
-If you have Spinning Slash Whirlwind animation in your present, and using this skill while moving forward at same time, it will perform an 2MP bar cost Aerial Cut of Last/Additional Hit. Also, immediately end Spinning Slash Whirlwind animation upon performing Additional Hit of this skill.
-The additional MP consumption for the Additional Attack is unaffected by any Combo Tag nor MP Cost modifying effects.
-This skill has unique proration(2 Proration in one skill) = Main Hit can inflict Magic Proration and Additional Hits can inflict Physical Proration. However, their damage is still based on Physical Proration.
-This Additional Hit has +Critical Damage bonus passively depending on Twin Slash’s cd buff level(no need to use Twin Slash, just level up that). Its effect is 50% of Twin Slash’s Critical Damage bonus. But if your target has Blind, then it is 100% of Twin Slash’s Critical Damage bonus instead of 50% bonus.
-However, it is Floor(50% cd bonus) first then multiplied by 2, ex. Twin lv 5 => floor(75 cd/2) * 2 = 74cd. Also, cy-grimoire said: CD bonus of Aerial Cut can't become half when total CD over 300%. Example, if cd bonus aerial cut = 37 in less than 300cd, and still gives 37 cd bonus if above 300cd.
-But, if you use this skill at 8m or above, it has a 20 flat cd penalty every 1m starting from 8m. Flat cd reduction formula = [20 * MAX(0; Distance - 7)]. Also, STR Multiplier bonus on Additional Hit will be reduced by 20% every 1m. Same formula as above = -[20 * MAX(0; Distance - 7)]%
-(for example, if you use the skill at 12m then the add hit gets -100 cdmg & no more bonus mult from STR)
-Note: Distance is when you use Aerial from beginning not when trigger last/additional hit. Oh, this flat cdmg reduction & str bonus multi reduction is still the same even if the target got blinded or not.
+
+* This skill is not treated as Unsheathe.
+* Short Range Damage and Long Range Damage can affect this skill.
+* Long Range skill can affect this skill.
+* If Spinning Slash's Whirlwind is currently active, using Aerial Cut while moving forward will perform the last/additional hit at an additional cost of 200 MP.
+* Performing the Additional Hit immediately ends Spinning Slash's Whirlwind.
+* The additional MP consumption for the Additional Hit is unaffected by Combo Tags or MP Cost modifying effects.
+* This skill has two different proration effects in one skill:
+
+  * Main Hits inflict Magic Proration.
+  * Additional Hit inflicts Physical Proration.
+* Damage from both parts is still based on Physical Proration.
+
+Additional Hit Critical Damage:
+The Additional Hit gains a passive Critical Damage bonus depending on Twin Slash's Critical Damage buff level. Twin Slash does not need to be activated; only its acquired skill level matters.
+
+If the target is not Blinded:
+Aerial Cut Critical Damage Bonus = Floor(50% of Twin Slash's Critical Damage Bonus)
+
+If the target is Blinded:
+Aerial Cut Critical Damage Bonus = Floor(50% of Twin Slash's Critical Damage Bonus) * 2
+
+Example:
+Twin Slash Level 5 gives 75 Critical Damage bonus.
+Floor(75 / 2) * 2 = 74 Critical Damage when the target is Blinded.
+
+Note:
+According to the source, Aerial Cut's Critical Damage bonus is not halved when the player's total Critical Damage exceeds 300%.
+
+Example:
+If Aerial Cut gives +37 Critical Damage below 300 total Critical Damage, it still gives +37 Critical Damage above 300.
+
+Distance Penalty:
+If Aerial Cut is used from 8m or farther, the Additional Hit receives a flat Critical Damage penalty for every meter starting from 8m.
+
+Flat Critical Damage Reduction:
+20 * MAX(0; Distance - 7)
+
+The BaseSTR multiplier bonus of the Additional Hit is also reduced by 20% for every meter starting from 8m.
+
+STR Multiplier Bonus Reduction:
+-[20 * MAX(0; Distance - 7)]%
+
+Example:
+If Aerial Cut is used at 12m:
+
+* Additional Hit Critical Damage: -100
+* BaseSTR multiplier bonus is reduced by 100%, removing the STR multiplier bonus.
+
+Distance is determined when Aerial Cut is initially used, not when the last/additional hit is triggered.
+
+The flat Critical Damage reduction and STR multiplier bonus reduction are the same regardless of whether the target is Blinded.
+
+Fun Fact:
+Aerial Cut's Main Hit Base Skill Multiplier is based on the total multiplier of Spinning Slash's First Hit and 3 Whirlwind Hits.
+
+Example:
+Spinning Slash Level 10:
+1.5 + 3 * 0.5 = 3 multiplier
+
+Aerial Cut's Main Hit therefore has the same 3 multiplier before its additional DEX scaling.
+
+The Registlet "Spinning Slash Compress", which adds +0.5 multiplier to each Spinning Slash hit, also increases Aerial Cut's Main Hit multiplier.
+
+With 4 Spinning Slash hits:
+4 * 0.5 = +2 multiplier
+
+This changes the corresponding multiplier from 3 to 5.
+
+At maximum level with the Registlet:
+Aerial Cut Main Hit Multiplier becomes approximately:
+5 + DEX/100
+
+Source credits this interaction test to Toriye.
+
+Game Description:
+“A sword technique released without deploying Spinning Slash. Dual Element with (One-Handed Sword). While deploying Spinning Slash, press the button to move forward and the powerful additional attacks will be unleashed.”
+
+The power of Aerial Cut depends on the acquired level of Spinning Slash.
+
+The Critical Damage increase from the acquired Twin Slash applies to the Additional Hit and is further increased if the target is afflicted with Blind.
 
 
 ==================================================
-SKILL: *****************************************************
+SKILL: LUNAR MISFORTUNE
 ==================================================
 
 Category: Dual Sword Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: V
+Required Level: Level 240
 
 Source Details:
-Fun Fact: Aerial Cut First Hit's Base Skill Multiplier is actually same as All hits of Spinning Slash's Multiplier. All hits of Spinning Slash refer to First Hit and 3x Whirlwind Hit. Oh yeah, Aerial Cut has a Dex multi bonus based on Aerial's level as addition btw.
-Example, Spinning Slash(SS) lv 10 = 1.5 + 3 * 0.5 = 3 mult. And it is same as Aerial Cut's first hit mult which is 3 plus Dex scale as addition.
-In meaning… registlet "Spinning Slash Compress" that add 0.5 mult on each hit of SS, makin it look like, 3 multi into 5 multi since it has 4 hit * 0.5 = +2 mult. Then without doubt that Aerial Cut First Hit will get that +2 multi too. Finally it is going to be (5 + Dex/100)multi in the end with max lvl plus registlet SS. Thanks to toriye for this test.
-Game Description: “A sword technique released without deploying Spinning Slash. Dual Element with (One-Handed Sword). While deploying Spinning Slash, press the button to move forward and the powerful additional attacks will be unleashed.”
-The Power of Aerial Cut depends on the level of Spinning Slash acquired.
-Increased critical damage from Twin Slash acquired will apply to the additional attacks which is further increased if the target is afflicted Blind
-
-Lunar Misfortune
 Lv 5; Dual Swords only
 MP Cost: 400
 Damage Type: Physical
 Element: Dark, but has the Dual Element attribute (gets extra element from subhand sword)
-Base Skill Multiplier (Main Hits): 5 + Skill Level * 0.5 + Total Dex/150
+
+Base Skill Multiplier (Main Hits): 5 + Skill Level * 0.5 + TotalDEX/150
 Base Skill Constant (Main Hits): 400
 Main Hit Count: 2 Hits; damage calculation is done once then spread evenly between the hits
+
 Base Skill Multiplier (Additional AOE Hit): 2.5 + 0.05 * Skill Level
 Base Skill Constant (Additional AOE Hit): 0
 Additional AOE Hit Count: 5 Hits; damage calculation is done for each hit
+
 Maximum Cast Range: 12m
-Additional AOE Hit Range: 1m; around the target’s position, (Note: For each hit, Lunar Misfortune's AOE Radius grows by 0.5m)
+
+Additional AOE Hit Range:
+1m around the target's position.
+
+For each hit, Lunar Misfortune's AOE Radius grows by 0.5m.
+
 Skill Effect:
-If you cast this skill at 8m or above, then gain bonus for Base Skill Multiplier(Main Hits) = +TotalDex/100. Now DEX always applies regardless range, but got halved...
-Only Lunar Main Hits get affected by Unsheathe Attack. This skill damage can be affected by srd% or lrd% depending on cast range:
--If cast from Short Range: Uses Short Range Damage% as usual.
--If cast from Long Range: Uses MAX[Long Range Damage%; Short Range Damage%/2] (Does not Round).
 
+* If this skill is cast at 8m or above, Base Skill Multiplier (Main Hits) gains +TotalDEX/100.
+* DEX scaling now always applies regardless of range, but is halved.
+* Only the Main Hits are affected by Unsheathe Attack.
+* This skill's damage can be affected by Short Range Damage% or Long Range Damage% depending on cast range.
 
-==================================================
-SKILL: -LUNAR MISFORTUNE ADDITIONAL AOE HITS ARE FORCED TO USE LONG RANGE DAMAGE%.
-==================================================
+If cast from Short Range:
+Uses Short Range Damage% as usual.
 
-Category: Dual Sword Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+If cast from Long Range:
+Uses MAX[Long Range Damage%; Short Range Damage% / 2]
 
-Source Details:
-Using this skill will teleport you in front of the target at 1m and do a Main hit to the target.
-If you move back during Main hit animation, then you will teleport back 8m to the direction where you were last time and will cast an Additional AOE Hit to the target afterwards. However if you only move forward or stand still during that animation, then this skill will end at Main Hit animation without Additional AOE Hit.
-This skill Additional AOE uses Magic critical rate, but still uses Physical critical damage. Fixed Now it uses Physical critical rate instead
-Additional AOE of this skill has physical pierce bonus based on skill level = +(5 * Skill Level)
-This skill has MP Recovery for every Additional Hit of this skill land hit. Each hit recover mp by (10 + 7 * Skill Lvl). Note: if one add hit multiple targets, it is still recover mp 1x.
-Also, this skill has unique proration(2 Proration in one skill) = Main Hit can inflict Physical Proration and Additional Hits can inflict Magic Proration. Now changed to main hit uses and deals physical proration; additional hit uses magic proration and deals magic proration only if target(s) have not been hit by main hits, else, deals no proration.
-Grant Shadowstep buff(its effect same as that said effect) upon using teleport with this skill. That buff still disappears after using the next skill as usual.
-Grant buff that can affect Shining Cross dmg. Its duration depends on how many times Additional hits to target. Every hit +6 sec, max at 5 hits which is 30 sec.
-If you use Phantom Slash during this skill teleport animation, then that Phantom Slash will become Phantom Eclipse. Phantom Eclipse's motion is set to max(free swift) and gets double Skill Multiplier until invincibility is removed (you use analog to land).
-If you use Storm Reaper during this skill teleport animation, then that Storm Reaper will become an Orbit Reaper. Its effect looks likely just to skip Lunar’s slow teleport animation plus Orbit Reaper's motion is set to max(free swift).
-With addition.. Orbit Reaper replace its srd buff into lrd buff, but halved effect
-LRD% Buff = (5 * Skill Level)% * FLOOR(Distance Travelled / 9 * 10)/10
+This value does not round.
+
+Lunar Misfortune's Additional AOE Hits are forced to use Long Range Damage%.
+
+Using this skill teleports the player in front of the target at 1m and performs the Main Hits.
+
+If the player moves backward during the Main Hit animation:
+
+* The player teleports backward 8m toward the direction they previously came from.
+* The Additional AOE Hits are then cast on the target.
+
+If the player moves forward or remains still during the Main Hit animation:
+
+* The skill ends after the Main Hits.
+* The Additional AOE Hits are not activated.
+
+Additional AOE Critical:
+The source originally stated that the Additional AOE uses Magic Critical Rate while still using Physical Critical Damage.
+
+This was later changed/fixed:
+The Additional AOE now uses Physical Critical Rate.
+
+Additional AOE Physical Pierce:
++(5 * Skill Level)%
+
+MP Recovery:
+Each Additional Hit that successfully lands restores:
+
+10 + 7 * Skill Level MP
+
+If one Additional Hit hits multiple targets, MP is still recovered only once for that hit.
+
+Proration:
+This skill has two different proration mechanics.
+
+Main Hits:
+
+* Use Physical Proration.
+* Deal Physical Proration.
+
+Additional Hits:
+
+* Use Magic Proration.
+* Deal Magic Proration only if the target has not been hit by the Main Hits.
+* If the target was already hit by the Main Hits, the Additional Hits deal no proration.
+
+Shadowstep Buff:
+Using Lunar Misfortune's teleport grants the Shadowstep buff with the same effect as Shadowstep.
+
+The buff disappears after using the next skill as usual.
+
+Shining Cross Buff:
+Lunar Misfortune grants a buff that can affect Shining Cross.
+
+Buff Duration:
+Depends on the number of Additional Hits that land on the target.
+
+Each Additional Hit:
++6 seconds
+
+Maximum:
+5 hits = 30 seconds
+
+Phantom Slash Interaction:
+If Phantom Slash is used during Lunar Misfortune's teleport animation, Phantom Slash becomes Phantom Eclipse.
+
+Phantom Eclipse:
+
+* Motion Speed is set to maximum (free Swift).
+* Skill Multiplier is doubled until invincibility is removed by using movement input to land.
+
+Storm Reaper Interaction:
+If Storm Reaper is used during Lunar Misfortune's teleport animation, Storm Reaper becomes Orbit Reaper.
+
+Orbit Reaper:
+
+* Skips Lunar Misfortune's slow teleport animation.
+* Motion Speed is set to maximum (free Swift).
+* Replaces Storm Reaper's Short Range Damage buff with a Long Range Damage buff.
+* The Long Range Damage buff has half the original effect.
+
+Long Range Damage Buff:
+(5 * Skill Level)% * FLOOR(Distance Travelled / 9 * 10) / 10
+
 Buff Effect:
-Shining Cross > Blazing Shining Cross
-Blazing Shining Cross multiplier at Lv10: 4 + [TotalSTR + TotalAGI + TotalDEX]/400; multiplier for each hit
-Plus MP Recovery of this skill doubles during this buff. Note: must not insta kill, or otherwise it doesn’t work.
-This Blazing Shining Cross animation time is slighty faster than original Shining Cross.
-(FH: pretty sure about this, basically /500 becomes /400; still dunno if there is any other effect tho, still affected by range dmg modifiers, still not unsheathe, same heal, no change on ranged penalty)
-Game Description: “Dazzling moonlight . Dual Element with (One-Handed Sword). Press the back button right after it activates to quickly retreat and pierce the enemy with flying moonlight blade.”
+Shining Cross becomes Blazing Shining Cross.
+
+Blazing Shining Cross Multiplier at Level 10:
+4 + (TotalSTR + TotalAGI + TotalDEX) / 400
+multiplier for each hit
+
+Blazing Shining Cross:
+
+* MP Recovery from Shining Cross is doubled during this buff.
+* The target must not be instantly killed, otherwise the doubled MP Recovery does not activate.
+* Animation time is slightly faster than the original Shining Cross.
+
+Source Note:
+The source states that the main known change is the stat scaling changing from /500 to /400.
+
+It is still uncertain whether Blazing Shining Cross has any additional effects.
+
+According to the source, it:
+
+* Is still affected by range damage modifiers.
+* Is still not treated as Unsheathe.
+* Has the same healing effect.
+* Has no known change to its ranged penalty.
+
+Game Description:
+“Dazzling moonlight. Dual Element with (One-Handed Sword). Press the back button right after it activates to quickly retreat and pierce the enemy with flying moonlight blade.”
 
 
 ==================================================
@@ -582,35 +756,63 @@ Maximum Cast Range: 24m
 This skill is affected by short/long range damage; affected by long range skill; uses and deals physical proration.
 Game Description: Closes the distance with a very sharp thrust. As long as it is not a Graze, hitting the target will boost your piercing power. The power increases further based on the piercing power that exceeds the maximum value.
 
-Horizon Cut
+==================================================
+SKILL: HORIZON CUT
+==================================================
+
+Category: Dual Sword Skills
+Tier: V
+Required Level: Level 250
+
+Source Details:
 T5; [Active] OHS/Dual Swords Only
 MP Cost: 600
 Damage Type: Physical
 Element: Uses main weapon's element, but has Dual Element attribute (gets extra element from subhand sword or arrow)
+
 Base Skill Multiplier (Main Hit):
 Dual Swords: 4.5 + 0.05 * Skill Level + Total DEX/200
 non-Dual Swords: 9 + 0.1 * Skill Level + Total DEX/100
+
 Base Skill Constant (Main Hit):
 Dual Swords: 30 * Skill Level
 non-Dual Swords: 60 * Skill Level
-Base Skill Multiplier (Additional Hit/Dual Swords Only): 0.5 * Skill Level + Base STR or AGI/200 (use higher one only)
-Base Skill Constant (Additional Hit/Dual Swords Only): 30 * Skill Level
-Maximum Cast Range: Follows weapon range
-Maximum Cast Range (Spinning Slash Buff): 14m
 
+Base Skill Multiplier (Additional Hit/Dual Swords Only):
+0.5 * Skill Level + Base STR or AGI/200 (use higher one only)
 
-==================================================
-SKILL: -HORIZON CUT GETS IT'S RANGE EXTENDED TO 14M WHILE SPINNING SLASH WHIRLWIND ANIMATION IS PRESENT. USING HORIZON CUT DOES NOT TERMINATE SPINNING SLASH.
-==================================================
+Base Skill Constant (Additional Hit/Dual Swords Only):
+30 * Skill Level
 
-Category: Dual Sword Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Maximum Cast Range:
+Follows weapon range
 
-Source Details:
-Buff Effect: Recovers MP when next skill is used by +ROUNDUP(Next Skill's MP Cost/2;-2) MP.
--MP Recovery is affected by combo tags and skills that modify MP Cost (Save, Consecutive, Smite, Crescent Saber, Asura Aura).
--MP Recovery during Crescent Saber mode ×2 (example: 600 MP skill becomes 300 MP during Crescent saber, but with Horizon Buff restores 400 MP instead of 200 MP).
-Buff Duration: until Next Skill is used.
-This skill is affected by short/long range damage; not affected by Long Range Skill (includes Spinning Slash Buff mode); uses physical proration and deals no proration.
-Game Description: Surprises your enemy with a swift backhand slash. Restores half of the MP consumed by your next skill. The required MP becomes 300 when used as a combo opener (affected by Asura Aura, Crescent Saber, Weaken, Magic: Impact) and 0 when used as a combo finisher (affected by Weaken, not affected by anything else). You will tumble if you take damage while it is active (no Tumble if the attack is 360 degrees AOE and the smallest AOE radius during the attack is not smaller than 17 meters).
+Maximum Cast Range (Spinning Slash Buff):
+14m
+
+Skill Effect:
+
+* Horizon Cut gets its range extended to 14m while Spinning Slash Whirlwind animation is present.
+* Using Horizon Cut does not terminate Spinning Slash.
+
+Buff Effect:
+Recovers MP when next skill is used by +ROUNDUP(Next Skill's MP Cost/2;-2) MP.
+
+* MP Recovery is affected by combo tags and skills that modify MP Cost (Save, Consecutive, Smite, Crescent Saber, Asura Aura).
+* MP Recovery during Crescent Saber mode ×2.
+
+Example:
+600 MP skill becomes 300 MP during Crescent Saber, but with Horizon Cut Buff restores 400 MP instead of 200 MP.
+
+Buff Duration:
+Until next skill is used.
+
+Notes:
+
+* This skill is affected by short/long range damage.
+* This skill is not affected by Long Range Skill, including Spinning Slash Buff mode.
+* This skill uses Physical Proration.
+* This skill deals no proration.
+
+Game Description:
+"Surprises your enemy with a swift backhand slash. Restores half of the MP consumed by your next skill. The required MP becomes 300 when used as a combo opener (affected by Asura Aura, Crescent Saber, Weaken, Magic: Impact) and 0 when used as a combo finisher (affected by Weaken, not affected by anything else). You will tumble if you take damage while it is active (no Tumble if the attack is 360 degrees AOE and the smallest AOE radius during the attack is not smaller than 17 meters)."
