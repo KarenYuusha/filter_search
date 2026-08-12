@@ -16,7 +16,7 @@ jobs:
 
           marker_re = re.compile(r'(?mi)^SKILL:\s*(.*?)\s*$')
           placeholder_re = re.compile(r'^(?:-|--+|\?+|n/?a|none|null|unknown|unnamed|tbd|todo)$', re.I)
-          lv_re = re.compile(r'^Lv\s*(?:\d+|[IVX]+)\b', re.I)
+          detail_re = re.compile(r'^(?:Lv\s*(?:\d+|[IVX]+)\b|T[1-5]\s*;)', re.I)
 
           def norm(value: str) -> str:
               return ' '.join(value.casefold().split())
@@ -44,13 +44,13 @@ jobs:
               for i in range(len(lines) - 1):
                   name = lines[i].strip()
                   next_line = lines[i + 1].strip()
-                  if not name or not lv_re.match(next_line):
+                  if not name or not detail_re.match(next_line):
                       continue
                   if name.casefold().startswith('lv'):
                       continue
                   if name.startswith(('SKILL:', 'Category:', 'Tier:', 'Required Level:', 'Source Details:')):
                       continue
-                  if ':' in name or name.startswith(('-', '*', '•', '#', '=')):
+                  if name.startswith(('-', '*', '•', '#', '=')):
                       continue
                   if len(name) > 80 or norm(name) in marker_names:
                       continue
