@@ -93,6 +93,21 @@ class CoreModuleBoundaryTests(unittest.TestCase):
                         offenders.append(str(path.relative_to(PROJECT_ROOT)))
         self.assertEqual(offenders, [])
 
+    def test_only_embedding_adapter_imports_ollama_inside_embedding_package(self):
+        offenders = []
+        package = PROJECT_ROOT / "toram_skill_embeddings"
+        for path in sorted(package.glob("*.py")):
+            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+            imports_ollama = False
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    imports_ollama |= any(alias.name.split(".", 1)[0] == "ollama" for alias in node.names)
+                elif isinstance(node, ast.ImportFrom) and node.module:
+                    imports_ollama |= node.module.split(".", 1)[0] == "ollama"
+            if imports_ollama and path.name != "ollama_provider.py":
+                offenders.append(str(path.relative_to(PROJECT_ROOT)))
+        self.assertEqual(offenders, [])
+
     def test_editor_repository_stays_separate(self):
         from toram_data.repository import ItemRepository as EditorItemRepository
 
