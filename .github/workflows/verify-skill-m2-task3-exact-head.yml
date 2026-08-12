@@ -1,0 +1,35 @@
+name: Verify Skill M2 Task3 Exact Head
+
+on:
+  pull_request:
+    branches:
+      - feat/skill-hybrid-retrieval
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install rapidfuzz python-dotenv ollama discord.py
+      - run: python -m compileall -q toram_skills build_skills.py
+      - name: Verify checked-in FTS database
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from toram_skills.repository import SkillRepository
+          from toram_skills.source_inventory import discover_skill_sources, source_manifest_hash
+          expected = source_manifest_hash(discover_skill_sources(Path('raw_skills')))
+          with SkillRepository(Path('coryn_data/database/skills.sqlite')) as repo:
+              docs = repo.connection.execute('SELECT COUNT(*) FROM skill_search_documents').fetchone()[0]
+              fts = repo.connection.execute('SELECT COUNT(*) FROM skill_fts').fetchone()[0]
+              manifest = repo.get_metadata('search_document_manifest_hash')
+              assert repo.get_metadata('schema_version') == '2'
+              assert repo.get_metadata('source_manifest_hash') == expected
+              assert docs > 0 and docs == fts
+              assert manifest is not None and len(manifest) == 64
+          PY
+      - run: python -m unittest tests.test_skill_lexical_search tests.test_skill_structured_search tests.test_skill_exact_lookup tests.test_skill_importer -v
+      - run: python -m unittest discover -s tests -v
