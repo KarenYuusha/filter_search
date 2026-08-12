@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import sys
 
-from toram_skill_embeddings.ollama_provider import OllamaEmbeddingProvider
+from toram_skill_embeddings.providers import build_provider, parse_provider_spec
 from toram_skills.hybrid_search import fuse_ranked_hits, tune_fusion
 from toram_skills.lexical_search import lexical_search
 from toram_skills.repository import SkillRepository
@@ -27,9 +27,9 @@ from toram_skills.structured_search import structured_skill_ids
 
 
 DEFAULT_MODELS = (
-    "embeddinggemma:300m",
-    "qwen3-embedding:0.6b",
-    "nomic-embed-text:v1.5",
+    "st:sentence-transformers/all-MiniLM-L6-v2",
+    "st:Alibaba-NLP/gte-multilingual-base",
+    "st:BAAI/bge-m3",
 )
 _FILTER_TUPLE_FIELDS = {
     "tree_ids",
@@ -43,7 +43,9 @@ _FILTER_TUPLE_FIELDS = {
 
 
 def _parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Benchmark local Ollama skill embedding models")
+    parser = argparse.ArgumentParser(
+        description="Benchmark local skill embedding providers and models"
+    )
     parser.add_argument(
         "--database",
         type=Path,
@@ -61,7 +63,8 @@ def _parser() -> argparse.ArgumentParser:
         default=Path("docs/benchmarks/2026-08-12-skill-embedding-benchmark.json"),
     )
     parser.add_argument("--config-output", type=Path)
-    parser.add_argument("--host")
+    parser.add_argument("--host", help="Optional Ollama host; ignored by other providers")
+    parser.add_argument("--device", help="Optional Sentence Transformers device, e.g. cpu or cuda")
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--timeout-seconds", type=float, default=120.0)
     return parser
@@ -133,7 +136,9 @@ def _filters(value: object) -> SkillFilters:
 
 def _result_payload(result: ModelBenchmarkResult) -> dict[str, object]:
     return {
+        "provider": result.provider,
         "model": result.model,
+        "dimensions": result.dimensions,
         "top1": result.metrics.top1,
         "top3": result.metrics.top3,
         "top5": result.metrics.top5,
@@ -165,11 +170,18 @@ def _rank_metrics(
     }
 
 
-def _provider(model: str, host: str | None, timeout_seconds: float) -> OllamaEmbeddingProvider:
-    return OllamaEmbeddingProvider(
-        model,
+def _provider(
+    provider_model: str,
+    host: str | None,
+    timeout_seconds: float,
+    device: str | None = None,
+):
+    spec = parse_provider_spec(provider_model)
+    return build_provider(
+        spec,
         host=host,
         timeout_seconds=timeout_seconds,
+        device=device,
     )
 
 
@@ -179,33 +191,78 @@ def main(argv: list[str] | None = None) -> int:
         all_cases = _load_cases(args.golden)
         semantic_cases = _semantic_cases(all_cases)
         results: list[ModelBenchmarkResult] = []
+        provider_spec_by_identity: dict[tuple[str, str], str] = {}
+        config_by_identity: dict[tuple[str, str], str] = {}
+
         with SkillRepository(args.database) as repository:
             source_manifest = repository.get_metadata("source_manifest_hash")
             document_manifest = repository.get_metadata("search_document_manifest_hash")
             if not source_manifest or not document_manifest:
                 raise EmbeddingIndexError("Skill database is missing retrieval provenance metadata")
 
-            for model in args.models:
-                print(f"Benchmarking embedding model: {model}", flush=True)
-                provider = _provider(model, args.host, args.timeout_seconds)
+            for provider_model in args.models:
+                print(f"Benchmarking embedding candidate: {provider_model}", flush=True)
+                provider = _provider(
+                    provider_model,
+                    args.host,
+                    args.timeout_seconds,
+                    args.device,
+                )
+                identity = (provider.provider_name, provider.model_name)
+                if identity in provider_spec_by_identity:
+                    raise ValueError(
+                        "Duplicate embedding provider/model candidate after normalization: "
+                        f"{provider.provider_name}:{provider.model_name}"
+                    )
+                provider_spec_by_identity[identity] = provider_model
+                config_by_identity[identity] = provider.config_id
+
                 build_embedding_index(repository, provider, batch_size=args.batch_size)
+                dimensions_text = repository.get_metadata("embedding_dimensions")
+                if dimensions_text is None:
+                    raise EmbeddingIndexError("Embedding dimensions metadata is missing")
+                dimensions = int(dimensions_text)
+
                 index = SemanticSkillIndex.from_repository(repository, provider)
                 index.search(
                     semantic_cases[0].query,
                     limit=max(5, semantic_cases[0].top_k),
                 )
                 metrics = evaluate_semantic_cases(index, semantic_cases)
-                results.append(ModelBenchmarkResult(model, metrics))
+                results.append(
+                    ModelBenchmarkResult(
+                        provider.provider_name,
+                        provider.model_name,
+                        dimensions,
+                        metrics,
+                    )
+                )
                 print(
-                    f"{model}: top1={metrics.top1:.3f} top3={metrics.top3:.3f} "
+                    f"{provider.provider_name}:{provider.model_name}: "
+                    f"top1={metrics.top1:.3f} top3={metrics.top3:.3f} "
                     f"top5={metrics.top5:.3f} median_ms={metrics.median_ms:.1f}",
                     flush=True,
                 )
 
             selected = select_embedding_model(tuple(results))
-            print(f"Rebuilding selected model index: {selected.model}", flush=True)
-            selected_provider = _provider(selected.model, args.host, args.timeout_seconds)
-            build_embedding_index(repository, selected_provider, batch_size=args.batch_size)
+            selected_identity = (selected.provider, selected.model)
+            selected_spec = provider_spec_by_identity[selected_identity]
+            print(
+                "Rebuilding selected embedding index: "
+                f"{selected.provider}:{selected.model}",
+                flush=True,
+            )
+            selected_provider = _provider(
+                selected_spec,
+                args.host,
+                args.timeout_seconds,
+                args.device,
+            )
+            build_embedding_index(
+                repository,
+                selected_provider,
+                batch_size=args.batch_size,
+            )
             selected_index = SemanticSkillIndex.from_repository(repository, selected_provider)
 
             fusion_cases = tuple(case for case in all_cases if case["kind"] != "exact")
@@ -240,13 +297,22 @@ def main(argv: list[str] | None = None) -> int:
                 )
                 for case in fusion_cases
             }
+            model_payloads = []
+            for result in results:
+                identity = (result.provider, result.model)
+                entry = _result_payload(result)
+                entry["config_id"] = config_by_identity[identity]
+                model_payloads.append(entry)
+
             payload = {
                 "source_manifest_hash": source_manifest,
                 "search_document_manifest_hash": document_manifest,
                 "semantic_case_count": len(semantic_cases),
                 "fusion_case_count": len(fusion_cases),
-                "models": [_result_payload(result) for result in results],
+                "models": model_payloads,
+                "selected_provider": selected.provider,
                 "selected_model": selected.model,
+                "selected_config_id": selected_provider.config_id,
                 "fusion_config": {
                     "rrf_k": fusion.rrf_k,
                     "lexical_weight": fusion.lexical_weight,
@@ -266,10 +332,18 @@ def main(argv: list[str] | None = None) -> int:
     if args.config_output is not None:
         args.config_output.parent.mkdir(parents=True, exist_ok=True)
         args.config_output.write_text(
-            render_retrieval_config(str(payload["selected_model"]), fusion),
+            render_retrieval_config(
+                str(payload["selected_provider"]),
+                str(payload["selected_model"]),
+                str(payload["selected_config_id"]),
+                fusion,
+            ),
             encoding="utf-8",
         )
-    print(f"Selected embedding model: {payload['selected_model']}")
+    print(
+        "Selected embedding model: "
+        f"{payload['selected_provider']}:{payload['selected_model']}"
+    )
     print(
         "Selected fusion: "
         f"rrf_k={fusion.rrf_k}, "
