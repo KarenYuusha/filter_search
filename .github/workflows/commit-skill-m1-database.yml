@@ -1,0 +1,45 @@
+name: Commit Skill Milestone 1 Database
+on: pull_request
+permissions:
+  contents: write
+jobs:
+  build-and-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/skill-canonical-data-v2
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify expected feature head
+        run: test "$(git rev-parse HEAD)" = "3656de3539a6e2c2f91252b3a6904658301e8058"
+      - name: Build canonical database
+        run: python build_skills.py --source raw_skills --database coryn_data/database/skills.sqlite --json-report /tmp/skills-import-report.json
+      - name: Verify zero errors and provenance
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          from toram_skills.repository import SkillRepository
+          from toram_skills.source_inventory import discover_skill_sources, source_manifest_hash
+          report = json.loads(Path('/tmp/skills-import-report.json').read_text(encoding='utf-8'))
+          expected = source_manifest_hash(discover_skill_sources(Path('raw_skills')))
+          with SkillRepository(Path('coryn_data/database/skills.sqlite')) as repo:
+              assert report['errors'] == 0
+              assert repo.count_trees() == report['trees_created'] == 34
+              assert repo.count_skills() == report['skills_created'] == 481
+              assert repo.get_metadata('source_manifest_hash') == expected == report['manifest_hash']
+          PY
+      - name: Commit generated database only
+        run: |
+          git status --short
+          test -f coryn_data/database/skills.sqlite
+          git add coryn_data/database/skills.sqlite
+          test "$(git diff --cached --name-only)" = "coryn_data/database/skills.sqlite"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "build: add canonical skill database"
+          git push origin HEAD:feat/skill-canonical-data-v2
