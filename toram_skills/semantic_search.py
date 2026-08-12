@@ -17,9 +17,16 @@ class EmbeddingIndexError(RuntimeError):
 
 
 class EmbeddingProvider(Protocol):
+    provider_name: str
     model_name: str
+    config_id: str
 
-    def embed(self, texts: Sequence[str]) -> tuple[tuple[float, ...], ...]: ...
+    def embed_documents(
+        self,
+        texts: Sequence[str],
+    ) -> tuple[tuple[float, ...], ...]: ...
+
+    def embed_query(self, text: str) -> tuple[float, ...]: ...
 
 
 def _normalize_vector(
@@ -59,17 +66,44 @@ def _decode_vector(data: bytes, dimensions: int) -> tuple[float, ...]:
     return _normalize_vector(values, expected_dimensions=dimensions)
 
 
-def _embed_batch(
+def _provider_identity(provider: EmbeddingProvider) -> tuple[str, str, str]:
+    provider_name = str(provider.provider_name).strip()
+    model_name = str(provider.model_name).strip()
+    config_id = str(provider.config_id).strip()
+    if not provider_name:
+        raise EmbeddingIndexError("Embedding provider name is empty")
+    if not model_name:
+        raise EmbeddingIndexError("Embedding model name is empty")
+    if not config_id:
+        raise EmbeddingIndexError("Embedding config ID is empty")
+    return provider_name, model_name, config_id
+
+
+def _embed_documents(
     provider: EmbeddingProvider,
     texts: tuple[str, ...],
 ) -> tuple[tuple[float, ...], ...]:
-    result = provider.embed(texts)
-    vectors = tuple(tuple(vector) for vector in result)
+    result = provider.embed_documents(texts)
+    try:
+        vectors = tuple(tuple(vector) for vector in result)
+    except TypeError as exc:
+        raise EmbeddingIndexError("Embedding provider returned malformed document vectors") from exc
     if len(vectors) != len(texts):
         raise EmbeddingIndexError(
             f"Embedding provider returned {len(vectors)} vectors for {len(texts)} inputs"
         )
     return vectors
+
+
+def _embed_query(
+    provider: EmbeddingProvider,
+    text: str,
+) -> tuple[float, ...]:
+    result = provider.embed_query(text)
+    try:
+        return tuple(result)
+    except TypeError as exc:
+        raise EmbeddingIndexError("Embedding provider returned a malformed query vector") from exc
 
 
 def build_embedding_index(
@@ -80,9 +114,7 @@ def build_embedding_index(
 ) -> int:
     if batch_size <= 0:
         raise ValueError("batch_size must be positive")
-    model_name = str(provider.model_name).strip()
-    if not model_name:
-        raise EmbeddingIndexError("Embedding model name is empty")
+    provider_name, model_name, config_id = _provider_identity(provider)
 
     rows = tuple(
         repository.connection.execute(
@@ -101,7 +133,7 @@ def build_embedding_index(
     for start in range(0, len(rows), batch_size):
         batch = rows[start : start + batch_size]
         texts = tuple(str(row["text"]) for row in batch)
-        vectors = _embed_batch(provider, texts)
+        vectors = _embed_documents(provider, texts)
         for row, vector_values in zip(batch, vectors, strict=True):
             vector = _normalize_vector(
                 vector_values,
@@ -136,7 +168,9 @@ def build_embedding_index(
                 for document_id, text_hash, vector in prepared
             ],
         )
+        repository.set_metadata("embedding_provider", provider_name)
         repository.set_metadata("embedding_model", model_name)
+        repository.set_metadata("embedding_config_id", config_id)
         repository.set_metadata("embedding_dimensions", str(dimensions))
         repository.set_metadata("embedding_document_manifest_hash", document_manifest)
         repository.connection.execute("COMMIT")
@@ -164,16 +198,36 @@ class SemanticSkillIndex:
         repository: SkillRepository,
         provider: EmbeddingProvider,
     ) -> "SemanticSkillIndex":
+        provider_name, provider_model, provider_config = _provider_identity(provider)
+        stored_provider = repository.get_metadata("embedding_provider")
         model = repository.get_metadata("embedding_model")
+        stored_config = repository.get_metadata("embedding_config_id")
         dimensions_text = repository.get_metadata("embedding_dimensions")
         embedding_manifest = repository.get_metadata("embedding_document_manifest_hash")
         document_manifest = repository.get_metadata("search_document_manifest_hash")
 
-        if not model or not dimensions_text or not embedding_manifest or not document_manifest:
+        if (
+            not stored_provider
+            or not model
+            or not stored_config
+            or not dimensions_text
+            or not embedding_manifest
+            or not document_manifest
+        ):
             raise EmbeddingIndexError("Embedding index metadata is incomplete")
-        if model != provider.model_name:
+        if stored_provider != provider_name:
             raise EmbeddingIndexError(
-                f"Embedding model mismatch: database uses {model!r}, provider uses {provider.model_name!r}"
+                "Embedding provider mismatch: "
+                f"database uses {stored_provider!r}, provider uses {provider_name!r}"
+            )
+        if model != provider_model:
+            raise EmbeddingIndexError(
+                f"Embedding model mismatch: database uses {model!r}, provider uses {provider_model!r}"
+            )
+        if stored_config != provider_config:
+            raise EmbeddingIndexError(
+                "Embedding config mismatch: "
+                f"database uses {stored_config!r}, provider uses {provider_config!r}"
             )
         if embedding_manifest != document_manifest:
             raise EmbeddingIndexError("Embedding index is stale for the current search documents")
@@ -233,9 +287,8 @@ class SemanticSkillIndex:
         if eligible_skill_ids is not None and not eligible_skill_ids:
             return ()
 
-        query_vectors = _embed_batch(self.provider, (query,))
         query_vector = _normalize_vector(
-            query_vectors[0],
+            _embed_query(self.provider, query),
             expected_dimensions=self.dimensions,
         )
         eligible = None if eligible_skill_ids is None else set(eligible_skill_ids)
