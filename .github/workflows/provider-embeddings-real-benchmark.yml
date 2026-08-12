@@ -13,8 +13,6 @@ permissions:
 jobs:
   benchmark:
     runs-on: ubuntu-latest
-    env:
-      HF_HOME: ${{ runner.temp }}/huggingface
     steps:
       - uses: actions/checkout@v4
         with:
@@ -53,6 +51,8 @@ jobs:
           PY
 
       - name: Benchmark approved local embedding models
+        env:
+          HF_HOME: /tmp/huggingface
         run: |
           mkdir -p out docs/benchmarks
           python benchmark_skill_embeddings.py \
