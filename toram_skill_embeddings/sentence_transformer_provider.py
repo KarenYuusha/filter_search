@@ -5,6 +5,9 @@ from typing import Callable, Sequence
 from toram_skills.semantic_search import EmbeddingIndexError, EmbeddingUnavailable
 
 
+_GTE_MULTILINGUAL_BASE = "alibaba-nlp/gte-multilingual-base"
+
+
 class SentenceTransformerEmbeddingProvider:
     provider_name = "sentence-transformers"
     config_id = "ir-default"
@@ -34,6 +37,8 @@ class SentenceTransformerEmbeddingProvider:
         kwargs: dict[str, object] = {}
         if device is not None:
             kwargs["device"] = device
+        if model_name.strip().casefold() == _GTE_MULTILINGUAL_BASE:
+            kwargs["trust_remote_code"] = True
         try:
             self._model = model_factory(model_name, **kwargs)
         except Exception as exc:
