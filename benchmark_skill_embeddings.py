@@ -6,19 +6,24 @@ from pathlib import Path
 import sys
 
 from toram_skill_embeddings.ollama_provider import OllamaEmbeddingProvider
+from toram_skills.hybrid_search import fuse_ranked_hits, tune_fusion
+from toram_skills.lexical_search import lexical_search
 from toram_skills.repository import SkillRepository
 from toram_skills.retrieval_benchmark import (
     ModelBenchmarkResult,
     RetrievalCase,
     evaluate_semantic_cases,
+    render_retrieval_config,
     select_embedding_model,
 )
+from toram_skills.search_models import SkillFilters, SkillSearchHit
 from toram_skills.semantic_search import (
     EmbeddingIndexError,
     EmbeddingUnavailable,
     SemanticSkillIndex,
     build_embedding_index,
 )
+from toram_skills.structured_search import structured_skill_ids
 
 
 DEFAULT_MODELS = (
@@ -26,6 +31,15 @@ DEFAULT_MODELS = (
     "qwen3-embedding:0.6b",
     "nomic-embed-text:v1.5",
 )
+_FILTER_TUPLE_FIELDS = {
+    "tree_ids",
+    "tree_groups",
+    "tiers",
+    "skill_types",
+    "damage_types",
+    "ailments",
+    "weapons",
+}
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -46,35 +60,74 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         default=Path("docs/benchmarks/2026-08-12-skill-embedding-benchmark.json"),
     )
+    parser.add_argument("--config-output", type=Path)
     parser.add_argument("--host")
     parser.add_argument("--batch-size", type=int, default=32)
     return parser
 
 
-def _load_semantic_cases(path: Path) -> tuple[RetrievalCase, ...]:
+def _load_cases(path: Path) -> tuple[dict[str, object], ...]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     values = payload.get("cases", []) if isinstance(payload, dict) else payload
     if not isinstance(values, list):
         raise ValueError("Golden retrieval fixture must contain a list of cases")
-    cases: list[RetrievalCase] = []
+    cases: list[dict[str, object]] = []
+    seen: set[str] = set()
     for value in values:
-        if not isinstance(value, dict) or value.get("kind") != "semantic":
-            continue
+        if not isinstance(value, dict):
+            raise ValueError("Every golden retrieval case must be an object")
+        case_id = str(value.get("id", "")).strip()
+        query = str(value.get("query", "")).strip()
+        kind = str(value.get("kind", "")).strip()
         expected = value.get("expected_skill_ids")
+        if not case_id or case_id in seen:
+            raise ValueError(f"Invalid or duplicate golden case ID: {case_id!r}")
+        if not query:
+            raise ValueError(f"Golden case {case_id!r} has an empty query")
+        if kind not in {"exact", "lexical", "semantic", "combined"}:
+            raise ValueError(f"Golden case {case_id!r} has unsupported kind {kind!r}")
         if not isinstance(expected, list) or not expected:
-            raise ValueError(f"Semantic case {value.get('id')!r} has no expected skill IDs")
-        cases.append(
-            RetrievalCase(
-                id=str(value["id"]),
-                query=str(value["query"]),
-                expected_skill_ids=tuple(str(item) for item in expected),
-                top_k=int(value.get("top_k", 5)),
-                kind="semantic",
-            )
+            raise ValueError(f"Golden case {case_id!r} has no expected skill IDs")
+        seen.add(case_id)
+        cases.append(dict(value))
+    if len(cases) < 60:
+        raise ValueError("Golden retrieval fixture must contain at least 60 cases")
+    return tuple(cases)
+
+
+def _semantic_cases(values: tuple[dict[str, object], ...]) -> tuple[RetrievalCase, ...]:
+    cases = tuple(
+        RetrievalCase(
+            id=str(value["id"]),
+            query=str(value["query"]),
+            expected_skill_ids=tuple(str(item) for item in value["expected_skill_ids"]),
+            top_k=int(value.get("top_k", 5)),
+            kind="semantic",
         )
+        for value in values
+        if value["kind"] == "semantic"
+    )
     if not cases:
         raise ValueError("Golden retrieval fixture contains no semantic cases")
-    return tuple(cases)
+    return cases
+
+
+def _filters(value: object) -> SkillFilters:
+    if value is None:
+        return SkillFilters()
+    if not isinstance(value, dict):
+        raise ValueError("Golden case filters must be an object")
+    kwargs: dict[str, object] = {}
+    for key, raw in value.items():
+        if key in _FILTER_TUPLE_FIELDS:
+            if not isinstance(raw, list):
+                raise ValueError(f"Filter field {key!r} must be a list")
+            kwargs[key] = tuple(raw)
+        elif key in {"required_level_max", "mp_cost_max"}:
+            kwargs[key] = None if raw is None else int(raw)
+        else:
+            raise ValueError(f"Unsupported golden filter field: {key}")
+    return SkillFilters(**kwargs)
 
 
 def _result_payload(result: ModelBenchmarkResult) -> dict[str, object]:
@@ -88,10 +141,34 @@ def _result_payload(result: ModelBenchmarkResult) -> dict[str, object]:
     }
 
 
+def _rank_metrics(
+    cases: tuple[dict[str, object], ...],
+    results: dict[str, tuple[SkillSearchHit, ...]],
+) -> dict[str, float | int]:
+    if not cases:
+        raise ValueError("At least one ranked retrieval case is required")
+    top1 = top3 = top5 = 0
+    for case in cases:
+        case_id = str(case["id"])
+        expected = set(str(item) for item in case["expected_skill_ids"])
+        ids = tuple(hit.skill_id for hit in results.get(case_id, ()))
+        top1 += int(any(skill_id in expected for skill_id in ids[:1]))
+        top3 += int(any(skill_id in expected for skill_id in ids[:3]))
+        top5 += int(any(skill_id in expected for skill_id in ids[:5]))
+    total = len(cases)
+    return {
+        "case_count": total,
+        "top1": top1 / total,
+        "top3": top3 / total,
+        "top5": top5 / total,
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
-        cases = _load_semantic_cases(args.golden)
+        all_cases = _load_cases(args.golden)
+        semantic_cases = _semantic_cases(all_cases)
         results: list[ModelBenchmarkResult] = []
         with SkillRepository(args.database) as repository:
             source_manifest = repository.get_metadata("source_manifest_hash")
@@ -103,17 +180,63 @@ def main(argv: list[str] | None = None) -> int:
                 provider = OllamaEmbeddingProvider(model, host=args.host)
                 build_embedding_index(repository, provider, batch_size=args.batch_size)
                 index = SemanticSkillIndex.from_repository(repository, provider)
-                index.search(cases[0].query, limit=max(5, cases[0].top_k))
-                metrics = evaluate_semantic_cases(index, cases)
+                index.search(
+                    semantic_cases[0].query,
+                    limit=max(5, semantic_cases[0].top_k),
+                )
+                metrics = evaluate_semantic_cases(index, semantic_cases)
                 results.append(ModelBenchmarkResult(model, metrics))
 
             selected = select_embedding_model(tuple(results))
+            selected_provider = OllamaEmbeddingProvider(selected.model, host=args.host)
+            build_embedding_index(repository, selected_provider, batch_size=args.batch_size)
+            selected_index = SemanticSkillIndex.from_repository(repository, selected_provider)
+
+            fusion_cases = tuple(case for case in all_cases if case["kind"] != "exact")
+            lexical_results: dict[str, tuple[SkillSearchHit, ...]] = {}
+            semantic_results: dict[str, tuple[SkillSearchHit, ...]] = {}
+            for case in fusion_cases:
+                case_id = str(case["id"])
+                filters = _filters(case.get("filters"))
+                eligible_ids = None
+                if filters != SkillFilters():
+                    eligible_ids = structured_skill_ids(repository, filters)
+                candidate_limit = max(20, int(case.get("top_k", 5)) * 4)
+                lexical_results[case_id] = lexical_search(
+                    repository,
+                    str(case["query"]),
+                    eligible_skill_ids=eligible_ids,
+                    limit=candidate_limit,
+                )
+                semantic_results[case_id] = selected_index.search(
+                    str(case["query"]),
+                    eligible_skill_ids=eligible_ids,
+                    limit=candidate_limit,
+                )
+
+            fusion = tune_fusion(fusion_cases, lexical_results, semantic_results)
+            fused_results = {
+                str(case["id"]): fuse_ranked_hits(
+                    lexical_results[str(case["id"])],
+                    semantic_results[str(case["id"])],
+                    config=fusion,
+                    limit=max(5, int(case.get("top_k", 5))),
+                )
+                for case in fusion_cases
+            }
             payload = {
                 "source_manifest_hash": source_manifest,
                 "search_document_manifest_hash": document_manifest,
-                "semantic_case_count": len(cases),
+                "semantic_case_count": len(semantic_cases),
+                "fusion_case_count": len(fusion_cases),
                 "models": [_result_payload(result) for result in results],
                 "selected_model": selected.model,
+                "fusion_config": {
+                    "rrf_k": fusion.rrf_k,
+                    "lexical_weight": fusion.lexical_weight,
+                    "semantic_weight": fusion.semantic_weight,
+                },
+                "hybrid_metrics": _rank_metrics(fusion_cases, fused_results),
             }
     except (OSError, ValueError, json.JSONDecodeError, EmbeddingUnavailable, EmbeddingIndexError) as exc:
         print(f"Embedding benchmark failed: {exc}", file=sys.stderr)
@@ -124,7 +247,18 @@ def main(argv: list[str] | None = None) -> int:
         json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
+    if args.config_output is not None:
+        args.config_output.parent.mkdir(parents=True, exist_ok=True)
+        args.config_output.write_text(
+            render_retrieval_config(str(payload["selected_model"]), fusion),
+            encoding="utf-8",
+        )
     print(f"Selected embedding model: {payload['selected_model']}")
+    print(
+        "Selected fusion: "
+        f"rrf_k={fusion.rrf_k}, "
+        f"lexical={fusion.lexical_weight}, semantic={fusion.semantic_weight}"
+    )
     return 0
 
 
