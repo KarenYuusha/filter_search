@@ -1,0 +1,35 @@
+name: Verify Skill Milestone 1 Main Postmerge
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install regression dependencies
+        run: pip install rapidfuzz python-dotenv ollama discord.py
+      - name: Compile
+        run: python -m compileall -q toram_skills build_skills.py
+      - name: Verify canonical database provenance
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from toram_skills.repository import SkillRepository
+          from toram_skills.source_inventory import discover_skill_sources, source_manifest_hash
+          expected = source_manifest_hash(discover_skill_sources(Path('raw_skills')))
+          with SkillRepository(Path('coryn_data/database/skills.sqlite')) as repo:
+              assert repo.count_trees() == 34
+              assert repo.count_skills() == 481
+              assert repo.get_metadata('source_manifest_hash') == expected
+          PY
+      - name: Full regression suite
+        run: python -m unittest discover -s tests -v
