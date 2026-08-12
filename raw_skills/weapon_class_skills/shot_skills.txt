@@ -9,37 +9,72 @@ Tier Requirements:
 - Tier IV: Level 150
 - Tier V: Level 240
 
-Shared Rules and Notes:
-Power Shot
-Lv 1 Skill; Bow/Bowgun/Arrow only
-MP Cost: 100
-Damage Type: Physical
-Base Skill Multiplier: 1.25 + 0.05 * Skill Level
-Base Skill Constant: 50 + 8 * Skill Level
-Hit Count: 1 hit
-Maximum Cast Range: 16m
-Skill Effect:
-- This skill has an innate Motion Speed penalty of (155 - 10.5 * Skill Level)%; the penalty is applied as follows:
-
-
 ==================================================
-SKILL: POWER SHOT ANIMATION TIME MODIFIER = ANIMATION TIME MODIFIER * (1 + MOTION SPEED PENALTY/100)
+SKILL: POWER SHOT
 ==================================================
 
 Category: Shot Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: None
 
 Source Details:
-- This skill gains Critical Rate +(5* Skill Level) if your target got Slow Ailments
-Ailment: Tumble
-Base Ailment Chance: 20% + (3 * Skill Level)%
-Ailment Duration: 3 seconds
-Ailment Resistance: 3 seconds (Easy and Normal); 6 seconds (Hard); 12 seconds (Nightmare); 18 seconds (Ultimate)
-Game Description: "Shoot the target with stronger power. The charge time reduces as the skill levels up. Chance to inflict [Tumble] on the target. Critical rate increases on Slowed targets."
-Bow bonus: Tumble chance +40%
-Bowgun bonus: Motion Speed penalty -50%
-Bowgun penalty: Tumble chance -40%
+Lv 1 Skill; Bow/Bowgun/Arrow only
+MP Cost: 100
+Damage Type: Physical
+
+Base Skill Multiplier:
+1.25 + 0.05 * Skill Level
+
+Base Skill Constant:
+50 + 8 * Skill Level
+
+Hit Count:
+1 hit
+
+Maximum Cast Range:
+16m
+
+Skill Effect:
+
+* This skill has an innate Motion Speed penalty of:
+
+(155 - 10.5 * Skill Level)%
+
+The penalty is applied as follows:
+
+Power Shot Animation Time Modifier =
+Animation Time Modifier * (1 + Motion Speed Penalty/100)
+
+* This skill gains Critical Rate +(5 * Skill Level) if the target has the Slow ailment.
+
+Ailment:
+Tumble
+
+Base Ailment Chance:
+20% + (3 * Skill Level)%
+
+Ailment Duration:
+3 seconds
+
+Ailment Resistance:
+
+* Easy and Normal: 3 seconds
+* Hard: 6 seconds
+* Nightmare: 12 seconds
+* Ultimate: 18 seconds
+
+Bow Bonus:
+Tumble chance +40%
+
+Bowgun Bonus:
+Motion Speed penalty -50%
+
+Bowgun Penalty:
+Tumble chance -40%
+
+Game Description:
+"Shoot the target with stronger power. The charge time reduces as the skill levels up. Chance to inflict [Tumble] on the target. Critical rate increases on Slowed targets."
+
 
 
 ==================================================
@@ -90,86 +125,202 @@ Bowgun bonus: Skill Multiplier +0.7
 This skill is unaffected by Whack, Long Range and Short Range Damage/Long Range Damage stats
 Triple Thrust's Skill Constant buff is divided by the Hit Count
 
-Snipe
+==================================================
+SKILL: SNIPE
+==================================================
+
+Category: Shot Skills
+Tier: III
+Required Level: Level 70
+
+Source Details:
 Lv 3 Skill; Bow/Bowgun/Arrow only
 MP Cost: 400
 Damage Type: Physical
-Base Skill Multiplier: 7 + 0.1 * Skill Level
-Base Skill Constant: 300 + 10 * Skill Level
-Hit Count: 1 hit
-Maximum Cast Range: 16m
-Charge Time: 5 seconds (levels 1 and 2); 4 seconds (levels 3 and 4); 3 seconds (levels 5 to 7); 2 seconds (levels 8 and 9); 1 second (level 10)
+
+Base Skill Multiplier:
+7 + 0.1 * Skill Level
+
+Base Skill Constant:
+300 + 10 * Skill Level
+
+Hit Count:
+1 hit
+
+Maximum Cast Range:
+16m
+
+Charge Time:
+
+* Levels 1 and 2: 5 seconds
+* Levels 3 and 4: 4 seconds
+* Levels 5 to 7: 3 seconds
+* Levels 8 and 9: 2 seconds
+* Level 10: 1 second
+
 Skill Effect:
-- This skill gains the Perfect Aim attribute when the target has the Blind ailment
-- This skill has a total Critical Rate penalty of (25 - floor(Skill Level/2)%;the penalty is applied as follows:
+
+* This skill gains the Perfect Aim attribute when the target has the Blind ailment.
+* This skill has a Total Critical Rate penalty of:
+
+(25 - FLOOR(Skill Level/2))%
+
+The penalty is applied as follows:
+
+Snipe Critical Rate =
+Total Critical Rate * (1 - Critical Rate Penalty/100)
+
+Ailment:
+Armor Break
+
+Base Ailment Chance:
+50% + (2 * Skill Level)%
+
+Ailment Duration:
+5 seconds
+
+Ailment Resistance:
+None
+
+Bow Bonus:
+
+* Skill Multiplier +2
+* Armor Break chance +30%
+* Total Critical Rate penalty becomes:
+
+(10 - Skill Level)%
+
+Bowgun Bonus:
+
+* Skill Multiplier +3
+* Charge Time -0.5 seconds
+* Stability of this skill +20%
+
+Bowgun Penalty:
+Armor Break chance -60%
+
+Game Description:
+"Snipe a weak point. The charge time decreases as the skill levels up. Chance to inflict [Armor Break]. 100% chance to hit Blind targets."
 
 
 ==================================================
-SKILL: SNIPE CRITICAL RATE = TOTAL CRITICAL RATE * (1 - CRITICAL RATE PENALTY/100)
+SKILL: CROSS FIRE
 ==================================================
 
 Category: Shot Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 150
 
 Source Details:
-Ailment: Armor Break
-Base Ailment Chance: 50% + (2 * Skill Level)%
-Ailment Duration: 5 seconds
-Ailment Resistance: None
-Game Description: "Snipe a weak point. The charge time decreases as the skill levels up. Chance to inflict [Armor Break]. 100% chance to hit Blind targets."
-Bow bonus: Skill Multiplier +2
-Bow bonus: Armor Break chance +30%
-Bow bonus: Total Critical Rate penalty become this (10 - Skill Level)%
-Bowgun bonus: Skill Multiplier +3
-Bowgun bonus: Charge Time -0.5 seconds
-Bowgun bonus: Stability of this skill increased by +20%
-Bowgun penalty: Armor Break chance -60%
-
-Cross Fire
 Lv 4 Skill; Bow/Bowgun only
 MP Cost: 400 (buff cast) / 0 (attack cast)
 Damage Type: Physical
-Main Hit Skill Multiplier: (4 + 0.5 * Skill Level) * number of charges
-Additional Hits Skill Multiplier: 2; skill multiplier for each hit
-Decoy Hit Skill Multiplier: (0.8 + 0.1 * Skill Level) * number of charges
-Main Hit Skill Constant: 300 + 10 * Skill Level
-Additional Hits Skill Constant: 300 + 10 * Skill Level; constant for each hit
-Decoy Hit Skill Constant: 60 + 2 * Skill Level
-Hit Count: 1 hit (Main Hit and Decoy Hit); number of charges - 1 (Additional Hits); damage calculation is done for each hit
-Maximum Cast Range: Buff cast-Unlimited; Attack cast-12m
-Hit Range: Length of 100m and radius of 1m; from the caster's position (Main Hit)/ main target (Additional Hits)/ length of 100m and radius of 1m; from the decoy's position (Decoy Hit)
+
+Main Hit Skill Multiplier:
+(4 + 0.5 * Skill Level) * Number of Charges
+
+Additional Hits Skill Multiplier:
+2; multiplier for each hit
+
+Decoy Hit Skill Multiplier:
+(0.8 + 0.1 * Skill Level) * Number of Charges
+
+Main Hit Skill Constant:
+300 + 10 * Skill Level
+
+Additional Hits Skill Constant:
+300 + 10 * Skill Level; constant for each hit
+
+Decoy Hit Skill Constant:
+60 + 2 * Skill Level
+
+Hit Count:
+
+* Main Hit: 1 hit
+* Decoy Hit: 1 hit
+* Additional Hits: Number of Charges - 1
+
+Damage calculation is done for each hit.
+
+Maximum Cast Range:
+
+* Buff Cast: Unlimited
+* Attack Cast: 12m
+
+Hit Range:
+
+* Main Hit: Length of 100m and radius of 1m from the caster's position
+* Additional Hits: Length of 100m and radius of 1m from the main target
+* Decoy Hit: Length of 100m and radius of 1m from the Decoy's position
+
 Skill Effect:
-If you use the attack cast while you have no charges, it will fizzle (and your avatar will look puzzled)
-This skill will add an additional hit if a decoy from Decoy Shot is active
-If the attack cast has the same Combo Tag as the buff cast did, the Combo Tag of the attack cast will be ignored
-The Combo Multiplier carries over from the buff cast; this takes into account if the attack cast's Combo Tag is ignored; the total Combo Multiplier is calculated as follows:
 
+* If the attack cast is used while there are no charges, the skill will fizzle.
+* If a Decoy from Decoy Shot is active, Cross Fire gains an additional Decoy Hit.
+* If the attack cast has the same Combo Tag as the buff cast, the Combo Tag of the attack cast is ignored.
+* The Combo Multiplier from the buff cast carries over to the attack cast.
 
-==================================================
-SKILL: CROSSFIRE TOTAL COMBO MULTIPLIER = ATTACK CAST COMBO MULTIPLIER + BUFF CAST COMBO MULTIPLIER - 100
-==================================================
+Cross Fire Total Combo Multiplier:
+Attack Cast Combo Multiplier + Buff Cast Combo Multiplier - 100
 
-Category: Shot Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Combo Tag Notes:
 
-Source Details:
-Remember! Out of all combo tags, Only Bloodsucker(lifesteal) and Mind’s eye(always graze/no miss) tags cannot apply on buff(Charge) cast, but Bloodsucker after-effect(Spirit = boost dmg), Smite, Save and the rest can apply on buff cast.
+* Bloodsucker and Mind's Eye cannot be applied to the buff/charge cast.
+* Bloodsucker's after-effect, Spirit, can still apply.
+* Smite, Save and the other applicable Combo Tags can be used on the buff cast.
+
 Buff Effect:
-The next cast of Cross Fire becomes 0 MP
-Gains charges over time, starting at 0 charges
-Maximum charge limit: 2 (levels 1 to 3); 3 (levels 4 to 6); 4 (levels 7 to 9); 5 (level 10)
-Time for each charge: 1second (first charge); 2 seconds (second charge); 5 seconds (third charge); 10 seconds (fourth charge); 17 seconds (fifth charge) [the current charge must be completed before proceeding to the next charge]
-If you get hit, the skill will stop charging; if you get hit while you have no charges, the buff is removed
-Buff Duration: Until you cast Cross Fire(attack cast) again OR until you get hit if you have no charges
-Note: The charge animation of this skill is not affected by motion speed from character's status, but can use "swift" combo tag's motion speed modifier.
-Game Description: "Charge Skill (5 Levels). Attack toward a target and deal damage in a straight line. Power increases as the charge level increases and adds an attack. Add another attack by meeting certain conditions."
-Bow bonus: Main Hit Skill Multiplier +((baseDex/500 + 0.5) * number of charges)
-Bow bonus: Radius of Main Hit +1m
-Bowgun bonus: Additional Hits Skill Multiplier +1
-Bowgun bonus: Additional Hits Physical Pierce +(baseDex/10)%
-Only Main Hit and Decoy Hits are affected by Whack, Long Range and Short Range Damage/Long Range Damage stats. Meanwhile Additional Hits are only affected by Whack
+
+* The next cast of Cross Fire becomes 0 MP.
+* Cross Fire begins at 0 charges and gains charges over time.
+
+Maximum Charge Limit:
+
+* Levels 1 to 3: 2 charges
+* Levels 4 to 6: 3 charges
+* Levels 7 to 9: 4 charges
+* Level 10: 5 charges
+
+Time for Each Charge:
+
+* First Charge: 1 second
+* Second Charge: 2 seconds
+* Third Charge: 5 seconds
+* Fourth Charge: 10 seconds
+* Fifth Charge: 17 seconds
+
+The current charge must be completed before charging the next level.
+
+Charging Interruption:
+
+* Taking a hit stops further charging.
+* If the user is hit while Cross Fire has 0 charges, the buff is removed.
+
+Buff Duration:
+Until Cross Fire is cast again as the attack cast OR until the user gets hit while at 0 charges.
+
+Charge Animation Note:
+The charging animation is not affected by Motion Speed from the character's stats, but it can be affected by the Swift Combo Tag's Motion Speed modifier.
+
+Bow Bonus:
+
+* Main Hit Skill Multiplier +((Base DEX/500 + 0.5) * Number of Charges)
+* Main Hit radius +1m
+
+Bowgun Bonus:
+
+* Additional Hits Skill Multiplier +1
+* Additional Hits Physical Pierce +(Base DEX/10)%
+
+Damage Modifier Interactions:
+
+* Main Hit and Decoy Hit are affected by Whack.
+* Main Hit and Decoy Hit are affected by Long Range.
+* Main Hit and Decoy Hit are affected by Short Range Damage/Long Range Damage.
+* Additional Hits are affected only by Whack among these modifiers.
+
+Game Description:
+"Charge Skill (5 Levels). Attack toward a target and deal damage in a straight line. Power increases as the charge level increases and adds an attack. Add another attack by meeting certain conditions."
 
 
 ==================================================
@@ -356,7 +507,6 @@ Tier: III
 Required Level: Level 70
 
 Source Details:
-13. Quick Draw
 Lv 3 Skill; No Limit
 Passive Effect: Whenever an attacking skill that consumes MP is used, you have a (3 * Skill Level)% chance to recover 100 MP
 Game Description: "Quickly prepare for the next move. Chance to restore MP a little when succeeding in attacking with a skill."
@@ -402,29 +552,48 @@ Bug Note: (don’t abuse it, or risk of getting Banned; Phantom’s Library is n
 This skill has AMPR bug. Everytime decoy attacks a target, it will give +100% base ampr on the next player auto attack(decoy can enjoy this effect all the time without wasting this effect until you auto attack). But this ampr bug condition => weird, sometimes works but sometimes won’t work(Yes, it happens when you switch character and switch weapon; and relogging will reset those[sometimes work & won’t work] = which is kinda using the system). Weird right? Using the system = bug. (Actually, I hope it is not a bug, but it is impossible because of that weird condition/system).
 This ampr bug always happens even if you don’t intend to(just ignore it and keep going without using the system[just pretend = don't know that bug] or report that ampr bug[evil laugh]).
 
-Fatal Shot
-Lv 3 Skill; Bow/Bowgun only
-MP Cost: 200
-Damage Type: Physical
-Base Skill Multiplier: 5 + 0.1 * Skill Level + TotalStr/200 + TotalDex/200
-Base Skill Constant: 200
-Hit Count: 1 hit
-Maximum Cast Range: 14m
-Skill Effect:
-Fatal Shot Critical Rate: +25 + 5 * Skill Level
-
-
 ==================================================
-SKILL: FATAL SHOT SKILL ACCURACY: -100% + 2% * SKILL LEVEL
+SKILL: FATAL SHOT
 ==================================================
 
 Category: Shot Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 70
 
 Source Details:
-This skill can extend tap break time: Floor (skill level/2), {If this skill attack hit as miss/evaded/grazed, it doesn't extend break time}
-Game Description: A shot skill that pierces through a strong armor. It's a unique attack with a high critical rate, but low accuracy. If it hits the target right, the tap time to break monster's part will be extended.
+Lv 3 Skill; Bow/Bowgun only
+MP Cost: 200
+Damage Type: Physical
+
+Base Skill Multiplier:
+5 + 0.1 * Skill Level + Total STR/200 + Total DEX/200
+
+Base Skill Constant:
+200
+
+Hit Count:
+1 hit
+
+Maximum Cast Range:
+14m
+
+Skill Effect:
+
+Fatal Shot Critical Rate:
++25 + 5 * Skill Level
+
+Fatal Shot Skill Accuracy:
+-100% + 2% * Skill Level
+
+Part Break Effect:
+This skill can extend the tap time for breaking a monster's part by:
+
+FLOOR(Skill Level/2)
+
+If the attack misses, is evaded, or grazes, the part-break tap time is not extended.
+
+Game Description:
+"A shot skill that pierces through a strong armor. It's a unique attack with a high critical rate, but low accuracy. If it hits the target right, the tap time to break monster's part will be extended."
 
 
 ==================================================
@@ -456,44 +625,98 @@ Bowgun bonus: If you have 5 or more "Overheat stacks" from Twin Storm, 5 stacks 
 MD Bonus: Replaces “Base DEX/100” in Skill Multiplier into “Base INT/100”; everything else remains the same.
 Dagger bonus: It changes from an AoE to a single-target attack.
 
-Twin Storm
-Lv 5; Bowgun only
-MP Cost: 200
-Damage Type: None
-Auto Attacks Skill Multiplier: +0,9 * Skill Level + MIN(4;TRUNC((Stack-1)/15)) * (0,2 * Skill Level) [note: just like Rampage, this multiplier work additively with other's Auto Attacks Skill Multiplier such as Kairiki, etc.]
-Auto Attacks Skill Constant: +0
-Auto Attacks Hit Count: 2 hits; damage calculation is done once, then divided between the hits
-Skill Effect:
-Replaces the user's auto attacks with Twin Storm auto attacks.
-Auto attacks needed to increase a stack: MAX(1;MIN(4;TRUNC((Current Stack-1)/15))) or
-0-30 stk = 1 auto attacks
-31-45 stk = 2 auto attacks
-46-60 stk = 3 auto attacks
-61-98 stk = 4 auto attacks
-
-
 ==================================================
-SKILL: TWIN STORM STABILITY DECREASE: -MAX(0;ROUNDDOWN((STACK-31);-1)%
+SKILL: TWIN STORM
 ==================================================
 
 Category: Shot Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: V
+Required Level: Level 240
 
 Source Details:
-or -10% every 10 stacks starting from 41st stack.
+Lv 5; Bowgun only
+MP Cost: 200
+Damage Type: None
+
+Auto Attacks Skill Multiplier:
++0.9 * Skill Level + MIN(4; TRUNC((Stack - 1)/15)) * (0.2 * Skill Level)
+
+Note:
+Like Rampage, this multiplier works additively with other Auto Attack Skill Multipliers such as Kairiki.
+
+Auto Attacks Skill Constant:
++0
+
+Auto Attacks Hit Count:
+2 hits; damage calculation is done once, then divided between the hits
+
+Skill Effect:
+Replaces the user's auto attacks with Twin Storm auto attacks.
+
+Auto Attacks Needed to Increase a Stack:
+MAX(1; MIN(4; TRUNC((Current Stack - 1)/15)))
+
+Equivalent Stack Ranges:
+
+* 0-30 stacks: 1 auto attack
+* 31-45 stacks: 2 auto attacks
+* 46-60 stacks: 3 auto attacks
+* 61-98 stacks: 4 auto attacks
+
+Twin Storm Stability Decrease:
+-MAX(0; ROUNDDOWN((Stack - 31); -1))%
+
+Equivalent Effect:
+-10% Stability every 10 stacks starting from the 41st stack.
+
 Buff Effect:
-1.5x your movement speed while the buff is active; this is overridden by the Stop ailment and stacks with the Slow ailment.
-Total AMPR will be doubled during this stack buff.
-Attack Speed bonus: +100 * Skill Level
-Final Damage Modifier for Shot/Hunter Skills (including Twin Storm): +TRUNC(Stack/25) * 10%
-Bleed, Freeze, and Stun to your character will decrease Twin Storm stacks by 15; Bleed disables twin storm; Freeze disables twin storm stack gain.
-Game Description: “Greatly enhances normal attack and also increases movement speed. Overheat stacks each time a normal attack hits, and the skill status can be removed by reactivating the skill.”
-Bowgun Bonus: "Overheat stack" buff. The power of normal attacks, Shot Skills, and Hunter Skills increases as Overheat stacks build up. Stability decreases if Overheat stacks build up too much.
-Magic Device Bonus: Performs normal attacks with MATK if MATK is higher than ATK (still uses physical calculation). Increases Auto Attacks Skill Constant by Base INT/2 regardless of which of ATK or MATK is higher.
-Dagger Bonus: Always applies the power of close-range attack or long-range attack, whichever is higher.
-Power Wave is not disabled during this Twin Storm buff. (Affect auto attack max range & auto attack damage modifier)
-This skill cannot be put in a combo
+
+* Movement Speed is multiplied by 1.5 while the buff is active.
+* The Movement Speed effect is overridden by the Stop ailment.
+* The Movement Speed effect stacks with the Slow ailment.
+* Total AMPR is doubled while the stack buff is active.
+* Attack Speed +(100 * Skill Level)
+
+Final Damage Modifier for Shot/Hunter Skills:
++TRUNC(Stack/25) * 10%
+
+This Final Damage Modifier also applies to Twin Storm.
+
+Stack Reduction and Ailment Interactions:
+
+* Bleed decreases Twin Storm stacks by 15 and disables Twin Storm.
+* Freeze decreases Twin Storm stacks by 15 and disables Twin Storm stack gain.
+* Stun decreases Twin Storm stacks by 15.
+
+Bowgun Bonus:
+"Overheat Stack" buff.
+
+The power of normal attacks, Shot Skills, and Hunter Skills increases as Overheat stacks accumulate.
+
+Stability decreases if Overheat stacks become too high.
+
+Magic Device Bonus:
+
+* Performs normal attacks with MATK if MATK is higher than ATK.
+* The attacks still use physical damage calculation.
+* Auto Attacks Skill Constant +(Base INT/2), regardless of whether ATK or MATK is used.
+
+Dagger Bonus:
+Always applies whichever is higher between close-range attack power and long-range attack power.
+
+Power Wave Interaction:
+Power Wave is not disabled while the Twin Storm buff is active.
+
+Power Wave can therefore affect:
+
+* Auto Attack Maximum Range
+* Auto Attack Damage Modifier
+
+Combo Restriction:
+This skill cannot be put in a combo.
+
+Game Description:
+“Greatly enhances normal attack and also increases movement speed. Overheat stacks each time a normal attack hits, and the skill status can be removed by reactivating the skill.”
 
 
 ==================================================
@@ -621,28 +844,66 @@ Allows skills that aren't dual element to have [“Main Weap Ele” and “Arrow
 Gain +1 stack everytime you deal a stronger element against the target. You can store up to 99 stacks. Its stack will be used for HP Recovery whenever you get attacked. HP Recovery = Floor(Skill Level * your MaxHP/1000) * stack
 Game Description: “The element of bow or bowgun will be activated at the same time as the arrow. *Not valid for dual element skills. Gets a small recovery barrier each time you deal damage to targets with the element you are weak to.”
 
-Hunting Buddy
-T4; [Active] Bow/Bowgun Only
-MP Cost: 100 summon; 0 cancel summon
-Damage Type: Physical
-Base Skill Multiplier: 1 + Total DEX/1000 + Stack Multi Bonus
-Stack multiplier bonus: 0.1 * Skill Level * Stack (Max 25 stacks)
--any auto attack multiplier booster skills (E.g. Kairiki Ranshin, Berserk) and regislets (E.g. Power Wave Modifier, Mana Thrash) add up to base skill multiplier. The stacks do not have any icon; damage calculation from stack is done behind the scenes and stacks will reset to 0 everytime the dog attacks.
-Base Skill Constant: 100
-
-
 ==================================================
-SKILL: -HUNTING BUDDY ATTACKS THE TARGET AND WILL COME BACK TO YOU BEFORE ATTACKING MORE, THUS STAYING FAR FROM THE TARGET OR RUNNING AWAY WILL EXTEND THE ATTACK INTERVAL.
+SKILL: HUNTING BUDDY
 ==================================================
 
 Category: Shot Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 150
 
 Source Details:
-This skill is affected by short range damage; affected by awaken element; not affected by whack; uses physical proration and deals normal proration.
-Game Description: Summons your companion to fight alongside you. It attacks every few seconds, causing normal attack proration. The effect that enhances your companion's next attack will stack when you hit the target with a Shot Skill; 1 normal attack with Twin Storm (2 Twin Storm stack) will gain you 1 Hunting Buddy stack.
-Bow/Bowgun Bonus: Unless your entire party is wiped out, your companion will use First Aid before leaving the battle when you are knocked out. First Aid Level = Hunting Buddy Skill Level.
+T4; [Active] Bow/Bowgun Only
+MP Cost: 100 summon; 0 cancel summon
+Damage Type: Physical
+
+Base Skill Multiplier:
+1 + Total DEX/1000 + Stack Multi Bonus
+
+Stack Multiplier Bonus:
+0.1 * Skill Level * Stack
+
+Maximum Stacks:
+25
+
+Stack Effect:
+
+* Auto Attack Multiplier boosting skills such as Kairiki Ranshin and Berserk are added to the Base Skill Multiplier.
+* Regislets such as Power Wave Modifier and Mana Thrash are also added to the Base Skill Multiplier.
+* Hunting Buddy stacks do not have an icon.
+* Stack damage calculation is handled without a visible stack indicator.
+* Stacks reset to 0 every time Hunting Buddy attacks.
+
+Base Skill Constant:
+100
+
+Attack Behavior:
+Hunting Buddy attacks the target and returns to the user before attacking again.
+
+Staying far away from the target or running away from it will therefore extend Hunting Buddy's attack interval.
+
+Damage Modifier and Proration:
+
+* Affected by Short Range Damage.
+* Affected by Awaken Element.
+* Not affected by Whack.
+* Uses Physical Proration.
+* Deals normal proration.
+
+Stack Gain:
+Hitting the target with a Shot Skill increases the effect that enhances Hunting Buddy's next attack.
+
+With Twin Storm:
+1 normal attack with Twin Storm (2 Twin Storm stacks) grants 1 Hunting Buddy stack.
+
+Bow/Bowgun Bonus:
+Unless the entire party is wiped out, Hunting Buddy will use First Aid before leaving the battle when the user is knocked out.
+
+First Aid Level:
+Hunting Buddy Skill Level
+
+Game Description:
+"Summons your companion to fight alongside you. It attacks every few seconds, causing normal attack proration. The effect that enhances your companion's next attack will stack when you hit the target with a Shot Skill; 1 normal attack with Twin Storm (2 Twin Storm stack) will gain you 1 Hunting Buddy stack."
 
 
 ==================================================
