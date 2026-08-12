@@ -53,7 +53,7 @@ Description: Test description.
             with SkillRepository(db_path) as repo:
                 self.assertEqual(repo.count_trees(), 1)
                 self.assertEqual(repo.count_skills(), 1)
-                self.assertEqual(repo.get_metadata("schema_version"), "1")
+                self.assertEqual(repo.get_metadata("schema_version"), "2")
                 self.assertEqual(repo.get_metadata("source_manifest_hash"), report.manifest_hash)
                 self.assertEqual(repo.get_metadata("source_file_count"), "1")
 
