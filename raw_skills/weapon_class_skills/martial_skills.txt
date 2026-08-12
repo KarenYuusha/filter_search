@@ -309,32 +309,55 @@ Knuckle Main/Sub bonus: MP heal +50
 Knuckle Main/Sub bonus: Percentage Skill Based Damage Reduction +20%
 Knuckle Main/Sub bonus: Buff Duration +10 seconds
 
-Aggravate
-Lv 1 Skill; Knuckle/Main Bare Hand only
-Passive Effect:
-Attack MP Recovery +(0.5 * Skill Level)
-On auto attacks that don't miss, you have a (10 + 4 * Skill Level)% chance to add one additional attack that cannot crit
-Aggravate Damage Type: Neutral
-Aggravate Element: Neutral
-Aggravate Skill Multiplier: 0.05 * Skill Level; multiplier for each hit
-Aggravate Damage Calculation:
-Aggravate Damage = (Physical Base Damage - target's DEF) * Aggravate Skill Multiplier * RNG Stability/100 * Current Neutral Proration/100 * (1 - Base Drop Gem Damage Reducer/100) [IF using a Base Drop Gem; repeat this for every Gem]
-Hit Count: Same as the auto attack's Hit Count that triggered it; damage calculation is done independently of the auto attack's; if the Hit Count of the auto attack is higher than 1, damage calculation is done once, then divided evenly between the hits
-Aggravate Ailment: Armor Break
-
-
 ==================================================
-SKILL: AGGRAVATE AILMENT CHANCE: 0%
-==================================================
+SKILL: AGGRAVATE
+================
 
 Category: Martial Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: None
 
 Source Details:
-Game Description: "Keenly attack the target again. You have a chance to deal additional damage by normal attacks of Knuckles."
-This skill doesn't seem to be affected by Guard
-Martial Discipline doesn’t affect this skill damages
+Lv 1 Skill; Knuckle/Main Bare Hand only
+
+Passive Effect:
+
+* Attack MP Recovery +(0.5 * Skill Level)
+* On auto attacks that don't miss, you have a (10 + 4 * Skill Level)% chance to add one additional attack that cannot crit.
+
+Aggravate Damage Type:
+Neutral
+
+Aggravate Element:
+Neutral
+
+Aggravate Skill Multiplier:
+0.05 * Skill Level; multiplier for each hit
+
+Aggravate Damage Calculation:
+Aggravate Damage = (Physical Base Damage - target's DEF) * Aggravate Skill Multiplier * RNG Stability/100 * Current Neutral Proration/100 * (1 - Base Drop Gem Damage Reducer/100)
+
+If using a Base Drop Gem, repeat the Base Drop Gem Damage Reducer calculation for every Gem.
+
+Hit Count:
+Same as the auto attack's Hit Count that triggered it; damage calculation is done independently of the auto attack's.
+
+If the Hit Count of the auto attack is higher than 1, damage calculation is done once, then divided evenly between the hits.
+
+Aggravate Ailment:
+Armor Break
+
+Aggravate Ailment Chance:
+0%
+
+Notes:
+
+* This skill doesn't seem to be affected by Guard.
+* Martial Discipline doesn't affect this skill's damage.
+
+Game Description:
+"Keenly attack the target again. You have a chance to deal additional damage by normal attacks of Knuckles."
+
 
 
 ==================================================
@@ -397,51 +420,198 @@ Game Description: “Enables Evasion (Manual Only) while using certain Martial s
 Note about Srd/Lrd% on abstract chariot, it was when chariot deals damage(not when cast skill or proceeds to abstract).
 Abstract God hand, doesn’t give buff when ur clone/shadow gets hit.
 
-Asura Aura
-Lv 5; Knuckle only
-MP Cost: 0
-Punch Damage Multiplier: 0.95 + BaseAgi/(2400 - Skill Level * 200)
-[Sub-Knuck penalty: 0.5 + BaseAgi/(2400 - Skill Level * 200)]
-Punch Damage Constant: 0
-Trigger/Hit Range: 2.5m; damage calculation is done for each hit
-Interval Hit: 1 punch every 0.25 sec; unaffected by motion speed%, swift and freeze
-Buff Effect(Asura Mode):
-Increase base MP cost of all skills except Martial and Crusher by +100MP.
-You will gain stack depending on how many mp you used. Every 100 MP = 1 Asura stack. Note: MP cost after combo tags, half-buff like impact. Be warned, don’t ever try to get at least 40 stacks(it is going to insta-kill you immediately, as soon as you reach 40 stacks). Note: you will lose hp every time you use skill (5% MaxHp loss per stack gained) that is when you have at least 20 Asura stacks only.
-Everytime you receive damage from a monster, you will lose 100MP in exchange for reducing damage received by (Your Current MP bar * 4%)[Max at 75%] and also gain 1 Asura stack(this only happens when you lose mp).
-Disables your auto attack mp recovery(including Decoy) during this buff, regardless of how many ampr you have. However, any action(such as Burning Spirit, Manual Guard, Gladiate, etc.) still can recover mp based on the Total Ampr normally during this buff.
-Increases Skill Constant for all attacks(except Asura) by 20 * Skill Level. [Sub-Knuckle penalty: Skill Constant gained from this skill will be halved]
-[Main Knuckle Only] Damage Dealt for “Martial”, “Crusher”, “Dagger”, “Assassin”, and “Dark Power” skills increases by 30% more damage regardless Skill level(Applied multiplicatively at the end of damage calculation after added along with Brave Aura bonus and Mana Recharge reduction). Meanwhile, for other attacks, damage dealt increases by 10%.
-Gives Flat Critical by (7.5 * Skill Level) [Sub-Knuckle penalty: Flat Cr bonus from this skill divided by 3]
-You have a chance to resist ailment by every 10 current MP = +1% chance, max at +100%. Work additively with ailres% from mtl/equip. Note: Sick ailment can affect this skill.
-Buff Duration: Until you use Asura Aura again or 40 stacks(insta-death)
-Using an auto attack on a target during this buff will trigger infinite consecutive punches that can deal damage on target, it has Perfect Aim Attribute[for Main Knuckle only].
-However, infinite consecutive punches will stop when the target is too far or you use any skill or you use manual guard & evasion. You need to trigger back again with an auto attack. These punches don't inflict prorate at all, and their damage is based on Physical Proration.
-Skill Effect:
-Using Asura Aura will switch on/off Asura Mode. If you turn on Asura when you have stacks left, then it will reset that previous stack to 0 and enter Asura Mode.
-There will be a 2 second Iframe when you enter Asura Mode. But not when you turn off Asura Mode. However, if you turn off Asura Mode when you have this iframe from Asura ON, then this iframe Asura ON will end immediately as soon as you turn off Asura OFF!
-When you have an Asura stack and you are not in Asura Mode, then using auto attack on target will trigger consecutive punches on target, and it has Perfect Aim Attribute too[for Main Knuckle only]. But this time not unlimited punches but use stack, every 1 Asura stack = 1 punch/hit. Also in addition, every punch/stack can recover your MP by (Total AMPR/10 * Skill Level)[Sub-Knuckle penalty: Stack MP recovery will be halved].
-However, those consecutive punches will stop when the target is too far or you use manual guard & evasion. You need to trigger back again with auto attack if you have stacks. These punches don't inflict prorate at all, and their damage is based on Physical Proration.
-If you have at least 1 asura stacks and you're not in asura mode, then you will persist 3 following buffs from asura mode below:
-• Increase your cr by +(7.5 * Skill Lvl). Sub knuck penalty divided by 3
-• Increase constant of all skills by (20 * Skill Lvl). Sub knuck penalty got halved
-• [Main Knuckle only], Damage dealt of all attacks increased by 10% regardless skill level(additively with brave).
-[Only changes this part 30% to 10%, Asura OFF less effect compared to Asura ON]
-Game Description: “Unleashes the demon power that is hidden inside. While active, ATK increases and if you receive damage, MP will be used to mitigate the damage, but in exchange, you will lose Attack MP Recovery and MP cost will increase.”
-
-
 ==================================================
-SKILL: ASURA AURA STACK WILL RECOVER MP IMMEDIATELY FIRST IF YOU GO TO THE OUTSIDE MAP. BUT ITS MP RECOVERY SEEMS TO BE FIXED AT (STACK * 50MP).
-==================================================
+SKILL: ASURA AURA
+=================
 
 Category: Martial Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: V
+Required Level: Level 240
 
 Source Details:
-Even though your auto attack missed, it still triggers consecutives punches.
-If Asura Aura punch/stack hit missed, then that missed hit won’t recover mp(wastes stack, need hit to recover mp)
-This Asura Punch damage unaffected by srd/lrd, damage dealt increases(such as Brave Aura, Asura Aura), combo tags damage.
+Lv 5; Knuckle only
+MP Cost: 0
+
+Punch Damage Multiplier:
+0.95 + BaseAGI/(2400 - Skill Level * 200)
+
+Sub-Knuckle Penalty:
+0.5 + BaseAGI/(2400 - Skill Level * 200)
+
+Punch Damage Constant:
+0
+
+Trigger/Hit Range:
+2.5m; damage calculation is done for each hit
+
+Interval Hit:
+1 punch every 0.25 seconds; unaffected by Motion Speed%, Swift and Freeze
+
+Buff Effect (Asura Mode):
+
+* Increases the base MP Cost of all skills except Martial and Crusher skills by +100 MP.
+* Gains Asura Stacks depending on MP used.
+* Every 100 MP used = 1 Asura Stack.
+* Stack gain uses the MP Cost after Combo Tags and MP Cost reduction effects such as Impact.
+* Reaching 40 Asura Stacks causes instant death.
+* When the user has at least 20 Asura Stacks, using a skill causes HP loss equal to 5% MaxHP per stack gained.
+
+Damage Reduction:
+Every time the user receives damage from a monster:
+
+* Loses 100 MP.
+* Reduces the received damage by:
+
+Current MP Bar * 4%
+
+Maximum Damage Reduction:
+75%
+
+* Also gains 1 Asura Stack, but only when MP is actually lost.
+
+Attack MP Recovery:
+
+* Disables auto attack MP Recovery, including Decoy Shot, while Asura Mode is active regardless of total AMPR.
+* Other actions such as Burning Spirit, Manual Guard and Gladiate can still recover MP based on Total AMPR normally.
+
+Skill Constant Buff:
+Increases Skill Constant for all attacks except Asura Aura by:
+
+20 * Skill Level
+
+Sub-Knuckle Penalty:
+Skill Constant gained from this skill is halved.
+
+Main Knuckle Damage Dealt Buff:
+For Martial, Crusher, Dagger, Assassin and Dark Power skills:
+
+Damage Dealt +30%
+
+This increase is applied regardless of Skill Level and is applied multiplicatively at the end of damage calculation after being added together with effects such as Brave Aura bonus and Mana Recharge reduction.
+
+For all other attacks:
+
+Damage Dealt +10%
+
+Critical Rate Buff:
+Flat Critical +(7.5 * Skill Level)
+
+Sub-Knuckle Penalty:
+Flat Critical bonus from this skill is divided by 3.
+
+Ailment Resistance:
+Every 10 Current MP gives +1% Ailment Resistance.
+
+Maximum:
++100%
+
+This effect works additively with Ailment Resistance% from MTL and equipment.
+
+Note:
+Sick ailment can affect this skill.
+
+Buff Duration:
+Until Asura Aura is used again OR until 40 Asura Stacks are reached, causing instant death.
+
+Asura Mode Consecutive Punches:
+Using an auto attack on a target while Asura Mode is active triggers infinite consecutive punches.
+
+Main Knuckle Only:
+The consecutive punches have the Perfect Aim attribute.
+
+The consecutive punches stop when:
+
+* The target becomes too far away.
+* The user activates any skill.
+* The user uses Manual Guard.
+* The user uses Evasion.
+
+After the punches stop, another auto attack is required to trigger them again.
+
+The punches:
+
+* Do not inflict proration.
+* Deal damage based on Physical Proration.
+* Can still be triggered even if the auto attack used to activate them misses.
+* Are unaffected by Short Range Damage and Long Range Damage.
+* Are unaffected by Damage Dealt increases such as Brave Aura and Asura Aura.
+* Are unaffected by Combo Tag damage modifiers.
+
+Skill Effect:
+Using Asura Aura switches Asura Mode on or off.
+
+If Asura Mode is activated while previous Asura Stacks remain:
+
+* The previous Asura Stacks are reset to 0.
+* The user enters Asura Mode.
+
+Asura Mode Activation Invincibility:
+Entering Asura Mode grants 2 seconds of invincibility.
+
+Turning Asura Mode off does not grant invincibility.
+
+If Asura Mode is turned off while the activation invincibility is still active, the invincibility immediately ends.
+
+Asura Stack Effect Outside Asura Mode:
+If the user has at least 1 Asura Stack while Asura Mode is not active, using an auto attack on a target triggers consecutive punches.
+
+Main Knuckle Only:
+These punches have the Perfect Aim attribute.
+
+Unlike Asura Mode, these punches are limited by the number of Asura Stacks.
+
+1 Asura Stack = 1 punch/hit
+
+MP Recovery per Punch:
+Total AMPR/10 * Skill Level
+
+Sub-Knuckle Penalty:
+MP Recovery from each Asura Stack punch is halved.
+
+If an Asura Aura Stack punch misses:
+
+* That hit does not recover MP.
+* The Asura Stack is still consumed.
+
+The consecutive punches stop when:
+
+* The target becomes too far away.
+* The user uses Manual Guard.
+* The user uses Evasion.
+
+If Asura Stacks remain, another auto attack is required to trigger the punches again.
+
+These punches:
+
+* Do not inflict proration.
+* Deal damage based on Physical Proration.
+
+Persisting Buffs Outside Asura Mode:
+If the user has at least 1 Asura Stack while Asura Mode is not active, the following effects from Asura Mode remain active:
+
+* Flat Critical +(7.5 * Skill Level)
+
+  * Sub-Knuckle penalty: divided by 3.
+
+* Skill Constant for all skills +(20 * Skill Level)
+
+  * Sub-Knuckle penalty: halved.
+
+* Main Knuckle Only: Damage Dealt of all attacks +10% regardless of Skill Level.
+
+  * Applied additively with effects such as Brave Aura.
+
+The 30% Damage Dealt effect from Asura Mode is reduced to 10% while Asura Mode is off.
+
+Map Transition Interaction:
+Asura Aura Stacks will recover MP immediately when the player goes outside the map.
+
+According to the source, this MP Recovery seems to be fixed at:
+
+Asura Stack * 50 MP
+
+Game Description:
+“Unleashes the demon power that is hidden inside. While active, ATK increases and if you receive damage, MP will be used to mitigate the damage, but in exchange, you will lose Attack MP Recovery and MP cost will increase.”
 
 
 ==================================================
