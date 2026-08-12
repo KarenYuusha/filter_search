@@ -78,8 +78,17 @@ class CoreModuleBoundaryTests(unittest.TestCase):
 
         self.assertEqual(offenders, [])
 
-    def test_toram_skills_stays_independent_of_search_discord_and_ollama(self):
-        forbidden = {"search_items", "discord_bot", "toram_discord", "toram_search", "ollama"}
+    def test_toram_skills_stays_independent_of_search_discord_and_provider_runtimes(self):
+        forbidden = {
+            "search_items",
+            "discord_bot",
+            "toram_discord",
+            "toram_search",
+            "ollama",
+            "sentence_transformers",
+            "torch",
+            "transformers",
+        }
         offenders = []
         for path in sorted((PROJECT_ROOT / "toram_skills").glob("*.py")):
             tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
