@@ -22,6 +22,10 @@ REQUIRED_COLUMNS: dict[str, frozenset[str]] = {
     "skill_weapon_requirements": frozenset({"skill_id", "position", "weapon", "normalized_name"}),
     "skill_weapon_restrictions": frozenset({"skill_id", "position", "weapon", "normalized_name"}),
     "skill_tree_weapon_restrictions": frozenset({"tree_id", "position", "weapon", "normalized_weapon"}),
+    "skill_search_documents": frozenset({
+        "id", "skill_id", "position", "kind", "label", "text", "text_hash",
+    }),
+    "skill_fts": frozenset({"document_id", "skill_id", "name", "tree_name", "text"}),
 }
 REQUIRED_TABLES = frozenset(REQUIRED_COLUMNS)
 
@@ -124,6 +128,26 @@ def create_schema(connection: sqlite3.Connection) -> None:
             weapon TEXT NOT NULL,
             normalized_weapon TEXT NOT NULL,
             PRIMARY KEY(tree_id, position)
+        );
+
+        CREATE TABLE skill_search_documents (
+            id TEXT PRIMARY KEY,
+            skill_id TEXT NOT NULL REFERENCES skills(id) ON DELETE CASCADE,
+            position INTEGER NOT NULL,
+            kind TEXT NOT NULL,
+            label TEXT,
+            text TEXT NOT NULL,
+            text_hash TEXT NOT NULL,
+            UNIQUE(skill_id, position)
+        );
+
+        CREATE VIRTUAL TABLE skill_fts USING fts5(
+            document_id UNINDEXED,
+            skill_id UNINDEXED,
+            name,
+            tree_name,
+            text,
+            tokenize='unicode61 remove_diacritics 2'
         );
         """
     )
