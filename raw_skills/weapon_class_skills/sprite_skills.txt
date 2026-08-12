@@ -291,56 +291,118 @@ The projectile follows a wide parabola trajectory while chasing a moving target 
 This skill is affected by short/long range damage; not affected by long range skill; uses and deals magic proration.
 Game Description: Fires a magic projectile that ambushes from underground. A magic projectile is sent crawling along the ground toward the target and triggers a small AoE when it hits. Passes through any targets in the way and inflicts [Stop] on them.
 
-Faux Weapon
-T3; [Active] Main Magic Device Only
-MP Cost: 600
-Damage Type: Magic
-Faux Weapon Multiplier/Constant
-Base Skill Multiplier = 7.5 + Total DEX/100 + Total AGI/100
-Base Skill Constant = 6 * Skill Level^2
-Maximum Cast Range: 12m
-Faux Weapon mimics one of the T5 attack skills from other weapons into their magical version (not really). Upon casting this skill, one of the skills that will be activated randomly is as follows:
-FW Lunar Slash 1st Hit
-Base Skill Multiplier = Faux Weapon Multiplier * 75%
-Base Skill Constant = Faux Weapon Constant * 75%
-FW Lunar Slash 2nd Hit
-Base Skill Multiplier: Faux Weapon Multiplier * 25%
-Base Skill Constant: Faux Weapon Constant * 25%
--Both of Faux Weapon Lunar Slash hits have absolute critical.
-FW Draconic Charge 1st Hit
-Base Skill Multiplier: Faux Weapon Multiplier * 75%
-Base Skill Constant: Faux Weapon Constant * 75%
-FW Draconic Charge 2nd Hit
-Base Skill Multiplier: Faux Weapon Multiplier * 75%
-Base Skill Constant: Faux Weapon Constant * 75%
-
-
 ==================================================
-SKILL: -FAUX WEAPON DRACONIC CHARGE LOSES ONE OF IT'S HIT WHEN CASTED FROM OVER 7M.
+SKILL: FAUX WEAPON
 ==================================================
 
 Category: Sprite Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 170
 
 Source Details:
-FW Kasumi Setsugetsuka 1st Attack (4 Hits)
-Base Skill Multiplier: Faux Weapon Multiplier * 25%
-Base Skill Constant: Faux Weapon Constant * 25%
--1st Attack's damage calculation is done once, then spread evenly into four hits.
-FW Kasumi Setsugetsuka 2nd Attack (1 Hit)
-Base Skill Multiplier: Faux Weapon Multiplier * 75%
-Base Skill Constant: Faux Weapon Constant * 75%
-FW Retrograde Shot
-Base Skill Multiplier: Faux Weapon Multiplier
-Base Skill Constant: Faux Weapon Constant
--Reduces any damage taken to 0 one time only during skill animation.
-FW Lunar Misfortune
-Base Skill Multiplier: Faux Weapon Multiplier
-Base Skill Constant: Faux Weapon Constant
--Teleport back animation is available with ⬇️ direction input, but no additional hits.
-This skill is affected by short/long range damage; affected by long range skill; uses and deals magic proration.
-Game Description: Wields a weapon crated with mana. Targets a single enemy. The power increases with higher AGI and DEX.
+T3; [Active] Main Magic Device Only
+MP Cost: 600
+Damage Type: Magic
+
+Faux Weapon Base Skill Multiplier:
+7.5 + Total DEX/100 + Total AGI/100
+
+Faux Weapon Base Skill Constant:
+6 * Skill Level^2
+
+Maximum Cast Range:
+12m
+
+Skill Effect:
+Faux Weapon randomly mimics one of the Tier V attacking skills from other weapons into a magical version ("not really," according to the source).
+
+Possible attacks are as follows:
+
+FW Lunar Slash - First Hit:
+Base Skill Multiplier:
+Faux Weapon Multiplier * 75%
+
+Base Skill Constant:
+Faux Weapon Constant * 75%
+
+FW Lunar Slash - Second Hit:
+Base Skill Multiplier:
+Faux Weapon Multiplier * 25%
+
+Base Skill Constant:
+Faux Weapon Constant * 25%
+
+Lunar Slash Effect:
+Both Faux Weapon Lunar Slash hits have Absolute Critical.
+
+FW Draconic Charge - First Hit:
+Base Skill Multiplier:
+Faux Weapon Multiplier * 75%
+
+Base Skill Constant:
+Faux Weapon Constant * 75%
+
+FW Draconic Charge - Second Hit:
+Base Skill Multiplier:
+Faux Weapon Multiplier * 75%
+
+Base Skill Constant:
+Faux Weapon Constant * 75%
+
+Draconic Charge Note:
+Faux Weapon Draconic Charge loses one of its hits when cast from over 7m.
+
+FW Kasumisetsu Getsuka - First Attack:
+Hit Count:
+4 hits
+
+Base Skill Multiplier:
+Faux Weapon Multiplier * 25%
+
+Base Skill Constant:
+Faux Weapon Constant * 25%
+
+Damage calculation is done once, then spread evenly between the 4 hits.
+
+FW Kasumisetsu Getsuka - Second Attack:
+Hit Count:
+1 hit
+
+Base Skill Multiplier:
+Faux Weapon Multiplier * 75%
+
+Base Skill Constant:
+Faux Weapon Constant * 75%
+
+FW Retrograde Shot:
+Base Skill Multiplier:
+Faux Weapon Multiplier
+
+Base Skill Constant:
+Faux Weapon Constant
+
+Retrograde Shot Effect:
+Reduces any damage taken to 0 one time only during the skill animation.
+
+FW Lunar Misfortune:
+Base Skill Multiplier:
+Faux Weapon Multiplier
+
+Base Skill Constant:
+Faux Weapon Constant
+
+Lunar Misfortune Effect:
+The teleport-back animation is available with downward direction input, but there are no additional hits.
+
+Damage Modifier and Proration:
+
+* Affected by Short Range Damage/Long Range Damage.
+* Affected by Long Range Skill.
+* Uses Magic Proration.
+* Deals Magic Proration.
+
+Game Description:
+"Wields a weapon crated with mana. Targets a single enemy. The power increases with higher AGI and DEX."
 
 
 ==================================================
@@ -373,68 +435,150 @@ Maximum Cast Range: 16m
 -Strike damage is affected by short/long range damage; not affected by long range skill; uses and deals magic proration.
 Game Description: Protects yourself from looming danger with magical blades. If conditions are met, the number of magical blades increases (up to 99, max 5 deployed at once). Reusing the skill sends the deployed magical blades to strike the target.
 
-Lebenglanz
+==================================================
+SKILL: LEBENGLANZ
+==================================================
+
+Category: Sprite Skills
+Tier: V
+Required Level: Level 300
+
+Source Details:
 T5; [Active] Main Magic Device Only
 MP Cost: 400
-Maximum Cast Range: 12m
-Debuff: Life Explosion
-Debuff Duration: 5 seconds
 
+Maximum Cast Range:
+12m
+
+Debuff:
+Life Explosion
+
+Debuff Duration:
+5 seconds
+
+Lebenglanz's Life Explosion:
+
+Damage Type:
+Magic; uses accumulated MP instead of MATK
+
+Base Skill Multiplier:
+10 + Skill Level
+
+Base Skill Constant:
+400
+
+Accumulated MP Mechanic:
+
+* Attacking skills used against a target affected by the "Life Explosion" debuff accumulate MP.
+* The accumulated MP is used to fill the usual ATK/MATK portion of the damage calculation.
+* MATK itself is not included in Lebenglanz's Life Explosion damage calculation.
+* Multiple attacks can be used to accumulate MP before the explosion occurs.
+
+Damage Reference Value from Accumulated MP:
+Magic Device Weapon Attack * Accumulated MP/200
+
+Accumulated MP Reset:
+Reusing Lebenglanz before the explosion occurs resets the accumulated MP.
+
+Life Explosion Effects:
+
+* Cannot critically hit.
+* Ignores Guard.
+* Always uses the stronger element against the enemy.
+* MP used by Arcane Strike counts as 0 MP.
+* This skill affects Guild Raid allies.
+
+Heal Amount and Cap:
+(1000 * Skill Level)/Members Affected
+
+Heal Range:
+7m radius from the target
+
+AMPR Buff:
+1 * Skill Level
+
+AMPR Buff Condition:
+Only applies when attacking enemies affected by "Life Explosion".
+
+Damage Modifier and Proration:
+
+* Not affected by Short Range Damage/Long Range Damage.
+* Not affected by Long Range Skill.
+* Affected by Zero Stance Regislet.
+* Not affected by Combo effects.
+* Uses Magic Proration.
+* Deals Magic Proration.
+* Casting Lebenglanz itself does not inflict proration.
+
+Magic Device Bonus:
+"Life Bomb" debuff.
+
+According to the Game Description:
+
+* Boosts Attack MP Recovery for party members attacking the target affected by the debuff.
+* Accumulates a portion of MP used when attacking.
+* Deals damage based on accumulated MP.
+* Restores HP of nearby party members when the explosion occurs.
+
+Game Description:
+"A forbidden technique that reverses the phase of life that is lost to create explosive power. Puts a "Life Bomb" on the target. It explodes and deals damage when the effect ends."
 
 ==================================================
-SKILL: LEBENGLANZ'S LIFE EXPLOSION
+SKILL: CURSED ALTAR
 ==================================================
 
 Category: Sprite Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: V
+Required Level: Level 300
 
 Source Details:
-Damage Type: Magic, uses accumulated MP instead of MATK
-Base Skill Multiplier: 10 + Skill Level
-Base Skill Constant: 400
--Accumulates MP from attacking skills that is/are dealt to the target with "Life Explosion" debuff to fill the usual "ATK/MATK" spot in the damage calculation. MATK is not included in Lebenglanz's Life Explosion damage calculation. You can attack multiple times to accumulate MP.
-Damage reference value from Accumulated MP: Magic Device Weapon Attack * Accumulated MP/200
--Reusing Lebenglanz before the explosion occurs will reset the accumulated MP.
--"Life Explosion" damage cannot become a critical hit, ignores guard, and always stronger element against the enemy.
--MP from "Arcane Strike" skill counts as 0 MP.
--This skill affects Guild Raid allies.
-Heal Amount and Cap: (1000 * Skill Level)/Members Affected
-Heal Range: 7m radius from the target
-AMPR Buff: 1 * Skill Level
--Only on enemies affected by "Life Explosion"
-This skill is not affected by short/long range damage; not affected by long range skill; affected by zero stance regislet; not affected by combos; uses and deals magic proration (no proration upon cast).
-Game Description: A forbidden technique that reverses the phase of life that is lost to create explosive power. Puts a "Life Bomb" on the target. It explodes and deals damage when the effect ends.
-Magic Device Bonus: "Life Bomb" debuff. Boosts Attack MP Recovery for party members attacking the target with this debuff, and accumulates a portion of the MP used when attacking. Deals damage based on accumulated MP and restores HP of nearby party members upon explosion.
-
-Cursed Altar
 T5; [Active] Main Magic Device Only
 MP Cost: 600
-Maximum Cast Range: 12m
-Ailment: Curse
-Ailment Chance: 100%
-Ailment Duration: (2 + Skill Level) seconds
+
+Maximum Cast Range:
+12m
+
+Ailment:
+Curse
+
+Ailment Chance:
+100%
+
+Ailment Duration:
+(2 + Skill Level) seconds
+
 Skill Effect:
-Applies "Cursed Altar" debuff to the target upon successful "Curse" ailment infliction using this skill. During debuff duration, the enemy will receive continuos damage.
-Cursed Altar Debuff Damage (1 tick):
-to Boss/Miniboss: INT(2% * Current HP * (1 - MAX(P.res; M.res)))
-to Common Monster: INT(10% * Current HP * (1 - MAX(P.res; M.res)))
--Current HP, P.res, & M.res are the target's/enemy's.
+Successfully inflicting Curse with this skill applies the "Cursed Altar" debuff to the target.
 
+During the debuff duration, the target continuously receives damage.
 
-==================================================
-SKILL: -CURSED ALTAR STABILITY: MIN(CHARACTER'S PHYSICAL STABILITY/2; 50)
-==================================================
+Cursed Altar Debuff Damage per Tick:
 
-Category: Sprite Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Against Boss/Miniboss:
+INT(2% * Current HP * (1 - MAX(P.Res; M.Res)))
 
-Source Details:
--Each tick damage is calculated separately, so the next tick will use new remaining hp after previous tick damage is substracted.
--Tick Count: Skill level
-This skill is not affected by "Role Model" regislet.
-Game Description: Devours the soul with a curse. Puts a "Curse" on the target. If successful, an effect that continuosly deals damage to the target is additionally applied (damage is reduced against bosses).
+Against Common Monster:
+INT(10% * Current HP * (1 - MAX(P.Res; M.Res)))
+
+Damage Formula Notes:
+
+* Current HP refers to the target's current HP.
+* P.Res refers to the target's Physical Resistance.
+* M.Res refers to the target's Magic Resistance.
+* Each tick's damage is calculated separately.
+* Therefore, each subsequent tick uses the target's remaining HP after the previous tick's damage has been subtracted.
+
+Tick Count:
+Skill Level
+
+Cursed Altar Stability:
+MIN(Character's Physical Stability/2; 50)
+
+Regislet Interaction:
+This skill is not affected by the "Role Model" Regislet.
+
+Game Description:
+"Devours the soul with a curse. Puts a "Curse" on the target. If successful, an effect that continuously deals damage to the target is additionally applied (damage is reduced against bosses)."
 
 
 ==================================================

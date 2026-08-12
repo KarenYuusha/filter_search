@@ -89,81 +89,148 @@ One-Handed Sword bonus: Gains the Perfect Aim attribute
 Two-Handed Sword bonus: Skill Multiplier +1
 This skill's Animation Time Modifier buff overrides all other Motion Speed modifiers
 
-Rampage
+==================================================
+SKILL: RAMPAGE
+==================================================
+
+Category: Blade Skills
+Tier: III
+Required Level: Level 70
+
+Source Details:
 Lv 3 Skill
 One-Handed Sword/Two-Handed Sword only
 MP Cost: 500
 Damage Type: None
-Increase First 10 Auto Attacks Skill Multiplier: 0.1 + 0.04 * Skill Level; total multiplier for all hits
-Increase First 10 Auto Attacks Skill Constant: 10 * Skill Level; total constant for all hits
-First 10 Auto Attacks Hit Count: 4; damage calculation is done once, then divided between the hits
-First 10 Auto Attacks Hit Count (Dual Swords): 7; damage calculation is done once, then divided between the hits alongside the subhand damage
-Final Blow Skill Multiplier (First 2 Hits) : 0.5 + 0.05 * Skill Level; multiplier for each hit
-Final Blow Skill Multiplier (Third Hit) : 2.5 + 0.05 * Skill Level
-Final Blow Skill Constant (All 3 Hits) : 300 + 20 * Skill Level; constant for each hit
-Final Blow Hit Count: 3 hits; damage calculation is done for each hit
+
+Increase First 10 Auto Attacks Skill Multiplier:
+0.1 + 0.04 * Skill Level; total multiplier for all hits
+
+Increase First 10 Auto Attacks Skill Constant:
+10 * Skill Level; total constant for all hits
+
+First 10 Auto Attacks Hit Count:
+4; damage calculation is done once, then divided between the hits
+
+First 10 Auto Attacks Hit Count (Dual Swords):
+7; damage calculation is done once, then divided between the hits alongside the subhand damage
+
+Final Blow Skill Multiplier (First 2 Hits):
+0.5 + 0.05 * Skill Level; multiplier for each hit
+
+Final Blow Skill Multiplier (Third Hit):
+2.5 + 0.05 * Skill Level
+
+Final Blow Skill Constant (All 3 Hits):
+300 + 20 * Skill Level; constant for each hit
+
+Final Blow Hit Count:
+3 hits; damage calculation is done for each hit
+
 Buff Effect:
-Increases the user's next 10 auto attacks' damage(Rampage Stack) as well as changing their hit count
-Attack MP Recovery +(2.5 * Skill Level)
-On the 11th auto attack, deals a final blow that is treated as a Physical skill with the Perfect Aim attribute. During the final blow animation, you get 90% damage reduction regardless of Skill Level and weapon (THS Ogre Slash buff's 99% damage reduction overrides this).
-Buff Duration: 11 auto attacks OR until afflicted with any ailment OR 10 minutes
-Game Description: "Furiously and consecutively attack a target. Greatly enhance normal attacks 10 times and a strong attack will be activated after that. Unable to use redundantly."
-One-Handed Sword bonus: First 10 Auto Attacks Skill Multiplier +(0.05 * Skill level)
-Two-Handed Sword bonus: Final Blow Skill Multiplier (First 2 Hits) +1
-Two-Handed Sword bonus: Final Blow Skill Multiplier (Third Hit) +3
-This skill cannot be reused if the buff is already active; if this skill is in a combo and is not the first skill of that combo, the combo ends at the first skill if the buff is already active
-The auto attack Skill Multiplier and Skill Constant changes only apply to the main hand of Dual Swords
-The Combos tags does not affect Total Rampage’s damage
-The Attack MP Recovery buff of this skill is not doubled on Dual Swords
-The Final Blow isn't affected by Sword Techniques
-The Final Blow isn't affected by the Motion Speed stat, but is affected by Freeze and Trigger Slash
+
+* Increases the user's next 10 auto attacks' damage (Rampage Stack) as well as changing their hit count.
+* Attack MP Recovery +(2.5 * Skill Level).
+* On the 11th auto attack, deals a Final Blow that is treated as a Physical skill with the Perfect Aim attribute.
+* During the Final Blow animation, the user gets 90% damage reduction regardless of Skill Level and weapon.
+* THS Ogre Slash buff's 99% damage reduction overrides this 90% damage reduction.
+
+Buff Duration:
+11 auto attacks OR until afflicted with any ailment OR 10 minutes
+
+One-Handed Sword Bonus:
+First 10 Auto Attacks Skill Multiplier +(0.05 * Skill Level)
+
+Two-Handed Sword Bonus:
+
+* Final Blow Skill Multiplier (First 2 Hits) +1
+* Final Blow Skill Multiplier (Third Hit) +3
+
+Notes:
+
+* This skill cannot be reused if the buff is already active.
+* If this skill is in a combo and is not the first skill of that combo, the combo ends at the first skill if the Rampage buff is already active.
+* The auto attack Skill Multiplier and Skill Constant changes only apply to the main hand of Dual Swords.
+* Combo Tags do not affect Total Rampage damage.
+* The Attack MP Recovery buff of this skill is not doubled on Dual Swords.
+* The Final Blow is not affected by Sword Techniques.
+* The Final Blow is not affected by the Motion Speed stat, but is affected by Freeze and Trigger Slash.
+* Rampage Stack will not decrease if the auto attack is evaded or missed.
+* Rampage deactivates Power Wave while the buff is active.
+
+Game Description:
+"Furiously and consecutively attack a target. Greatly enhance normal attacks 10 times and a strong attack will be activated after that. Unable to use redundantly."
 
 
 ==================================================
-SKILL: RAMPAGE STACK WON'T DECREASE IF YOUR AUTO ATTACK WAS EVADED OR MISSED
-==================================================
+SKILL: METEOR BREAKER
+=====================
 
 Category: Blade Skills
 Tier: IV
 Required Level: Level 150
 
 Source Details:
-The buff deactivates Power Wave while it is active
-
-Meteor Breaker
 Lv 4 Skill
 One-Handed Sword/Two-Handed Sword only
 MP Cost: 600
 Damage Type: Physical
-Base Skill Multiplier (First Hit): 4 + 0.2 * Skill Level
-Base Skill Multiplier (Second Hit): 1 + 0.5 * Skill Level
-Base Skill Constant (First Hit): 400 + 20 * Skill Level
-Base Skill Constant (Second Hit): 0
-Hit Count: 2 hits on the main target; 1 hit on all other targets; damage calculation is done for each hit
-Maximum Cast Range: Defaults to the weapon's Auto Attack Max Range
-Second Hit Range: 2m (levels 1 to 3)/ 2.5m (levels 4 to 6)/ 3m (levels 7 to 9)/ 3.5m (level 10); around the main target
-Buff Effect: Become completely invincible
-Buff Duration: 2 seconds OR until the user lands during the animation
-First Hit Ailment: Dizzy
-First Hit Ailment Chance: 2% (level 1)/ 5% (level 2)/ 7% (level 3)/ 10% (level 4)/ 12% (level 5)/ 15% (level 6)/ 17% (level 7)/ 20% (level 8)/ 22% (level 9)/ 25% (level 10)
-First Hit Ailment Duration: 10 seconds
-First Hit Ailment Resistance: None
-Game Description: "Strong attack like a meteor. Chance to inflict "Dizzy" on a target and generate Area of Effect when landing. Become invincible while the skill is activated."
-One-Handed Sword bonus: Dizzy chance +75%
-One-Handed Sword bonus: Second Hit Skill Multiplier +(baseDEX/200)
-Two-Handed Sword bonus: First Hit Skill Multiplier +(2 + baseSTR/1000)
-Triple Thrust's Skill Constant buff is divided by 2
 
+Base Skill Multiplier (First Hit):
+4 + 0.2 * Skill Level
 
-==================================================
-SKILL: METEOR BREAKER’S CENTER IS THE TARGET'S POSITION WHILE CASTING, SO IT MAY NOT DEAL DAMAGE IF THE TARGET MOVES.
-==================================================
+Base Skill Multiplier (Second Hit):
+1 + 0.5 * Skill Level
 
-Category: Blade Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Base Skill Constant (First Hit):
+400 + 20 * Skill Level
 
-Source Details:
+Base Skill Constant (Second Hit):
+0
+
+Hit Count:
+2 hits on the main target; 1 hit on all other targets; damage calculation is done for each hit
+
+Maximum Cast Range:
+Defaults to the weapon's Auto Attack Max Range
+
+Second Hit Range:
+2m (levels 1 to 3); 2.5m (levels 4 to 6); 3m (levels 7 to 9); 3.5m (level 10); around the main target
+
+Buff Effect:
+Become completely invincible.
+
+Buff Duration:
+2 seconds OR until the user lands during the animation
+
+First Hit Ailment:
+Dizzy
+
+First Hit Ailment Chance:
+2% (level 1); 5% (level 2); 7% (level 3); 10% (level 4); 12% (level 5); 15% (level 6); 17% (level 7); 20% (level 8); 22% (level 9); 25% (level 10)
+
+First Hit Ailment Duration:
+10 seconds
+
+First Hit Ailment Resistance:
+None
+
+One-Handed Sword Bonus:
+
+* Dizzy chance +75%
+* Second Hit Skill Multiplier +(BaseDEX/200)
+
+Two-Handed Sword Bonus:
+First Hit Skill Multiplier +(2 + BaseSTR/1000)
+
+Notes:
+
+* Triple Thrust's Skill Constant buff is divided by 2.
+* Meteor Breaker's center is the target's position when the skill is cast, so it may fail to deal damage if the target moves away from that position.
+
+Game Description:
+"Strong attack like a meteor. Chance to inflict "Dizzy" on a target and generate Area of Effect when landing. Become invincible while the skill is activated."
+
 
 
 ==================================================
