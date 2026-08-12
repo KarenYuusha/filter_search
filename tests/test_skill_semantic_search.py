@@ -115,6 +115,19 @@ class SkillSemanticSearchTests(unittest.TestCase):
         shutil.copy2(DATABASE, copied)
         return copied
 
+    @staticmethod
+    def _embedding_state(repo: SkillRepository) -> tuple[int, str | None, str | None, str | None]:
+        return (
+            int(
+                repo.connection.execute(
+                    "SELECT COUNT(*) FROM skill_embedding_vectors"
+                ).fetchone()[0]
+            ),
+            repo.get_metadata("embedding_provider"),
+            repo.get_metadata("embedding_model"),
+            repo.get_metadata("embedding_config_id"),
+        )
+
     def test_build_uses_document_encoder_only(self):
         with tempfile.TemporaryDirectory() as tmp:
             db_path = self._copy_database(Path(tmp))
@@ -209,17 +222,13 @@ class SkillSemanticSearchTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             db_path = self._copy_database(Path(tmp))
             with SkillRepository(db_path) as repo:
+                before = self._embedding_state(repo)
                 with self.assertRaises(EmbeddingIndexError):
                     build_embedding_index(
                         repo,
                         KeywordProvider(provider_name="   "),
                     )
-                self.assertEqual(
-                    repo.connection.execute(
-                        "SELECT COUNT(*) FROM skill_embedding_vectors"
-                    ).fetchone()[0],
-                    0,
-                )
+                self.assertEqual(self._embedding_state(repo), before)
 
     def test_eligible_skill_ids_restrict_semantic_results(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -240,14 +249,10 @@ class SkillSemanticSearchTests(unittest.TestCase):
             with self.subTest(mode=mode), tempfile.TemporaryDirectory() as tmp:
                 db_path = self._copy_database(Path(tmp))
                 with SkillRepository(db_path) as repo:
+                    before = self._embedding_state(repo)
                     with self.assertRaises(EmbeddingIndexError):
                         build_embedding_index(repo, BrokenProvider(mode), batch_size=64)
-                    self.assertEqual(
-                        repo.connection.execute(
-                            "SELECT COUNT(*) FROM skill_embedding_vectors"
-                        ).fetchone()[0],
-                        0,
-                    )
+                    self.assertEqual(self._embedding_state(repo), before)
 
     def test_failed_rebuild_keeps_previous_valid_index(self):
         with tempfile.TemporaryDirectory() as tmp:
