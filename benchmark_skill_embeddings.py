@@ -63,6 +63,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--config-output", type=Path)
     parser.add_argument("--host")
     parser.add_argument("--batch-size", type=int, default=32)
+    parser.add_argument("--timeout-seconds", type=float, default=120.0)
     return parser
 
 
@@ -164,6 +165,14 @@ def _rank_metrics(
     }
 
 
+def _provider(model: str, host: str | None, timeout_seconds: float) -> OllamaEmbeddingProvider:
+    return OllamaEmbeddingProvider(
+        model,
+        host=host,
+        timeout_seconds=timeout_seconds,
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
@@ -177,7 +186,8 @@ def main(argv: list[str] | None = None) -> int:
                 raise EmbeddingIndexError("Skill database is missing retrieval provenance metadata")
 
             for model in args.models:
-                provider = OllamaEmbeddingProvider(model, host=args.host)
+                print(f"Benchmarking embedding model: {model}", flush=True)
+                provider = _provider(model, args.host, args.timeout_seconds)
                 build_embedding_index(repository, provider, batch_size=args.batch_size)
                 index = SemanticSkillIndex.from_repository(repository, provider)
                 index.search(
@@ -186,9 +196,15 @@ def main(argv: list[str] | None = None) -> int:
                 )
                 metrics = evaluate_semantic_cases(index, semantic_cases)
                 results.append(ModelBenchmarkResult(model, metrics))
+                print(
+                    f"{model}: top1={metrics.top1:.3f} top3={metrics.top3:.3f} "
+                    f"top5={metrics.top5:.3f} median_ms={metrics.median_ms:.1f}",
+                    flush=True,
+                )
 
             selected = select_embedding_model(tuple(results))
-            selected_provider = OllamaEmbeddingProvider(selected.model, host=args.host)
+            print(f"Rebuilding selected model index: {selected.model}", flush=True)
+            selected_provider = _provider(selected.model, args.host, args.timeout_seconds)
             build_embedding_index(repository, selected_provider, batch_size=args.batch_size)
             selected_index = SemanticSkillIndex.from_repository(repository, selected_provider)
 
