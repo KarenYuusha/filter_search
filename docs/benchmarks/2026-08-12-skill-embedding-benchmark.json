@@ -1,0 +1,65 @@
+{
+  "fusion_case_count": 45,
+  "fusion_config": {
+    "lexical_weight": 1.5,
+    "rrf_k": 20,
+    "semantic_weight": 1.0
+  },
+  "hybrid_metrics": {
+    "case_count": 45,
+    "top1": 0.8,
+    "top3": 0.8666666666666667,
+    "top5": 0.9333333333333333
+  },
+  "models": [
+    {
+      "config_id": "symmetric-encode-v1",
+      "dimensions": 384,
+      "median_ms": 55.92606500000841,
+      "model": "sentence-transformers/all-MiniLM-L6-v2",
+      "p95_ms": 56.921197000008306,
+      "provider": "sentence-transformers",
+      "top1": 0.4,
+      "top3": 0.75,
+      "top5": 0.85
+    },
+    {
+      "config_id": "symmetric-encode-v1",
+      "dimensions": 768,
+      "median_ms": 151.9099049999113,
+      "model": "Alibaba-NLP/gte-multilingual-base",
+      "p95_ms": 160.025904999884,
+      "provider": "sentence-transformers",
+      "top1": 0.5,
+      "top3": 0.7,
+      "top5": 0.8
+    },
+    {
+      "config_id": "symmetric-encode-v1",
+      "dimensions": 1024,
+      "median_ms": 291.19054550005785,
+      "model": "BAAI/bge-m3",
+      "p95_ms": 316.59714399984296,
+      "provider": "sentence-transformers",
+      "top1": 0.7,
+      "top3": 0.8,
+      "top5": 0.8
+    }
+  ],
+  "runtime": {
+    "device": "cpu",
+    "machine": "x86_64",
+    "platform": "Linux-6.17.0-1020-azure-x86_64-with-glibc2.39",
+    "python": "3.12.13",
+    "runner": "github-actions/ubuntu-latest",
+    "sentence_transformers": "5.7.0",
+    "torch": "2.13.0+cpu",
+    "transformers": "4.57.6"
+  },
+  "search_document_manifest_hash": "09b2b17f112f6375143f9ce8037ea829d295d5901ede92a9395f97bda987c0e9",
+  "selected_config_id": "symmetric-encode-v1",
+  "selected_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "selected_provider": "sentence-transformers",
+  "semantic_case_count": 20,
+  "source_manifest_hash": "f47023f3ebe36e8b1b287e6b2c867e6346050f8b2518e9d450719706c5590eda"
+}
