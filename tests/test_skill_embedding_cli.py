@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pathlib import Path
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -33,7 +33,11 @@ class BuildSkillEmbeddingsCliTests(unittest.TestCase):
         self.assertTrue(hasattr(build_skill_embeddings, "parse_provider_spec"))
 
         calls = []
-        provider = object()
+        provider = SimpleNamespace(
+            provider_name="sentence-transformers",
+            model_name="sentence-transformers/all-MiniLM-L6-v2",
+            config_id="ir-default",
+        )
 
         def fake_build_provider(spec, **kwargs):
             calls.append((spec, kwargs))
