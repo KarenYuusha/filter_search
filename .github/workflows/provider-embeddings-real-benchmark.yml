@@ -26,7 +26,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
-          python -m pip install rapidfuzz numpy ollama httpx 'transformers>=4.41,<5' 'sentence-transformers>=5,<6'
+          python -m pip install rapidfuzz numpy ollama httpx discord.py python-dotenv 'transformers>=4.41,<5' 'sentence-transformers>=5,<6'
 
       - name: Rebuild canonical skill database
         run: |
@@ -65,7 +65,8 @@ jobs:
               st:BAAI/bge-m3 \
             --output out/skill-embedding-benchmark.json \
             --config-output out/retrieval_config.py \
-            --device cpu
+            --device cpu \
+            --batch-size 64
 
       - name: Record benchmark runtime
         run: |
@@ -122,10 +123,7 @@ jobs:
               assert metadata['embedding_provider'] == DEFAULT_EMBEDDING_PROVIDER, metadata
               assert metadata['embedding_model'] == DEFAULT_EMBEDDING_MODEL, metadata
               assert metadata['embedding_config_id'] == DEFAULT_EMBEDDING_CONFIG_ID, metadata
-              assert (
-                  metadata['embedding_document_manifest_hash']
-                  == metadata['search_document_manifest_hash']
-              ), metadata
+              assert metadata['embedding_document_manifest_hash'] == metadata['search_document_manifest_hash'], metadata
               documents = repo.connection.execute(
                   'SELECT COUNT(*) FROM skill_search_documents'
               ).fetchone()[0]
@@ -142,6 +140,15 @@ jobs:
               )
           PY
 
+      - name: Upload generated benchmark outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: skill-embedding-benchmark-final
+          path: |
+            out/skill-embedding-benchmark.json
+            out/retrieval_config.py
+            coryn_data/database/skills.sqlite
+
       - name: Run focused acceptance tests
         run: |
           python -m compileall -q toram_skills toram_skill_embeddings build_skill_embeddings.py benchmark_skill_embeddings.py
@@ -152,6 +159,9 @@ jobs:
           python -m unittest tests.test_skill_embedding_cli -v
           python -m unittest tests.test_skill_hybrid_search -v
           python -m unittest tests.test_core_module_boundaries -v
+
+      - name: Run full repository test suite
+        run: python -m unittest discover -s tests -v
 
       - name: Commit accepted benchmark artifacts
         run: |
