@@ -224,7 +224,7 @@ One-Handed Sword penalty: Base Crit Rate is halved, changing the penalty formula
 
 
 ==================================================
-SKILL: STRIKE STAB CRIT RATE = (25 + CRT/3.4) * (1 - BASE CRIT RATE PENALTY/100) * (1 + CRIT RATE%/100)/2 + FLAT CRIT RATE
+SKILL: CHRONOS DRIVE
 ==================================================
 
 Category: Halberd Skills
@@ -232,7 +232,6 @@ Tier: IV
 Required Level: Level 150
 
 Source Details:
-Chronos Drive
 Lv 4 Skill; Halberd only
 MP Cost: 400
 Damage Type: Physical
@@ -240,30 +239,88 @@ Base Skill Multiplier: 1 + 0.5 * Skill Level; total multiplier of all hits
 Base Skill Constant: 40 * Skill Level
 Hit Count: 3 hits; damage calculation is done once then spread evenly between the hits
 Maximum Cast Range: Defaults to the weapon's Auto Attack Max Range
-Skill Effect: The target gets inflicted additional hits over time
-Skill Effect Duration: 5 seconds (levels 1 and 2); 6 seconds (levels 3 and 4); 7 seconds (levels 5 and 6); 8 seconds (levels 7 and 8); 9 seconds (level 9); 10 seconds (level 10)
-Chronos Drive Additional Damage Type: Physical/Magic
-Chronos Drive Additional Skill Multiplier: 0.4 + 0.01 * Skill Level + Total INT/500
-Chronos Drive Additional Skill Constant: 250 + 25 * Skill Level
+
+Skill Effect:
+The target gets inflicted additional hits over time.
+
+Skill Effect Duration:
+5 seconds (levels 1 and 2); 6 seconds (levels 3 and 4); 7 seconds (levels 5 and 6); 8 seconds (levels 7 and 8); 9 seconds (level 9); 10 seconds (level 10)
+
+Chronos Drive Additional Damage Type:
+Physical/Magic
+
+Chronos Drive Additional Skill Multiplier:
+0.4 + 0.01 * Skill Level + Total INT/500
+
+Chronos Drive Additional Skill Constant:
+250 + 25 * Skill Level
+
 Chronos Drive Additional Hit Count:
-Delay between hits = Auto attack delay + 1.5 * Animation Time Modifier of Chronos Drive/100
-Hit Count = Skill Effect Duration/Delay between hits
--hit/miss, evasion, graze and critical checks are copied from the skill for all hits; rest of damage calculation is done for each hit
+
+Delay between hits =
+Auto attack delay + 1.5 * Animation Time Modifier of Chronos Drive/100
+
+Hit Count =
+Skill Effect Duration/Delay between hits
+
+* Hit/miss, Evasion, Graze and Critical checks are copied from the skill for all hits; the rest of the damage calculation is done for each hit.
+* Chronos Drive Additional Hit can recover 30 MP every 1 hit.
+* The delay isn't affected by Motion Speed modifiers on Chronos Drive.
+* The extra hits use Magic Proration, meaning damage is based on Magic Proration but does not inflict Magic Proration; the rest of the damage calculation is done as if they were Physical skills.
+* The extra hits are unaffected by Combo Tags, Whack and Short Range Damage/Long Range Damage modifiers.
+
+Game Description:
+"Repeat the fact that you penetrated a target. Add an effect that you deal additional damage for a few seconds."
 
 
 ==================================================
-SKILL: CHRONOS DRIVE ADDITIONAL HIT CAN RECOVER 30 MP EVERY 1 HIT
-==================================================
+SKILL: CHRONOS DRIVE
+====================
 
 Category: Halberd Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 150
 
 Source Details:
-Game Description: "Repeat the fact that you penetrated a target. Add an effect that you deal additional damage for a few seconds."
-The delay isn't affected by Motion Speed modifiers on Chronos Drive
-The extra hits use magic proration(meaning damage based on Magic Proration but does not inflict Magic Proration), but the rest of damage calculation is done as if they were physical skills
-The extra hits are unaffected by Combo tags, Whack and Short Range Damage/Long Range Damage modifiers
+Lv 4 Skill; Halberd only
+MP Cost: 400
+Damage Type: Physical
+Base Skill Multiplier: 1 + 0.5 * Skill Level; total multiplier of all hits
+Base Skill Constant: 40 * Skill Level
+Hit Count: 3 hits; damage calculation is done once then spread evenly between the hits
+Maximum Cast Range: Defaults to the weapon's Auto Attack Max Range
+
+Skill Effect:
+The target gets inflicted additional hits over time.
+
+Skill Effect Duration:
+5 seconds (levels 1 and 2); 6 seconds (levels 3 and 4); 7 seconds (levels 5 and 6); 8 seconds (levels 7 and 8); 9 seconds (level 9); 10 seconds (level 10)
+
+Chronos Drive Additional Damage Type:
+Physical/Magic
+
+Chronos Drive Additional Skill Multiplier:
+0.4 + 0.01 * Skill Level + Total INT/500
+
+Chronos Drive Additional Skill Constant:
+250 + 25 * Skill Level
+
+Chronos Drive Additional Hit Count:
+
+Delay between hits =
+Auto attack delay + 1.5 * Animation Time Modifier of Chronos Drive/100
+
+Hit Count =
+Skill Effect Duration/Delay between hits
+
+* Hit/miss, Evasion, Graze and Critical checks are copied from the skill for all hits; the rest of the damage calculation is done for each hit.
+* Chronos Drive Additional Hit can recover 30 MP every 1 hit.
+* The delay isn't affected by Motion Speed modifiers on Chronos Drive.
+* The extra hits use Magic Proration, meaning damage is based on Magic Proration but does not inflict Magic Proration; the rest of the damage calculation is done as if they were Physical skills.
+* The extra hits are unaffected by Combo Tags, Whack and Short Range Damage/Long Range Damage modifiers.
+
+Game Description:
+"Repeat the fact that you penetrated a target. Add an effect that you deal additional damage for a few seconds."
 
 
 ==================================================
@@ -608,21 +665,76 @@ Base skill multiplier increases along the hit arrangement:
 
 
 ==================================================
-SKILL: ...
+SKILL: THOR'S HAMMER
 ==================================================
 
 Category: Halberd Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: V
+Required Level: Level 240
 
 Source Details:
--8th hit's multiplier = Lightning Hail Multiplier * 8
-These additional attacks are absolute critical.
-The hits are not affected by short/long range damage; not affected by long range skill; use magic proration and deal no proration.
+T5; [Active] Halberd Only
+MP Cost: 400
+Damage Type: Magic, uses Halberd MATK
+
+Base Skill Multiplier:
+(10 + 0.5 * Skill Level) / Target Count
+
+Base Skill Constant:
+400
+
+If multiple targets are hit, Base Skill Multiplier will be divided depending on the number of targets hit.
+
+Damage calculation is still done separately per hit.
+
+Maximum Cast Range:
+12m
+
+Skill Effect:
+
+* This skill has Absolute Critical.
+* This skill is not affected by Short Range Damage or Long Range Damage.
+* This skill is not affected by Long Range Skill.
+* This skill uses and deals Magic Proration.
+
+Additional Magic Damage:
+Lightning Hail's Trail
+
+Base Skill Constant:
+Current Lightning Hail's Base Skill Constant
+
+Base Skill Multiplier:
+Current Lightning Hail's Base Skill Multiplier * Hit Arrangement
+
+Base Skill Multiplier increases according to the hit arrangement:
+
+* 1st Hit: Lightning Hail Multiplier * 1
+* 2nd Hit: Lightning Hail Multiplier * 2
+* 3rd Hit: Lightning Hail Multiplier * 3
+* ...
+* 8th Hit: Lightning Hail Multiplier * 8
+
+Additional Attack Effects:
+
+* These additional attacks have Absolute Critical.
+* These hits are not affected by Short Range Damage or Long Range Damage.
+* These hits are not affected by Long Range Skill.
+* These hits use Magic Proration.
+* These hits deal no proration.
+
 Buff Effect:
--Additional Magic: + 10 * Skill Level%
--Magic Pierce: + 2 * Skill Level%
--Accuracy: + Base INT * Skill Level/10
-Buff Duration: 12 seconds * Skill Level (or until you are immobilized)
-Game Description: A spear technique that calls down a massive lightning strike. A magic attack with guaranteed critical, but the damage will be split among targets caught in the blast. Once activated, your Additional Magic, Magic Pierce, and Accuracy Rate will increase for a certain period of time.
-Halberd Bonus: Accuracy Rate increases according to INT. The skill "Lightning Hail" will leave a lightning trail, and when Thor's Hammer is activated, additional magic damage will be generated.
+
+* Additional Magic: +(10 * Skill Level)%
+* Magic Pierce: +(2 * Skill Level)%
+* Accuracy: +Base INT * Skill Level/10
+
+Buff Duration:
+12 seconds * Skill Level, or until the player is immobilized.
+
+Game Description:
+"A spear technique that calls down a massive lightning strike. A magic attack with guaranteed critical, but the damage will be split among targets caught in the blast. Once activated, your Additional Magic, Magic Pierce, and Accuracy Rate will increase for a certain period of time."
+
+Halberd Bonus:
+Accuracy Rate increases according to INT.
+
+The skill "Lightning Hail" will leave a lightning trail, and when Thor's Hammer is activated, additional magic damage will be generated.
