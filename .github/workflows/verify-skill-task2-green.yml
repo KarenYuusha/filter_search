@@ -1,0 +1,14 @@
+name: Verify Skill Task 2 GREEN
+on: pull_request
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install rapidfuzz python-dotenv ollama discord.py
+      - run: python -m compileall -q toram_data toram_search toram_discord toram_skills search_items.py discord_bot.py
+      - run: python -m unittest tests.test_skill_parsing -v
+      - run: python -m unittest discover -s tests -v
