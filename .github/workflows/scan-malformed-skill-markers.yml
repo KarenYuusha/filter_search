@@ -18,6 +18,9 @@ jobs:
           placeholder_re = re.compile(r'^(?:-|--+|\?+|n/?a|none|null|unknown|unnamed|tbd|todo)$', re.I)
           lv_re = re.compile(r'^Lv\s*(?:\d+|[IVX]+)\b', re.I)
 
+          def norm(value: str) -> str:
+              return ' '.join(value.casefold().split())
+
           malformed = []
           placeholders = []
           missing_header_candidates = []
@@ -26,9 +29,11 @@ jobs:
           for path in sorted(Path('raw_skills').rglob('*.txt')):
               text = path.read_text(encoding='utf-8')
               lines = text.splitlines()
+              marker_names = set()
               for match in marker_re.finditer(text):
                   total += 1
                   name = match.group(1).strip()
+                  marker_names.add(norm(name))
                   line = text.count('\n', 0, match.start()) + 1
                   slug = re.sub(r'[^a-z0-9]+', '-', name.casefold()).strip('-')
                   if not slug:
@@ -36,19 +41,20 @@ jobs:
                   elif placeholder_re.fullmatch(name):
                       placeholders.append((path.as_posix(), line, name))
 
-              # Candidate missing SKILL: header: a plain standalone name followed by an Lv... details line.
-              # Correctly marked blocks normally have "Source Details:" immediately before Lv..., so this
-              # pattern targets legacy/unmarked blocks such as "Aerial Cut\nLv 5; ...".
               for i in range(len(lines) - 1):
                   name = lines[i].strip()
                   next_line = lines[i + 1].strip()
                   if not name or not lv_re.match(next_line):
                       continue
+                  if name.casefold().startswith('lv'):
+                      continue
                   if name.startswith(('SKILL:', 'Category:', 'Tier:', 'Required Level:', 'Source Details:')):
                       continue
                   if ':' in name or name.startswith(('-', '*', '•', '#', '=')):
                       continue
-                  if len(name) > 80:
+                  if len(name) > 80 or norm(name) in marker_names:
+                      continue
+                  if not re.search(r'[A-Za-z]', name):
                       continue
                   missing_header_candidates.append((path.as_posix(), i + 1, name, next_line))
 
