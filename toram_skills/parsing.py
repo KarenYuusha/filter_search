@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 import re
 
@@ -13,6 +14,10 @@ _SKILL_BLOCK_RE = re.compile(
 _SECTION_HEADING_RE = re.compile(
     r"(?m)^(?P<label>[A-Za-z][A-Za-z0-9 /+()'\"%&.-]{0,79}):\s*$"
 )
+_LINE_FIELD_RE = re.compile(r"(?mi)^\s*(?P<label>[A-Za-z][A-Za-z0-9 /+()'\"%&.-]{0,79}):\s*(?P<value>.*?)\s*$")
+_LEGACY_TYPE_RE = re.compile(
+    r"(?i)^(?P<kind>Active|Passive|Support)\s+skill(?:\s*\((?P<detail>[^)]+)\))?"
+)
 _ROMAN_TIERS = {"I": 1, "II": 2, "III": 3, "IV": 4, "V": 5}
 _MINSTREL_PATH = "assist_skills/minstrel_skills.txt"
 _MINSTREL_ROSTER_START_RE = re.compile(r"(?mi)^Lvl req,\s*.*$")
@@ -24,6 +29,34 @@ _EXPLICIT_TIER_RE = re.compile(
     r"(?mi)^\s*[-*]?\s*Tier\s+(I|II|III|IV|V)\s*:\s*(?:Level\s*(\d+)|None)\s*$"
 )
 _SHORT_TIER_RE = re.compile(r"(?i)\bT([1-5])\s*(none|lv\s*\d+)\b")
+_UNCERTAINTY_PHRASES = (
+    "unknown in the source",
+    "not sure",
+    "expected formula",
+    "trial and error",
+    "could be",
+    "idk",
+)
+
+_FIELD_LABELS = {
+    "mp cost": "mp_cost",
+    "damage type": "damage_type",
+    "maximum cast range": "cast_range",
+    "action range": "cast_range",
+    "hit range": "hit_range",
+    "base cast time": "cast_time",
+    "hit count": "hit_count",
+    "description": "description",
+    "game description": "game_description",
+    "element": "element",
+    "ailment": "ailment",
+    "limitation": "limitation",
+    "type": "skill_type",
+    "alias": "aliases",
+    "aliases": "aliases",
+    "alternate name": "aliases",
+    "alternate names": "aliases",
+}
 
 
 def normalize_skill_name(text: str) -> str:
@@ -78,6 +111,153 @@ def _section_body(sections: tuple[SkillSection, ...], label: str) -> str | None:
     return None
 
 
+def _plain_int(text: str) -> int | None:
+    match = re.fullmatch(r"\s*(\d+)\s*", text)
+    return int(match.group(1)) if match else None
+
+
+def _level(text: str) -> int | None:
+    match = re.fullmatch(r"\s*(?:Level\s*)?(\d+)\s*", text, re.IGNORECASE)
+    return int(match.group(1)) if match else None
+
+
+def _tier_value(text: str) -> int | None:
+    value = text.strip().upper()
+    if value in _ROMAN_TIERS:
+        return _ROMAN_TIERS[value]
+    if value.isdigit() and 1 <= int(value) <= 5:
+        return int(value)
+    return None
+
+
+def _explicit_line_fields(text: str) -> dict[str, str]:
+    values: dict[str, str] = {}
+    for match in _LINE_FIELD_RE.finditer(text):
+        label = normalize_skill_name(match.group("label"))
+        field = _FIELD_LABELS.get(label)
+        if field is None or field in values:
+            continue
+        value = match.group("value").strip()
+        if value:
+            values[field] = value
+    return values
+
+
+def _aliases_from_text(value: str | None) -> tuple[str, ...]:
+    if not value:
+        return ()
+    return tuple(part.strip() for part in re.split(r"\s*[;,]\s*", value) if part.strip())
+
+
+def _ailments_from_text(value: str | None) -> tuple[str, ...]:
+    if not value:
+        return ()
+    result: list[str] = []
+    for part in value.split(";"):
+        name = re.split(r"\s*[([]", part.strip(), maxsplit=1)[0].strip()
+        if name and name not in result:
+            result.append(name)
+    return tuple(result)
+
+
+def _weapon_requirements_from_limitation(value: str | None) -> tuple[str, ...]:
+    if not value or not re.search(r"(?i)\bonly\b", value):
+        return ()
+    restricted = re.split(r"(?i)\bonly\b", value, maxsplit=1)[0].strip()
+    if not restricted or normalize_skill_name(restricted) in {"no limit", "none"}:
+        return ()
+    parts = re.split(r"\s*/\s*|\s*,\s*|\s+and\s+", restricted, flags=re.IGNORECASE)
+    return tuple(part.strip() for part in parts if part.strip())
+
+
+def _legacy_skill_type(text: str) -> tuple[str | None, str | None]:
+    for raw_line in text.splitlines():
+        match = _LEGACY_TYPE_RE.match(raw_line.strip())
+        if not match:
+            continue
+        kind = match.group("kind").title()
+        detail = (match.group("detail") or "").strip()
+        damage_type = None
+        if detail.casefold() in {"physical", "magic", "magical", "physical/magic"}:
+            damage_type = "Magic" if detail.casefold() == "magical" else detail.title()
+        return kind, damage_type
+    return None, None
+
+
+def _uncertainty_issues(skill: SkillDraft, source_file: str) -> tuple[ParseIssue, ...]:
+    folded = skill.raw_text.casefold()
+    if not any(phrase in folded for phrase in _UNCERTAINTY_PHRASES):
+        return ()
+    return (
+        ParseIssue(
+            level="warning",
+            code="source_uncertainty",
+            source_file=source_file,
+            skill_name=skill.name,
+            message="Source text explicitly marks part of this skill as uncertain",
+        ),
+    )
+
+
+def _normalize_skill_draft(skill: SkillDraft, source_file: str) -> SkillDraft:
+    fields = _explicit_line_fields(skill.raw_text)
+
+    tier_match = re.search(r"(?mi)^\s*Tier:\s*(.+?)\s*$", skill.raw_text)
+    required_match = re.search(r"(?mi)^\s*Required Level:\s*(.+?)\s*$", skill.raw_text)
+    tier = _tier_value(tier_match.group(1)) if tier_match else skill.tier
+    if tier is None:
+        tier = skill.tier
+    required_level = _level(required_match.group(1)) if required_match else skill.required_level
+    if required_match is None:
+        required_level = skill.required_level
+
+    legacy_type, legacy_damage = _legacy_skill_type(skill.raw_text)
+    skill_type = fields.get("skill_type") or legacy_type or skill.skill_type
+    damage_type = fields.get("damage_type") or legacy_damage or skill.damage_type
+
+    mp_cost_text = fields.get("mp_cost") or skill.mp_cost_text
+    cast_range_text = fields.get("cast_range") or skill.cast_range_text
+    hit_range_text = fields.get("hit_range") or skill.hit_range_text
+    cast_time_text = fields.get("cast_time") or skill.cast_time_text
+    hit_count_text = fields.get("hit_count") or skill.hit_count_text
+    element = fields.get("element") or skill.element
+    ailments = _ailments_from_text(fields.get("ailment")) or skill.ailments
+    weapon_requirements = (
+        _weapon_requirements_from_limitation(fields.get("limitation"))
+        or skill.weapon_requirements
+    )
+    aliases = _aliases_from_text(fields.get("aliases")) or skill.aliases
+
+    description = fields.get("description") or skill.description or _section_body(skill.sections, "Description")
+    game_description = (
+        fields.get("game_description")
+        or skill.game_description
+        or _section_body(skill.sections, "Game Description")
+    )
+
+    normalized = replace(
+        skill,
+        aliases=aliases,
+        tier=tier,
+        required_level=required_level,
+        skill_type=skill_type,
+        mp_cost_text=mp_cost_text,
+        mp_cost_value=_plain_int(mp_cost_text) if mp_cost_text else None,
+        damage_type=damage_type,
+        element=element,
+        cast_range_text=cast_range_text,
+        hit_range_text=hit_range_text,
+        cast_time_text=cast_time_text,
+        hit_count_text=hit_count_text,
+        ailments=ailments,
+        weapon_requirements=weapon_requirements,
+        description=description,
+        game_description=game_description,
+    )
+    warnings = _uncertainty_issues(normalized, source_file)
+    return replace(normalized, issues=tuple((*normalized.issues, *warnings)))
+
+
 def _parse_tier_requirements(text: str) -> tuple[tuple[int, int | None], ...]:
     requirements: dict[int, int | None] = {}
     for match in _EXPLICIT_TIER_RE.finditer(text):
@@ -124,19 +304,20 @@ def parse_standard_skill_file(source: SkillSource) -> ParsedSkillFile:
         body = match.group("body").strip()
         raw_text = match.group(0).strip()
         sections = _extract_sections(body)
-        skills.append(
-            SkillDraft(
-                id=skill_id(tree_id, name),
-                tree_id=tree_id,
-                source_order=source_order,
-                name=name,
-                normalized_name=normalized_name,
-                sections=sections,
-                description=_section_body(sections, "Description"),
-                game_description=_section_body(sections, "Game Description"),
-                raw_text=raw_text,
-            )
+        skill = SkillDraft(
+            id=skill_id(tree_id, name),
+            tree_id=tree_id,
+            source_order=source_order,
+            name=name,
+            normalized_name=normalized_name,
+            sections=sections,
+            description=_section_body(sections, "Description"),
+            game_description=_section_body(sections, "Game Description"),
+            raw_text=raw_text,
         )
+        skill = _normalize_skill_draft(skill, source.relative_path)
+        skills.append(skill)
+        issues.extend(skill.issues)
 
     tree = SkillTreeDraft(
         id=tree_id,
@@ -222,23 +403,21 @@ def _parse_minstrel_roster(source: SkillSource) -> ParsedSkillFile:
         raw_text = source_before_roster[heading.start() : tag.end()].strip()
         body = source_before_roster[heading.end() : tag.start()].strip()
         sections = _extract_sections(body)
-        located.append(
-            (
-                heading.start(),
-                SkillDraft(
-                    id=skill_id(tree_id, name),
-                    tree_id=tree_id,
-                    source_order=source_order,
-                    name=name,
-                    normalized_name=normalize_skill_name(name),
-                    tier=tier,
-                    sections=sections,
-                    description=_section_body(sections, "Description"),
-                    game_description=_section_body(sections, "Game Description"),
-                    raw_text=raw_text,
-                ),
-            )
+        skill = SkillDraft(
+            id=skill_id(tree_id, name),
+            tree_id=tree_id,
+            source_order=source_order,
+            name=name,
+            normalized_name=normalize_skill_name(name),
+            tier=tier,
+            sections=sections,
+            description=_section_body(sections, "Description"),
+            game_description=_section_body(sections, "Game Description"),
+            raw_text=raw_text,
         )
+        skill = _normalize_skill_draft(skill, source.relative_path)
+        issues.extend(skill.issues)
+        located.append((heading.start(), skill))
 
     located.sort(key=lambda item: item[0])
     first_skill_start = located[0][0] if located else roster_start.start()
