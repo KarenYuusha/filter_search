@@ -1,0 +1,43 @@
+name: Scan Malformed Skill Markers
+on: pull_request
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Scan raw skill headers
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          marker_re = re.compile(r'(?mi)^SKILL:\s*(.*?)\s*$')
+          placeholder_re = re.compile(r'^(?:-|--+|\?+|n/?a|none|null|unknown|unnamed|tbd|todo)$', re.I)
+
+          malformed = []
+          placeholders = []
+          total = 0
+
+          for path in sorted(Path('raw_skills').rglob('*.txt')):
+              text = path.read_text(encoding='utf-8')
+              for match in marker_re.finditer(text):
+                  total += 1
+                  name = match.group(1).strip()
+                  line = text.count('\n', 0, match.start()) + 1
+                  slug = re.sub(r'[^a-z0-9]+', '-', name.casefold()).strip('-')
+                  if not slug:
+                      malformed.append((path.as_posix(), line, name))
+                  elif placeholder_re.fullmatch(name):
+                      placeholders.append((path.as_posix(), line, name))
+
+          print(f'TOTAL_MARKERS={total}')
+          print(f'MALFORMED_COUNT={len(malformed)}')
+          for path, line, name in malformed:
+              print(f'MALFORMED\t{path}:{line}\t{name!r}')
+          print(f'PLACEHOLDER_COUNT={len(placeholders)}')
+          for path, line, name in placeholders:
+              print(f'PLACEHOLDER\t{path}:{line}\t{name!r}')
+          PY
