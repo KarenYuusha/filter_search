@@ -16,5 +16,9 @@ jobs:
           python-version: '3.12'
       - name: Install focused test dependencies
         run: python -m pip install --upgrade pip rapidfuzz numpy ollama httpx
-      - name: Run semantic embedding tests
-        run: python -m unittest tests.test_skill_semantic_search -v
+      - name: Run provider embedding focused tests
+        run: |
+          python -m unittest tests.test_skill_semantic_search -v
+          python -m unittest tests.test_skill_embedding_providers -v
+          python -m unittest tests.test_skill_embedding_benchmark -v
+          python -m unittest tests.test_core_module_boundaries -v
