@@ -60,7 +60,7 @@ def import_skill_corpus(raw_root: Path, database_path: Path) -> ImportReport:
                     for skill in parsed.skills:
                         repo.insert_skill(skill)
 
-                repo.set_metadata("schema_version", "1")
+                repo.set_metadata("schema_version", "2")
                 repo.set_metadata("source_manifest_hash", manifest_hash)
                 repo.set_metadata("source_file_count", str(len(sources)))
 
