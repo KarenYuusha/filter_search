@@ -33,6 +33,15 @@ class FakeEmbeddingClient:
 
 
 class OllamaEmbeddingProviderTests(unittest.TestCase):
+    def test_provider_identity_is_explicit(self):
+        provider = OllamaEmbeddingProvider(
+            "embeddinggemma:300m",
+            client=FakeEmbeddingClient(),
+        )
+        self.assertEqual(provider.provider_name, "ollama")
+        self.assertEqual(provider.model_name, "embeddinggemma:300m")
+        self.assertEqual(provider.config_id, "default")
+
     def test_explicit_host_uses_official_client_options(self):
         built = {}
 
@@ -61,13 +70,13 @@ class OllamaEmbeddingProviderTests(unittest.TestCase):
             OllamaEmbeddingProvider("qwen3-embedding:0.6b", client_factory=factory)
         self.assertEqual(built, {"timeout": 30.0})
 
-    def test_embed_batches_inputs_through_official_api(self):
+    def test_document_batches_use_official_api(self):
         fake = FakeEmbeddingClient(
             response=SimpleNamespace(embeddings=[[1.0, 2.0], [3.0, 4.0]])
         )
         provider = OllamaEmbeddingProvider("nomic-embed-text:v1.5", client=fake)
 
-        result = provider.embed(("alpha", "beta"))
+        result = provider.embed_documents(("alpha", "beta"))
 
         self.assertEqual(result, ((1.0, 2.0), (3.0, 4.0)))
         self.assertEqual(
@@ -75,11 +84,29 @@ class OllamaEmbeddingProviderTests(unittest.TestCase):
             [{"model": "nomic-embed-text:v1.5", "input": ["alpha", "beta"]}],
         )
 
+    def test_query_encoding_requires_exactly_one_vector(self):
+        fake = FakeEmbeddingClient(response=SimpleNamespace(embeddings=[[1.0, 2.0]]))
+        provider = OllamaEmbeddingProvider("embeddinggemma:300m", client=fake)
+
+        self.assertEqual(provider.embed_query("alpha"), (1.0, 2.0))
+        self.assertEqual(
+            fake.calls,
+            [{"model": "embeddinggemma:300m", "input": ["alpha"]}],
+        )
+
     def test_response_count_mismatch_is_rejected(self):
         fake = FakeEmbeddingClient(response=SimpleNamespace(embeddings=[[1.0, 2.0]]))
         provider = OllamaEmbeddingProvider("embeddinggemma:300m", client=fake)
         with self.assertRaises(EmbeddingIndexError):
-            provider.embed(("alpha", "beta"))
+            provider.embed_documents(("alpha", "beta"))
+
+    def test_query_response_count_mismatch_is_rejected(self):
+        fake = FakeEmbeddingClient(
+            response=SimpleNamespace(embeddings=[[1.0, 2.0], [3.0, 4.0]])
+        )
+        provider = OllamaEmbeddingProvider("embeddinggemma:300m", client=fake)
+        with self.assertRaises(EmbeddingIndexError):
+            provider.embed_query("alpha")
 
     def test_transport_and_server_errors_become_unavailable(self):
         errors = (
@@ -94,7 +121,7 @@ class OllamaEmbeddingProviderTests(unittest.TestCase):
                     client=FakeEmbeddingClient(error=error),
                 )
                 with self.assertRaises(EmbeddingUnavailable):
-                    provider.embed(("alpha",))
+                    provider.embed_documents(("alpha",))
 
 
 class EmbeddingBenchmarkSelectionTests(unittest.TestCase):
