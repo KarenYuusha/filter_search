@@ -18,9 +18,10 @@ REQUIRED_COLUMNS: dict[str, frozenset[str]] = {
     }),
     "skill_aliases": frozenset({"skill_id", "position", "alias", "normalized_alias"}),
     "skill_sections": frozenset({"id", "skill_id", "position", "label", "normalized_label", "body"}),
-    "skill_ailments": frozenset({"skill_id", "position", "name"}),
-    "skill_weapon_requirements": frozenset({"skill_id", "position", "weapon"}),
-    "skill_weapon_restrictions": frozenset({"skill_id", "position", "weapon"}),
+    "skill_ailments": frozenset({"skill_id", "position", "name", "normalized_name"}),
+    "skill_weapon_requirements": frozenset({"skill_id", "position", "weapon", "normalized_name"}),
+    "skill_weapon_restrictions": frozenset({"skill_id", "position", "weapon", "normalized_name"}),
+    "skill_tree_weapon_restrictions": frozenset({"tree_id", "position", "weapon", "normalized_weapon"}),
 }
 REQUIRED_TABLES = frozenset(REQUIRED_COLUMNS)
 
@@ -97,6 +98,7 @@ def create_schema(connection: sqlite3.Connection) -> None:
             skill_id TEXT NOT NULL REFERENCES skills(id) ON DELETE CASCADE,
             position INTEGER NOT NULL,
             name TEXT NOT NULL,
+            normalized_name TEXT NOT NULL,
             PRIMARY KEY(skill_id, position)
         );
 
@@ -104,6 +106,7 @@ def create_schema(connection: sqlite3.Connection) -> None:
             skill_id TEXT NOT NULL REFERENCES skills(id) ON DELETE CASCADE,
             position INTEGER NOT NULL,
             weapon TEXT NOT NULL,
+            normalized_name TEXT NOT NULL,
             PRIMARY KEY(skill_id, position)
         );
 
@@ -111,7 +114,16 @@ def create_schema(connection: sqlite3.Connection) -> None:
             skill_id TEXT NOT NULL REFERENCES skills(id) ON DELETE CASCADE,
             position INTEGER NOT NULL,
             weapon TEXT NOT NULL,
+            normalized_name TEXT NOT NULL,
             PRIMARY KEY(skill_id, position)
+        );
+
+        CREATE TABLE skill_tree_weapon_restrictions (
+            tree_id TEXT NOT NULL REFERENCES skill_trees(id) ON DELETE CASCADE,
+            position INTEGER NOT NULL,
+            weapon TEXT NOT NULL,
+            normalized_weapon TEXT NOT NULL,
+            PRIMARY KEY(tree_id, position)
         );
         """
     )
