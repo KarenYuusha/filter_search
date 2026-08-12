@@ -1,0 +1,16 @@
+name: Verify Skill Task 2 Clean Base
+on: pull_request
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile
+        run: python -m compileall -q toram_skills tests
+      - name: Focused skill tests
+        run: python -m unittest tests.test_skill_source_inventory tests.test_skill_parsing -v
+      - name: Full regression suite
+        run: python -m unittest discover -s tests -v
