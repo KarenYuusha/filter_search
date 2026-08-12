@@ -1,0 +1,89 @@
+name: Verify Skill Source Rescan
+on: pull_request
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Scan raw skill structure
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          from collections import defaultdict
+
+          marker_re = re.compile(r'(?mi)^SKILL:\s*(.*?)\s*$')
+          placeholder_re = re.compile(r'^(?:-|--+|\?+|n/?a|none|null|unknown|unnamed|tbd|todo|\.+|\*+)$', re.I)
+          detail_re = re.compile(r'^(?:Lv\s*(?:\d+|[IVX]+)\b|T[1-5]\s*;)', re.I)
+
+          def norm(value: str) -> str:
+              return ' '.join(value.casefold().split())
+
+          malformed = []
+          placeholders = []
+          missing = []
+          duplicates = []
+          total = 0
+
+          for path in sorted(Path('raw_skills').rglob('*.txt')):
+              text = path.read_text(encoding='utf-8')
+              lines = text.splitlines()
+              marker_names = set()
+              seen = defaultdict(list)
+
+              for match in marker_re.finditer(text):
+                  total += 1
+                  name = match.group(1).strip()
+                  n = norm(name)
+                  marker_names.add(n)
+                  line = text.count('\n', 0, match.start()) + 1
+                  slug = re.sub(r'[^a-z0-9]+', '-', name.casefold()).strip('-')
+                  seen[n].append(line)
+                  if not slug:
+                      malformed.append((path.as_posix(), line, name))
+                  elif placeholder_re.fullmatch(name):
+                      placeholders.append((path.as_posix(), line, name))
+
+              for name, lines_found in seen.items():
+                  if name and len(lines_found) > 1:
+                      duplicates.append((path.as_posix(), name, lines_found))
+
+              for i in range(len(lines) - 1):
+                  name = lines[i].strip()
+                  next_line = lines[i + 1].strip()
+                  if not name or not detail_re.match(next_line):
+                      continue
+                  if name.casefold().startswith('lv'):
+                      continue
+                  if name.startswith(('SKILL:', 'Category:', 'Tier:', 'Required Level:', 'Source Details:')):
+                      continue
+                  if name.startswith(('-', '*', '•', '#', '=')):
+                      continue
+                  if name.startswith('(') and name.endswith(')'):
+                      continue
+                  if len(name) > 80 or norm(name) in marker_names:
+                      continue
+                  if not re.search(r'[A-Za-z]', name):
+                      continue
+                  missing.append((path.as_posix(), i + 1, name, next_line))
+
+          print(f'TOTAL_MARKERS={total}')
+          print(f'MALFORMED_COUNT={len(malformed)}')
+          for item in malformed:
+              print('MALFORMED\t%s:%s\t%r' % item)
+          print(f'PLACEHOLDER_COUNT={len(placeholders)}')
+          for item in placeholders:
+              print('PLACEHOLDER\t%s:%s\t%r' % item)
+          print(f'MISSING_HEADER_CANDIDATE_COUNT={len(missing)}')
+          for path, line, name, details in missing:
+              print(f'MISSING_HEADER_CANDIDATE\t{path}:{line}\t{name!r}\t{details!r}')
+          print(f'DUPLICATE_HEADER_COUNT={len(duplicates)}')
+          for path, name, lines_found in duplicates:
+              print(f'DUPLICATE_HEADER\t{path}\t{name!r}\t{lines_found}')
+
+          if malformed or placeholders or missing or duplicates:
+              raise SystemExit(1)
+          PY
