@@ -20,7 +20,8 @@ jobs:
               name = match.group('name').strip()
               slug = re.sub(r'[^a-z0-9]+', '-', normalize_skill_name(name)).strip('-')
               if not slug:
-                  print('NON_SLUGGABLE:', repr(name))
+                  line = text.count('\n', 0, match.start()) + 1
+                  print('NON_SLUGGABLE:', repr(name), 'line', line)
           PY
       - run: python -m compileall -q toram_data toram_search toram_discord toram_skills search_items.py discord_bot.py
       - run: python -m unittest tests.test_skill_parsing -v
