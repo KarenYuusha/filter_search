@@ -1,0 +1,20 @@
+name: provider-embedding-branch-checks
+
+on:
+  push:
+    branches:
+      - work/provider-agnostic-skill-embeddings-active
+  workflow_dispatch:
+
+jobs:
+  focused-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install focused test dependencies
+        run: python -m pip install --upgrade pip rapidfuzz numpy ollama httpx
+      - name: Run semantic embedding tests
+        run: python -m unittest tests.test_skill_semantic_search -v
