@@ -66,6 +66,98 @@ class SkillRepository:
         )
         return [str(row["name"]) for row in rows]
 
+    def _tree_from_row(self, row: sqlite3.Row) -> SkillTreeDraft:
+        tier_values = json.loads(str(row["tier_requirements_json"]))
+        restrictions = json.loads(str(row["weapon_restrictions_json"]))
+        return SkillTreeDraft(
+            id=str(row["id"]),
+            name=str(row["name"]),
+            normalized_name=str(row["normalized_name"]),
+            tree_group=str(row["tree_group"]),
+            source_file=str(row["source_file"]),
+            general_text=str(row["general_text"]),
+            tier_requirements=tuple(
+                (int(value[0]), None if value[1] is None else int(value[1]))
+                for value in tier_values
+            ),
+            weapon_restrictions=tuple(str(value) for value in restrictions),
+            issues=_issues_from_json(str(row["issues_json"])),
+        )
+
+    def get_tree(self, tree_id: str) -> SkillTreeDraft:
+        row = self.connection.execute(
+            "SELECT * FROM skill_trees WHERE id = ?",
+            (tree_id,),
+        ).fetchone()
+        if row is None:
+            raise KeyError(tree_id)
+        return self._tree_from_row(row)
+
+    def resolve_tree_name(self, name: str) -> tuple[SkillTreeDraft, ...]:
+        normalized = normalize_skill_name(name)
+        rows = self.connection.execute(
+            """
+            SELECT *
+            FROM skill_trees
+            WHERE normalized_name = ?
+            ORDER BY id
+            """,
+            (normalized,),
+        )
+        return tuple(self._tree_from_row(row) for row in rows)
+
+    def list_skills_in_tree(self, tree_id: str) -> tuple[SkillDraft, ...]:
+        rows = self.connection.execute(
+            """
+            SELECT id
+            FROM skills
+            WHERE tree_id = ?
+            ORDER BY source_order, id
+            """,
+            (tree_id,),
+        )
+        return tuple(self.get_skill(str(row["id"])) for row in rows)
+
+    def resolve_skill_name(
+        self,
+        name: str,
+        *,
+        tree_id: str | None = None,
+    ) -> tuple[SkillDraft, ...]:
+        normalized = normalize_skill_name(name)
+        canonical_tree_clause = " AND s.tree_id = ?" if tree_id is not None else ""
+        alias_tree_clause = " AND s.tree_id = ?" if tree_id is not None else ""
+        params: list[str] = [normalized]
+        if tree_id is not None:
+            params.append(tree_id)
+        params.extend([normalized, normalized])
+        if tree_id is not None:
+            params.append(tree_id)
+        rows = self.connection.execute(
+            f"""
+            WITH matches AS (
+                SELECT s.id AS id, 0 AS match_kind
+                FROM skills AS s
+                WHERE s.normalized_name = ?{canonical_tree_clause}
+
+                UNION ALL
+
+                SELECT s.id AS id, 1 AS match_kind
+                FROM skills AS s
+                JOIN skill_aliases AS a ON a.skill_id = s.id
+                WHERE a.normalized_alias = ?
+                  AND s.normalized_name <> ?{alias_tree_clause}
+            )
+            SELECT s.id, MIN(matches.match_kind) AS match_kind
+            FROM matches
+            JOIN skills AS s ON s.id = matches.id
+            GROUP BY s.id
+            ORDER BY match_kind, s.tree_id, s.source_order, s.id
+            """,
+            tuple(params),
+        )
+        return tuple(self.get_skill(str(row["id"])) for row in rows)
+
     def set_metadata(self, key: str, value: str) -> None:
         self.connection.execute(
             "INSERT INTO metadata(key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
