@@ -1,8 +1,12 @@
+from contextlib import redirect_stdout
+from io import StringIO
+import json
 from pathlib import Path
 import tempfile
 import unittest
 
 from toram_skills.importer import import_skill_corpus
+from toram_skills.models import ImportReport, ParseIssue
 from toram_skills.repository import SkillRepository
 from toram_skills.source_inventory import discover_skill_sources, source_manifest_hash
 
@@ -96,6 +100,72 @@ Description: Test description.
                     self.assertEqual(skill.name, name)
                     self.assertEqual(skill.mp_cost_value, mp_cost)
                     self.assertTrue(skill.raw_text.strip())
+
+    def test_report_rendering_and_json_are_deterministic(self):
+        from toram_skills.report import render_import_report, report_to_json
+
+        report = ImportReport(
+            files_discovered=2,
+            trees_created=2,
+            skill_blocks_discovered=3,
+            skills_created=3,
+            manifest_hash="abc123",
+            issues=(
+                ParseIssue("warning", "zeta", "b.txt", "B", "second"),
+                ParseIssue("error", "alpha", "a.txt", None, "first"),
+            ),
+        )
+
+        text = render_import_report(report)
+        self.assertIn("Files discovered: 2", text)
+        self.assertIn("Errors: 1", text)
+        self.assertIn("Warnings: 1", text)
+        self.assertLess(text.index("ERROR alpha"), text.index("WARNING zeta"))
+
+        payload = json.loads(report_to_json(report))
+        self.assertEqual(payload["manifest_hash"], "abc123")
+        self.assertEqual([issue["code"] for issue in payload["issues"]], ["alpha", "zeta"])
+
+    def test_build_cli_returns_zero_and_writes_json_report_for_valid_import(self):
+        import build_skills
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            raw_root = self._write_valid_corpus(root)
+            db_path = root / "db" / "skills.sqlite"
+            json_path = root / "report.json"
+            stdout = StringIO()
+            with redirect_stdout(stdout):
+                code = build_skills.main([
+                    "--source", str(raw_root),
+                    "--database", str(db_path),
+                    "--json-report", str(json_path),
+                ])
+
+            self.assertEqual(code, 0)
+            self.assertTrue(db_path.is_file())
+            self.assertTrue(json_path.is_file())
+            self.assertIn("Errors: 0", stdout.getvalue())
+
+    def test_build_cli_returns_one_for_import_errors(self):
+        import build_skills
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            raw_root = root / "raw_skills"
+            (raw_root / "assist_skills").mkdir(parents=True)
+            (raw_root / "assist_skills" / "bad.txt").write_text(
+                "Category: Bad Skills\nNo registered deterministic format here.\n",
+                encoding="utf-8",
+            )
+            stdout = StringIO()
+            with redirect_stdout(stdout):
+                code = build_skills.main([
+                    "--source", str(raw_root),
+                    "--database", str(root / "skills.sqlite"),
+                ])
+            self.assertEqual(code, 1)
+            self.assertIn("Errors: 1", stdout.getvalue())
 
 
 if __name__ == "__main__":
