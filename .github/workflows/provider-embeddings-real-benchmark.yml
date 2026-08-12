@@ -1,0 +1,161 @@
+name: provider-embedding-real-benchmark
+
+on:
+  push:
+    branches:
+      - work/provider-agnostic-skill-embeddings-active
+    paths:
+      - .github/workflows/provider-embeddings-real-benchmark.yml
+
+permissions:
+  contents: write
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    env:
+      HF_HOME: ${{ runner.temp }}/huggingface
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install benchmark dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install rapidfuzz numpy ollama httpx 'sentence-transformers>=5,<6'
+
+      - name: Rebuild canonical skill database
+        run: |
+          python build_skills.py \
+            --source raw_skills \
+            --database coryn_data/database/skills.sqlite \
+            --json-report /tmp/skills-import.json
+          python - <<'PY'
+          from pathlib import Path
+          from toram_skills.repository import SkillRepository
+
+          database = Path('coryn_data/database/skills.sqlite')
+          with SkillRepository(database) as repo:
+              assert repo.count_trees() == 34, repo.count_trees()
+              assert repo.count_skills() == 481, repo.count_skills()
+              documents = repo.connection.execute(
+                  'SELECT COUNT(*) FROM skill_search_documents'
+              ).fetchone()[0]
+              assert documents > 0, documents
+              assert repo.get_metadata('source_manifest_hash')
+              assert repo.get_metadata('search_document_manifest_hash')
+              print(f'canonical database: 34 trees, 481 skills, {documents} search documents')
+          PY
+
+      - name: Benchmark approved local embedding models
+        run: |
+          mkdir -p out docs/benchmarks
+          python benchmark_skill_embeddings.py \
+            --database coryn_data/database/skills.sqlite \
+            --golden tests/fixtures/skill_retrieval_golden.json \
+            --models \
+              st:sentence-transformers/all-MiniLM-L6-v2 \
+              st:Alibaba-NLP/gte-multilingual-base \
+              st:BAAI/bge-m3 \
+            --output out/skill-embedding-benchmark.json \
+            --config-output out/retrieval_config.py \
+            --device cpu
+
+      - name: Record benchmark runtime
+        run: |
+          python - <<'PY'
+          import json
+          import platform
+          from pathlib import Path
+
+          path = Path('out/skill-embedding-benchmark.json')
+          payload = json.loads(path.read_text(encoding='utf-8'))
+          payload['runtime'] = {
+              'device': 'cpu',
+              'runner': 'github-actions/ubuntu-latest',
+              'python': platform.python_version(),
+              'platform': platform.platform(),
+              'machine': platform.machine(),
+          }
+          path.write_text(
+              json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False) + '\n',
+              encoding='utf-8',
+          )
+          PY
+
+      - name: Verify selected index provenance
+        run: |
+          cp out/retrieval_config.py toram_skills/retrieval_config.py
+          cp out/skill-embedding-benchmark.json docs/benchmarks/2026-08-12-skill-embedding-benchmark.json
+          python - <<'PY'
+          from pathlib import Path
+          from toram_skills.repository import SkillRepository
+          from toram_skills.retrieval_config import (
+              DEFAULT_EMBEDDING_CONFIG_ID,
+              DEFAULT_EMBEDDING_MODEL,
+              DEFAULT_EMBEDDING_PROVIDER,
+          )
+
+          with SkillRepository(Path('coryn_data/database/skills.sqlite')) as repo:
+              metadata = {
+                  key: repo.get_metadata(key)
+                  for key in (
+                      'embedding_provider',
+                      'embedding_model',
+                      'embedding_config_id',
+                      'embedding_document_manifest_hash',
+                      'search_document_manifest_hash',
+                  )
+              }
+              assert metadata['embedding_provider'] == DEFAULT_EMBEDDING_PROVIDER, metadata
+              assert metadata['embedding_model'] == DEFAULT_EMBEDDING_MODEL, metadata
+              assert metadata['embedding_config_id'] == DEFAULT_EMBEDDING_CONFIG_ID, metadata
+              assert (
+                  metadata['embedding_document_manifest_hash']
+                  == metadata['search_document_manifest_hash']
+              ), metadata
+              documents = repo.connection.execute(
+                  'SELECT COUNT(*) FROM skill_search_documents'
+              ).fetchone()[0]
+              vectors = repo.connection.execute(
+                  'SELECT COUNT(*) FROM skill_embedding_vectors'
+              ).fetchone()[0]
+              assert vectors == documents, (vectors, documents)
+              print(
+                  'selected index provenance verified:',
+                  DEFAULT_EMBEDDING_PROVIDER,
+                  DEFAULT_EMBEDDING_MODEL,
+                  DEFAULT_EMBEDDING_CONFIG_ID,
+                  f'{vectors} vectors',
+              )
+          PY
+
+      - name: Run focused acceptance tests
+        run: |
+          python -m compileall -q toram_skills toram_skill_embeddings build_skill_embeddings.py benchmark_skill_embeddings.py
+          python -m unittest tests.test_skill_semantic_search -v
+          python -m unittest tests.test_skill_embedding_providers -v
+          python -m unittest tests.test_skill_embedding_benchmark -v
+          python -m unittest tests.test_skill_embedding_cli -v
+          python -m unittest tests.test_skill_hybrid_search -v
+          python -m unittest tests.test_core_module_boundaries -v
+
+      - name: Commit accepted benchmark artifacts
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            docs/benchmarks/2026-08-12-skill-embedding-benchmark.json \
+            toram_skills/retrieval_config.py \
+            coryn_data/database/skills.sqlite
+          if git diff --cached --quiet; then
+            echo 'Benchmark outputs already match the repository.'
+          else
+            git commit -m 'feat: finalize lightweight skill embedding retrieval'
+            git push origin HEAD:work/provider-agnostic-skill-embeddings-active
+          fi
