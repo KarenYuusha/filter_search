@@ -19,12 +19,17 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--model", required=True)
     parser.add_argument("--host")
     parser.add_argument("--batch-size", type=int, default=32)
+    parser.add_argument("--timeout-seconds", type=float, default=120.0)
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
-    provider = OllamaEmbeddingProvider(args.model, host=args.host)
+    provider = OllamaEmbeddingProvider(
+        args.model,
+        host=args.host,
+        timeout_seconds=args.timeout_seconds,
+    )
     try:
         with SkillRepository(args.database) as repository:
             count = build_embedding_index(
