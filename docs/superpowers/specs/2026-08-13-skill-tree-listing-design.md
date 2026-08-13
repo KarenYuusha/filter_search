@@ -125,11 +125,19 @@ Exact canonical/shorthand matches execute immediately.
 
 ### Fuzzy matching
 
-Use RapidFuzz or the repository's existing deterministic fuzzy dependency. Do not use embeddings or Qwen.
+Use RapidFuzz `WRatio` against both the normalized canonical name and normalized shorthand. A tree's fuzzy score is the maximum of those two scores. Do not use embeddings or Qwen.
 
 A typo never executes silently.
 
-If one plausible fuzzy candidate is clearly best, return a confirmation payload:
+Deterministic thresholds:
+
+- Minimum actionable fuzzy score: `80`.
+- Candidates scoring below `80` are guidance-only and cannot be executed from the response.
+- If the top actionable candidate is at least `10` points above the second actionable candidate, return a single confirmation for the top candidate.
+- If two or more actionable candidates are within `10` points of the top score, return an ordered choice payload containing up to five candidates.
+- Candidate order is score descending, then canonical tree name case-insensitively, then tree ID for a stable tie-break.
+
+Example single confirmation:
 
 ```text
 Did you mean Shield Skills?
@@ -141,9 +149,7 @@ Actions:
 [Show skills] [Cancel]
 ```
 
-If multiple candidates are plausibly close, return a choice payload instead of guessing.
-
-Example:
+Example ambiguous choice:
 
 ```text
 Which skill tree did you mean?
@@ -154,9 +160,7 @@ Which skill tree did you mean?
 
 The UI should use buttons/select options when practical rather than requiring the user to type a number.
 
-If there is no reasonable candidate, return a not-found payload with up to three closest tree names for guidance, but do not offer an action that would execute a low-confidence guess.
-
-The exact fuzzy threshold and ambiguity margin are implementation constants covered by unit tests. They should be conservative: false confirmation suggestions are preferable to silently opening the wrong tree, and low-confidence junk should remain not-found.
+If no candidate reaches `80`, return a not-found payload. It may display up to three nearest tree names as non-interactive guidance, ordered by the same deterministic score/tie-break rules.
 
 ## Missing Tree Name
 
@@ -286,6 +290,7 @@ Cover:
 - tree listing preserves repository source order.
 - tree listing returns every skill, not only 20.
 - tree path never requests semantic runtime.
+- fuzzy threshold `80`, ambiguity margin `10`, and deterministic tie-break behavior.
 
 ### Discord rendering/interaction tests
 
