@@ -1,0 +1,21 @@
+name: skill-display-pagination-verifier
+
+on:
+  push:
+    branches:
+      - feat/skill-display-pagination
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install focused dependencies
+        run: python -m pip install --upgrade pip discord.py rapidfuzz numpy ollama httpx python-dotenv
+      - name: Run skill display tests
+        run: |
+          python -m unittest tests.test_discord_skill_detail_pages -v
