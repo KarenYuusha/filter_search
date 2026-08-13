@@ -40,29 +40,46 @@ async def process_tagged_query(
 
     skill_query = parse_skill_command(query)
     if skill_query is not None:
-        payload = await asyncio.to_thread(
-            run_skill_query_sync,
-            config.skill_database_path,
-            skill_query,
-        )
-        if not sessions.is_current(key, session.generation):
-            return
-        session = sessions.get(key)
-        if session is None:
-            return
-        embed, view = build_skill_payload_message(
-            payload,
-            bot_example_prefix=bot_example_prefix(message.guild, bot_user),
-            sessions=sessions,
-            key=key,
-            generation=session.generation,
-        )
-        await message.reply(
-            embed=embed,
-            view=view,
-            mention_author=False,
-            allowed_mentions=discord.AllowedMentions.none(),
-        )
+        try:
+            payload = await asyncio.to_thread(
+                run_skill_query_sync,
+                config.skill_database_path,
+                skill_query,
+            )
+            if not sessions.is_current(key, session.generation):
+                return
+            session = sessions.get(key)
+            if session is None:
+                return
+            embed, view = build_skill_payload_message(
+                payload,
+                bot_example_prefix=bot_example_prefix(message.guild, bot_user),
+                sessions=sessions,
+                key=key,
+                generation=session.generation,
+            )
+            await message.reply(
+                embed=embed,
+                view=view,
+                mention_author=False,
+                allowed_mentions=discord.AllowedMentions.none(),
+            )
+        except Exception:
+            logger.exception("Discord skill search failed")
+            if not sessions.is_current(key, session.generation):
+                return
+            await message.reply(
+                embed=discord.Embed(
+                    title="Skill search unavailable",
+                    description=(
+                        "The skill search failed due to an internal error. "
+                        "Item and stat search are still available."
+                    ),
+                ),
+                view=None,
+                mention_author=False,
+                allowed_mentions=discord.AllowedMentions.none(),
+            )
         return
 
     outcome = await asyncio.to_thread(
