@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from types import SimpleNamespace
 import unittest
 
+from toram_skill_search.runtime import SemanticRuntimeCache
 from toram_skill_search.service import SkillSearchService, parse_skill_command
 from toram_skills.repository import SkillRepository
+from toram_skills.semantic_search import EmbeddingIndexError, EmbeddingUnavailable
 
 ROOT = Path(__file__).resolve().parents[1]
 DATABASE = ROOT / "coryn_data" / "database" / "skills.sqlite"
@@ -29,6 +32,40 @@ class FakeRepository:
 
     def get_tree(self, tree_id):
         return self.trees[tree_id]
+
+
+class FakeSemanticIndex:
+    def __init__(self, hits=(), error=None):
+        self.hits = tuple(hits)
+        self.error = error
+        self.calls = []
+
+    def search(self, query, *, eligible_skill_ids=None, limit=20):
+        self.calls.append(query)
+        if self.error is not None:
+            raise self.error
+        return self.hits[:limit]
+
+
+class FixedRuntime:
+    def __init__(self, index):
+        self.index = index
+        self.calls = 0
+
+    def get_index(self, repository):
+        self.calls += 1
+        return self.index
+
+
+class FakeRuntimeRepository:
+    def __init__(self, path: Path, manifest: str = "manifest"):
+        self.database_path = path
+        self.manifest = manifest
+
+    def get_metadata(self, key):
+        if key == "search_document_manifest_hash":
+            return self.manifest
+        return None
 
 
 class SkillCommandParserTests(unittest.TestCase):
@@ -123,7 +160,7 @@ class SkillSearchServiceTests(unittest.TestCase):
         self.assertEqual([item.skill.id for item in payload.results], [s.id for s in skills])
 
     def test_free_text_returns_canonical_ranked_results(self):
-        payload = SkillSearchService(self.repo).handle("inflict tumble")
+        payload = SkillSearchService(self.repo, semantic_runtime=None).handle("inflict tumble")
         self.assertEqual(type(payload).__name__, "SkillResultsPayload")
         self.assertTrue(payload.results)
         self.assertTrue(
@@ -132,8 +169,72 @@ class SkillSearchServiceTests(unittest.TestCase):
         self.assertTrue(all(item.snippet for item in payload.results))
 
     def test_free_text_accepts_filter_like_words_as_plain_text(self):
-        payload = SkillSearchService(self.repo).handle("sword tier 4")
+        payload = SkillSearchService(self.repo, semantic_runtime=None).handle("sword tier 4")
         self.assertEqual(type(payload).__name__, "SkillResultsPayload")
+
+    def test_non_exact_query_requests_semantic_runtime(self):
+        runtime = FixedRuntime(None)
+        SkillSearchService(
+            self.repo,
+            semantic_runtime=runtime,
+        ).handle("attack while moving")
+        self.assertEqual(runtime.calls, 1)
+
+    def test_semantic_query_failure_retries_lexical_only(self):
+        semantic = FakeSemanticIndex(error=EmbeddingUnavailable("offline"))
+        payload = SkillSearchService(
+            self.repo,
+            semantic_runtime=FixedRuntime(semantic),
+        ).handle("inflict tumble")
+        self.assertEqual(type(payload).__name__, "SkillResultsPayload")
+        self.assertTrue(payload.results)
+
+    def test_stale_index_failure_does_not_break_later_exact_lookup(self):
+        runtime = SemanticRuntimeCache(
+            provider_factory=lambda: type(
+                "Provider",
+                (),
+                {"config_id": "symmetric-encode-v1"},
+            )(),
+            index_factory=lambda repository, provider: (_ for _ in ()).throw(
+                EmbeddingIndexError("stale")
+            ),
+        )
+        free_text = SkillSearchService(
+            self.repo,
+            semantic_runtime=runtime,
+        ).handle("inflict tumble")
+        exact = SkillSearchService(
+            self.repo,
+            semantic_runtime=runtime,
+        ).handle("magic: finale")
+        self.assertEqual(type(free_text).__name__, "SkillResultsPayload")
+        self.assertEqual(type(exact).__name__, "SkillDetailPayload")
+
+
+class SemanticRuntimeCacheTests(unittest.TestCase):
+    def test_runtime_cache_builds_one_index_for_same_database_manifest(self):
+        build_calls = []
+        sentinel = FakeSemanticIndex()
+
+        class Provider:
+            provider_name = "sentence-transformers"
+            model_name = "sentence-transformers/all-MiniLM-L6-v2"
+            config_id = "symmetric-encode-v1"
+
+        repository = FakeRuntimeRepository(Path("/tmp/skills.sqlite"))
+        runtime = SemanticRuntimeCache(
+            provider_factory=lambda: Provider(),
+            index_factory=lambda repo, provider: (
+                build_calls.append(repo.database_path) or sentinel
+            ),
+        )
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            values = list(
+                executor.map(lambda unused: runtime.get_index(repository), range(4))
+            )
+        self.assertTrue(all(value is sentinel for value in values))
+        self.assertEqual(len(build_calls), 1)
 
 
 if __name__ == "__main__":
