@@ -6,6 +6,7 @@ import logging
 import discord
 
 from toram_search.service import StatClarificationPayload
+from toram_skill_search import parse_skill_command
 from toram_discord.config import (
     DiscordBotConfig,
     bot_example_prefix,
@@ -16,6 +17,7 @@ from toram_discord.config import (
     load_project_environment,
 )
 from toram_discord.sessions import DiscordSessionManager, SessionKey
+from toram_discord.skill_ui import build_skill_payload_message, run_skill_query_sync
 from toram_discord.views import build_service_outcome_message, run_query_sync
 
 
@@ -35,6 +37,33 @@ async def process_tagged_query(
         query = "help"
     key: SessionKey = (message.guild.id, message.channel.id, message.author.id)
     session = sessions.start_query(key, query)
+
+    skill_query = parse_skill_command(query)
+    if skill_query is not None:
+        payload = await asyncio.to_thread(
+            run_skill_query_sync,
+            config.skill_database_path,
+            skill_query,
+        )
+        if not sessions.is_current(key, session.generation):
+            return
+        session = sessions.get(key)
+        if session is None:
+            return
+        embed, view = build_skill_payload_message(
+            payload,
+            bot_example_prefix=bot_example_prefix(message.guild, bot_user),
+            sessions=sessions,
+            key=key,
+            generation=session.generation,
+        )
+        await message.reply(
+            embed=embed,
+            view=view,
+            mention_author=False,
+            allowed_mentions=discord.AllowedMentions.none(),
+        )
+        return
 
     outcome = await asyncio.to_thread(
         run_query_sync,
@@ -66,6 +95,7 @@ async def process_tagged_query(
     if file is not None:
         kwargs["file"] = file
     await message.reply(**kwargs)
+
 
 def create_client(config: DiscordBotConfig) -> discord.Client:
     client = discord.Client(
@@ -111,6 +141,7 @@ def create_client(config: DiscordBotConfig) -> discord.Client:
                 logger.exception("Failed to send Discord error response")
 
     return client
+
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
