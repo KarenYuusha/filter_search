@@ -1,517 +1,237 @@
-Category: Minstrel Skills
+Category: Support Skills
 
 GENERAL INFORMATION
 
-Weapon Restrictions:
-All Minstrel skills are limited to:
-- Two-Handed Sword
-- Bow
-- Bowgun
-- Katana
-- Staff
-- Magic Device
-
-Buff Range:
-24 m
-
-Song Interaction Rules:
-- If two players are singing the same song, each singer receives the buff from their own song.
-- Party members receive the buff from the higher-level song.
-- If the song applies a party-member penalty, the caster receives their own penalized buff instead of another singer's full buff.
-- Walking while singing outside combat interrupts the song.
-- Walking while singing during combat does not interrupt the song, but Movement Speed is halved.
-- Basic attacks and skill casts interrupt singing but do not reset singing progress.
-- An interrupted song can be continued by using Ad-Lib before the 9-second timer within the 10-second duration ends.
-- Different song skills cannot be sung at the same time.
-- Song buffs and Beat Blast stacking affect Guild Raid allies, up to 16 members.
-
-Acoustic Buff:
-Continuing a song for a certain amount of time transforms it into an Acoustic Buff.
-
-Acoustic Buff Properties:
-- Acoustic Buffs are permanent effects after activation.
-- They remain active indefinitely unless the performer is knocked out.
-- In boss fights, the source notes that the song may remain active indefinitely even after this condition.
-- Party members who are knocked out and then revived receive already-active full buffs.
-- Party members who enter the song caster's map also receive already-active full buffs.
-
-Acoustic Buff Progression:
-The MP cost and singing duration required to transform the next song into an Acoustic Buff increase as more Acoustic Buffs are active.
-
-Sing Duration:
-5 + (AcousticBuffOrder - 1) * 4 seconds
-
-MP Cost:
-(AcousticBuffOrder - 1) * 100 MP
-
-EX Skill: Setlist
-Allows the player to arrange a setlist and sing multiple songs in sequence from one shortcut button.
-
-Maximum Songs in Setlist:
-6
-
 Tier Requirements:
-- Tier I: No level requirement
-- Tier II: Level 60
-- Tier III: Level 120
+- Tier I: Level 10
+- Tier II: Level 30
+- Tier III: Level 70
+- Tier IV: Level 150
+
+Shared Rules and Notes:
+--Support skills as the name suggests are various party buffer/healing skills to help support the party. --All support skills except sanctuary are un-comboable. --The bottom 2 branches all have a nerf applied on the caster and disappear if the caster is damaged. The positive stats are applied to the whole party inside the aura including the caster. --The bottom 2 branches support skills are all aura based support skills which generate [30 + 30*PlayersConnected] amount of aggro per 3seconds per active auras on all the the enemies having base aggro on you (Unaffected by aggro+% equipment)[Fyi, using Asobimo aggro, 1MP = 10Aggro]
 
 
 ==================================================
-SKILL: HEALING SONG
+SKILL: FIRST AID
 ==================================================
 
-Category: Minstrel Skills
+Category: Support Skills
 Tier: I
-Required Level: None
+Required Level: Level 10
 
 Source Details:
-Type: Support
-Proration: None
-Mechanic: Song / Acoustic Buff
+Reduce the revive time for dead party members. Party healer. ActionRange = 2m Amount of revive time reduced = 30 + 2*lvl % of current revive time.
 
-MP Cost: 100
-Action Range: Unlimited
-
-Description:
-A break for travelers. Increases EXP Gain and Natural Regeneration when not in combat. Grants additional HP and MP recovery when battle ends based on battle duration. Cannot be sung at the same time as other songs.
-
-Buff Effects:
-
-EXP Gain Increase:
-CasterLvl / 10 % + SkillLvl %
-
-Notes:
-- Can be used for boss battles, common monsters, and minibosses.
-- Does not affect pet leveling.
-
-Natural HP Regen Increase:
-10 * SkillLvl %
-
-Natural MP Regen Increase:
-5 * SkillLvl %
-
-HP Recovery After Battle:
-3 * SkillLvl * Min(BattleDurationSeconds, 30)
-
-MP Recovery After Battle:
-SkillLvl * Min(BattleDurationSeconds, 30)
-
-Battle Recovery Notes:
-- Only battle duration while Healing Song's buff is active is counted.
-- HP and MP recovered after battle are flat values.
-
-Natural HP Regeneration Formula:
-
-Base NHPR:
-MaxHP / 25 * (100% + TotalEquipmentNHPR%) + 10 + TotalEquipmentFlatNHPR
-
-Final NHPR:
-BaseNHPR * (100% + TotalSkillNHPR%) + TotalSkillFlatNHPR
-
-Natural MP Regeneration Formula:
-
-Base NMPR:
-MaxMP / 100 * (100% + TotalEquipmentNMPR%) + 1 + TotalEquipmentFlatNMPR
-
-Final NMPR:
-BaseNMPR * (100% + TotalSkillNMPR%) + TotalSkillFlatNMPR
-
-Notes:
-- Natural HP Regen from equipment and avatars is added into the base NHPR calculation.
-- Natural HP Regen from skills is applied after base NHPR is calculated.
-- Natural MP Regen from equipment and avatars is added into the base NMPR calculation.
-- Natural MP Regen from skills is applied after base NMPR is calculated.
+NOTES: --Click on a dead party member's HP bar or the character in the over world to drop a menu for giving first aid. --Without getting this skill revive time reduction for giving first aid will be 30% of current time fixed. --The MP cost of using first aid starts from 1MP and increases by 1MP every time you use it consecutively --The MP cost is reduced by 1MP every 1min if no first aid was given. Reset back to 1MP by changing maps. --Giving first aid counts as party buffer aggro generation.
 
 Game Description:
-Not provided in source.
+"First Aid" effect in Support menu increases. The waiting time to revive is largely reduced.
 
 
 ==================================================
-SKILL: FAIRY SONG
+SKILL: MINI HEAL
 ==================================================
 
-Category: Minstrel Skills
+Category: Support Skills
 Tier: I
-Required Level: None
+Required Level: Level 10
 
 Source Details:
-Type: Support
-Proration: None
-Mechanic: Song / Acoustic Buff
+Heal a small amount of the target character's HP. Reduce the revive time if they are dead. Party/Self healer. MP Cost = 100MP ActionRange = 48m (For healing party only) Cast Time = 1second (Affected by CSPD) Heal amount = 30 * Lvl + 1 * Lvl% of target's maxHP Revive time reduced = 1 * Lvl seconds.
 
-MP Cost: 100
-Action Range: Unlimited
-
-Description:
-A fairy's guidance. Increases Accuracy and Dodge Rate. Slightly restores MP based on Attack MP Recovery when the target successfully performs Evasion or Guard.
-
-Buff Effects for the Caster:
-
-Accuracy% Increase:
-INT(5 * SkillLvl * NumberOfPlayersInParty / 4)
-
-Flat Accuracy Increase:
-INT(10 * SkillLvl * NumberOfPlayersInParty / 4)
-
-Flee% Increase:
-INT(5 * SkillLvl * NumberOfPlayersInParty / 4)
-
-Flat Flee Increase:
-INT(10 * SkillLvl * NumberOfPlayersInParty / 4)
-
-Buff Effects for Party Members Not Casting the Skill:
-
-Accuracy% Increase:
-5 * SkillLvl
-
-Flat Accuracy Increase:
-10 * SkillLvl
-
-Flee% Increase:
-5 * SkillLvl
-
-Flat Flee Increase:
-10 * SkillLvl
-
-MP Recovery from Evasion:
-100% * CharacterAMPR
-
-MP Recovery from Guard:
-75% * CharacterAMPR
-
-Notes:
-- Certain Fairy Song effects on the caster are reduced.
-- The reduction is mitigated as the number of party members, excluding NPCs, increases.
+NOTES: --Click on a party member's HP bar or click their over world sprite to use the spell on them. --If used on self it acts as a self buffer aggro generator. If used on a party member it acts a party buffer aggro generator.
 
 Game Description:
-Not provided in source.
+
+Restore the target's HP a little. Reduce the target's waiting time to revive if the target is knocked out.
+Mini Heal will target the Caster automatically if no target is specified
 
 
 ==================================================
-SKILL: LIFE SONG
+SKILL: RECOVERY
 ==================================================
 
-Category: Minstrel Skills
+Category: Support Skills
+Tier: II
+Required Level: Level 30
+
+Source Details:
+Cast a spell to cure ailments. Prevent getting an ailment within a fixed duration if used on a character having no ailment. Party/Self healer MP Cost = 100MP ActionRange = 48m (For healing party only) Effect: Heal ailment if any or give a buff that prevents getting an ailment once. --Recover (Lvl * Lvl) MP if an ailment is successfully removed or a given buff successfully prevents getting an ailment. Duration of buff: 10 + 2 * Lvl
+
+NOTES: --Click on a party member's HP bar or click their over world sprite to use the spell on them. --If used on self it acts as a self buffer aggro generator. If used on a party member it acts a party buffer aggro generator. --Currently unknown which ailment gets priority to be removed in the case its casted on a char having more than 1 ailment. --This skill can not heal or prevent FLINCH, TUMBLE, STUN or KNOCKBACK ailments. It also can not prevent MAGIC FLINCH (FLINCH caused when getting hit by a non ailment move while casting magic skills)
+
+Game Description:
+Remove a target's one status ailment. If there is no ailment to remove, it becomes a buff to remove one ailment at once for a few seconds. Restore the user's MP a little when succeeding in removing an ailment.
+Recovery will target the Caster automatically if no target is specified
+
+
+==================================================
+SKILL: SANCTUARY
+==================================================
+
+Category: Support Skills
+Tier: III
+Required Level: Level 70
+
+Source Details:
+Generate a platform which reduces damage taken. Support skill {Placed} MP Cost = 400MP Effect: Place a platform on the ground standing on which reduces damage taken depending on your maxHP. Condition: It will only reduce the damage taken if the damage is less than a % of your maxHP. Radius of platform: 1 + Lvl/3 m (From centre = caster position) at lv 10 = 4.33m Amount of % of maxHP the damage needs to be lower than to activate reduction = (5 + 0.5 * Lvl) % of your maxHP Amount of damage reduction if condition satisfied = ( 30 + [(Lvl - 1)/3] * 20 ) % Duration: (5 + Lvl) seconds
+
+NOTES: --This skill acts as a party buffer aggro generator when placed at a position having party members within platform radius --The damage reduction applies to any category of attack including fractionals as long as the condition is satisfied.
+
+Game Description:
+Create a sanctuary and protect allies. Reduce damage taken while in the area. The amount depends on each player's MaxHP. Ineffective against fatal damage.
+
+
+==================================================
+SKILL: HEAL
+==================================================
+
+Category: Support Skills
+Tier: IV
+Required Level: Level 150
+
+Source Details:
+Heal a large amount of the target character's HP. Reduce the revive time if they are dead. Party/Self healer. MP Cost = 300MP ActionRange = 24m (For healing party only) Cast Time = 1second (Affected by CSPD) Heal amount = 300 * Lvl + (10 + 1 * Lvl)% of target's maxHP Revive time reduced = 10 + 2 * Lvl seconds.
+
+NOTES: --Click on a party member's HP bar or click their over world sprite to use the spell on them. --If used on self it acts as a self buffer aggro generator. If used on a party member it acts a party buffer aggro generator.
+
+Game Description:
+Restore a target's HP. Greatly shorten the time to revive when using this skill to a defeated player.
+Heal will target the Caster automatically if no target is specified
+
+
+==================================================
+SKILL: LIFE RECOVERY
+==================================================
+
+Category: Support Skills
 Tier: I
-Required Level: None
+Required Level: Level 10
 
 Source Details:
-Type: Support
-Proration: None
-Mechanic: Song / Stack / Acoustic Buff
+Cast an aura to heal the party's HP Aura based party/self buffer MP Cost = 300MP Radius of Aura: 5 + Lvl/2 m (From caster as centre) Effect: Generate an aura which gives a buff to heal HP of the party members inside the aura. Nerf on caster: Increase the damage taken. Amount of HP healed = 10 + Lvl * 4 + TotalVITofCaster HP healing ticks = Every 3 seconds while having the buff Amount of damage increased on caster = + (400 - Lvl * 20) % more damage (Applied multiplicatively at the end of damage calculation after added with magic barrier bonus and gem effect) Duration on caster = 15minutes
 
-MP Cost: 200
-Action Range: Unlimited
-Maximum Stacks: 50
-
-Description:
-The beat of life. Reduces the revive timer at fixed intervals and accumulates an effect that mitigates fractional damage. If HP reaches 0, accumulated stacks are converted into HP recovery.
-
-Stack Gain:
-- Non-aggro holder: Gains 1 Life Song stack every 4 seconds.
-- Aggro holder: Gains 1 Life Song stack every 2 seconds.
-- Maximum: 50 stacks.
-
-HP Recovery When HP Reaches 0:
-INT(MaxHP / 1000 * SkillLvl * LifeSongStack)
-
-Fractional Damage Taken:
-Max(FractionalDamage - LifeSongStack, INT(FractionalDamage% / 2)) %
-
-Equivalent Fractional Damage Reduction:
-Min(LifeSongStack, FractionalDamage% / 2) %
-
-Notes:
-- Fractional damage reduction works similarly to Heavy Armor Damage Reduction.
-- It is calculated after Heavy Armor Damage Reduction.
-- Removes Knockback from death.
-- Reduces revive time every 3-second interval by:
-  3 * SkillLvl seconds
-- Life Song stacks reset to 0 whenever the player takes Fractional Damage.
-- Life Song stacks also reset to 0 whenever the player's HP reaches 0.
+NOTES: --All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like perfect defense except zantei). The aura will stay if the caster dodges or evades however. --All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster. --Party members can get the buff only if they stand inside the radius of aura.
 
 Game Description:
-Not provided in source.
+Create an area that regenerates HP. The player's DEF decreases. The effect ends when the player take damage.
 
 
 ==================================================
-SKILL: FANTASY SONG
+SKILL: BRAVE AURA
 ==================================================
 
-Category: Minstrel Skills
+Category: Support Skills
 Tier: II
-Required Level: Level 60
+Required Level: Level 30
 
 Source Details:
-Type: Support
-Proration: None
-Mechanic: Song / Stack / Acoustic Buff
+Cast an aura to increase the party's attack power Aura based party/self buffer MP Cost = 400MP Radius of Aura: 5 + Lvl/2 m (From caster as centre) Cast Time = 1second (Affected by CSPD) Effect: Generate an aura which gives a buff to party member's damage dealt and weaponATK Nerf on caster: Reduce accuracy% Amount of damage dealt increase = + Lvl * 2 % (Applied multiplicatively at the end of damage calculation after added along with mana recharge reduction) Amount of WeaponATK increase = (10 + Skill Level * 2) % Amount of accuracy drop on caster = - (75 - Skill Level * 2.5) % Duration on caster = 15minutes
 
-MP Cost: 200
-Action Range: Unlimited
-Maximum Stacks: 9
-
-Description:
-Feels like a dream, like an illusion. The song effect accumulates at fixed intervals. Restores MP using accumulated stacks when skills are used. It will not activate during a combo.
-
-Stack Gain Interval:
-11 - SkillLvl / 2 seconds
-
-Maximum Fantasy Song Stacks:
-9
-
-MP Recovery:
-100 MP * FantasySongStackConsumed
-
-Stack Consumption:
-- Using any skill other than a basic attack restores MP by consuming Fantasy Song stacks.
-- Stacks are consumed until the player's MP is full.
-- Excess recovery is retained as stacks according to the source description.
-- Quick Draw MP recovery is taken into account.
-- If Quick Draw activates, Fantasy Song may conserve a stack.
-
-Restriction:
-Does not activate during a combo.
+NOTES: --All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like perfect defense except zantei). The aura will stay if the caster dodges or evades however. --All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster. --Party members can get the buff only if they stand inside the radius of aura.
 
 Game Description:
-Not provided in source.
+Create an area that enhances ATK and weapon performance. The player's Accuracy Rate decreases. The effect ends when the player takes damage.
 
 
 ==================================================
-SKILL: AD-LIB
+SKILL: HIGH CYCLE
 ==================================================
 
-Category: Minstrel Skills
+Category: Support Skills
+Tier: III
+Required Level: Level 70
+
+Source Details:
+Cast an aura to shorten cast time. Aura based party/self buffer MP Cost = 500MP Radius of Aura: 5 + Lvl/2 m (From caster as centre) Cast Time = 2second (Affected by CSPD) Effect: Generate an aura which gives a buff to party member's CSPD and CSPD% Nerf on caster: Reduce AMPR% and Natural MP Regen. Amount of CSPD increase = 50 + Lvl * 50 Amount of CSPD% increase = 25 * Lvl % Amount of Natural MP regen reduced for caster = - (50.5 - Lvl * 2.5)% Amount of AMPR% reduced for caster = - (90.5 - Lvl * 1.5) % Duration on caster = 15minutes
+
+NOTES: --All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like perfect defense except zantei). The aura will stay if the caster dodges or evades however. --All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster. --Party members can get the buff only if they stand inside the radius of aura.
+
+Game Description:
+Create the area to shorten charge and cast time. Your MP restoration will be weakened. The effects will end when taking damage.
+
+
+==================================================
+SKILL: QUICK MOTION
+==================================================
+
+Category: Support Skills
+Tier: IV
+Required Level: Level 150
+
+Source Details:
+Cast an aura to enhance attack speed. Aura based party/self buffer MP Cost = 600MP Radius of Aura: 5 + Lvl/2 m (From caster as centre) Cast Time = 3second (Affected by CSPD) Effect: Generate an aura which gives a buff to party member's ASPD and ASPD% Nerf on caster: Reduce AMPR%. Amount of ASPD increase = 100 + Lvl * 100 Amount of ASPD% increase = 25 * Lvl % Amount of AMPR reduced on caster = -(100 - Lvl * 3)% Duration on caster = 15minutes
+
+NOTES: --All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like perfect defense except zantei). The aura will stay if the caster dodges or evades however. --All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster. --Party members can get the buff only if they stand inside the radius of aura.
+
+Game Description:
+Create an area that enhances Attack Speed. The user's Attack MP Recovery is lowered and the effect ends when you take damage.
+
+
+==================================================
+SKILL: MANA RECHARGE
+==================================================
+
+Category: Support Skills
+Tier: I
+Required Level: Level 10
+
+Source Details:
+Cast an aura to regenerate the party's MP Aura based party/self buffer MP Cost = 300MP Radius of Aura: 5 + Lvl/2 m (From caster as centre) Effect: Generate an aura which gives a buff to regenerate MP of the party members inside the aura. Nerf on caster: Reduce the damage dealt. Amount of MP regenerated = 10 + 1.5 * Lvl + Total_INTofCaster/10 MP healing ticks = Every 3 seconds while having the buff Reduction of damage dealt by caster = - (50 - Lvl * 2.5) % (Applied multiplicatively at the end of damage calculation after added with brave aura bonus) Duration on caster = 15minutes
+
+NOTES: --All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like perfect defense except zantei). The aura will stay if the caster dodges or evades however. --All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster. --Party members can get the buff only if they stand inside the radius of aura.
+
+Game Description:
+Create an area that regenerates MP. The player's ATK decreases. The effect ends when the player takes damage.
+
+
+==================================================
+SKILL: MAGIC BARRIER
+==================================================
+
+Category: Support Skills
 Tier: II
-Required Level: Level 60
+Required Level: Level 30
 
 Source Details:
-Type: Support
-Proration: None
-Mechanic: Song Resume / Defensive
+Cast an aura to increase the party's defenses Aura based party/self buffer MP Cost = 400MP Radius of Aura: 5 + Lvl/2 m (From caster as centre) Cast Time = 1second (Affected by CSPD) Effect: Generate an aura which reduced the party member's damage taken and increase DEF/MDEF Nerf on caster: Reduce dodge% Amount of damage taken reduction = - Lvl * 2 % (Applied multiplicatively at the end of damage calculation after added along with life recovery nerf and gem effects) Amount of DEF/MDEF increase = 10 + Lvl * 2 % Amount of dodge drop on caster = - (75 - Lvl * 2.5) % Duration on caster = 15minutes
 
-MP Cost: 100
-Action Range: Unlimited
-
-Description:
-Resumes the most recently used song. Reduces damage taken during Ad-Lib if a song is currently active. At Skill Level 10, this effect becomes invincibility instead of damage reduction.
-
-Damage Reduction:
-10% * SkillLvl
-
-At Skill Level 10:
-- Damage Reduction reaches 100%.
-- Grants invincibility.
-- Invincibility duration: 1 second.
-
-Conditions:
-- Damage Reduction or invincibility only occurs if a song was being played before Ad-Lib was cast.
-- The damage reduction does not stack with Sound Veil.
-- When both are applicable, the higher damage reduction value is used.
-
-Interrupted Song Resume Conditions:
-1. Being hit by an enemy, using another skill, or performing a basic attack starts a 10-second countdown.
-2. Ad-Lib must be used within those 10 seconds.
-3. If Ad-Lib is not used within the countdown, the interrupted song disappears completely.
+NOTES: --All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like perfect defense except zantei). The aura will stay if the caster dodges or evades however. --All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster. --Party members can get the buff only if they stand inside the radius of aura.
 
 Game Description:
-Not provided in source.
+Create an area that enhances DEF and armor performance. The player's Dodge Rate decreases. The effect ends when the player takes damage.
 
 
 ==================================================
-SKILL: BEAT BLAST
+SKILL: IMMUNITY
 ==================================================
 
-Category: Minstrel Skills
-Tier: II
-Required Level: Level 60
-
-Source Details:
-Type: Active
-Mechanic: Song / Stack Attack
-
-MP Cost: 0
-Damage Type: Magic
-Damage Stat:
-Uses ATK or MATK, whichever is higher.
-
-Maximum Cast Range:
-Weapon Range
-
-Description:
-A sound-pressure attack usable only while a song skill is active. Gains Beat Blast stacks based on MP consumed by allies affected by the player's song and consumes those stacks to deal magic damage.
-
-Stack Gain:
-Gain 1 Beat Blast stack whenever a player affected by your song consumes 300 MP.
-
-Affected Players:
-Includes Guild Raid allies.
-
-Maximum Stacks:
-20
-
-Maximum Stacks Consumed Per Cast:
-6
-
-Hit Count:
-Deals one hit per Beat Blast stack consumed.
-
-Base Skill Multiplier:
-1 + 0.15 * SkillLvl
-
-Base Skill Constant:
-0
-
-Innate Magic Pierce:
-10% * SkillLvl
-
-Range Properties:
-- Forced Long Range Damage.
-- Affected by Long Range Damage.
-- Not affected by the Long Range skill.
-
-Damage Modifier Interaction:
-- Affected by Concentrate.
-
-Proration:
-- Uses Magic Proration.
-- Deals Magic Proration.
-- Proration occurs once per cast, not once per hit.
-
-Requirement:
-Can only be used while a song skill is active.
-
-Game Description:
-Not provided in source.
-
-
-==================================================
-SKILL: PASSION SONG
-==================================================
-
-Category: Minstrel Skills
+Category: Support Skills
 Tier: III
-Required Level: Level 120
+Required Level: Level 70
 
 Source Details:
-Type: Support
-Proration: None
-Mechanic: Song / Acoustic Buff
+Cast an aura to increase the party's resistance to ailments Aura based party/self buffer MP Cost = 500MP Radius of Aura: 5 + Lvl/2 m (From caster as centre) Cast Time = 2second (Affected by CSPD) Effect: Generate an aura which gives ailment resistance to the party Nerf on caster: Reduce ASPD% Amount of ailment resistance given = 20 + lvl * 3 % (Applied separately from the ailment resistance % stat and MTL personal, as such can not be added to them to reach 100% ailment resistance) Amount of ASPD% drop on caster = - (1000 - Lvl * 75) % Duration on caster = 15minutes
 
-MP Cost: 300
-Action Range: Unlimited
-
-Description:
-An incredibly strong and fierce determination. Increases Damage to Element against a weak element and against Neutral-element targets. Increases Aggro for the current aggro holder.
-
-Damage to Element Increase:
-INT(INT(1.5% * SkillLvl) * PartyMemberNumber / 4)
-
-Conditions:
-- Damage to Element bonus is granted against enemies whose element is weak against the player's attack element.
-- If the enemy's element is Neutral, the Damage to Element bonus applies regardless of attack element.
-- For party members who are not the song caster, ignore the PartyMemberNumber / 4 part of the formula.
-
-Aggro Effect:
-Increases Aggro for the current aggro holder by 30%.
+NOTES: --All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like perfect defense except zantei). The aura will stay if the caster dodges or evades however. --All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster. --Party members can get the buff only if they stand inside the radius of aura.
 
 Game Description:
-Not provided in source.
+Create an area that has chance to protect allies from status ailments. Your Attack Speed will be lowered. The effects will end when taking damage.
 
 
 ==================================================
-SKILL: WISDOM SONG
+SKILL: FAST REACTION
 ==================================================
 
-Category: Minstrel Skills
-Tier: III
-Required Level: Level 120
+Category: Support Skills
+Tier: IV
+Required Level: Level 150
 
 Source Details:
-Type: Support
-Proration: None
-Mechanic: Song / Acoustic Buff
+Cast an aura to enhances guard and evasion Aura based party/self buffer MP Cost = 600MP Radius of Aura: 5 + Lvl/2 m (From caster as centre) Cast Time = 3second (Affected by CSPD) Effect: Generate an aura which gives a buff to party member's guard and evasion rate. Nerf on caster: Reduce CSPD% Amount of guard recharge increase = 10 + 1 * Lvl % Amount of evasion recharge increase = 1 * Lvl % Amount of CSPD% drop on caster = - (1000 - Lvl * 75) % Duration on caster = 15minutes
 
-MP Cost: 300
-Action Range: Unlimited
-
-Description:
-Enlightenment born from immense knowledge. Reduces all types of damage and reduces Knockback distance.
-
-Damage Reduction:
-INT(2.5 * SkillLvl)%
-
-Knockback Reduction:
-5% * SkillLvl * PartyMemberNumber / 4
-
-Notes:
-For party members who are not the song caster, ignore the PartyMemberNumber / 4 part of the Knockback Reduction formula.
+NOTES: --All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like perfect defense except zantei). The aura will stay if the caster dodges or evades however. --All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster. --Party members can get the buff only if they stand inside the radius of aura.
 
 Game Description:
-Not provided in source.
-
-
-==================================================
-SKILL: SOUND VEIL
-==================================================
-
-Category: Minstrel Skills
-Tier: III
-Required Level: Level 120
-
-Source Details:
-Type: Passive
-Mechanic: Song / Acoustic Buff Scaling
-
-Description:
-While a song skill is active, the player's Aggro output becomes 1. Reduces all types of damage according to the number of Acoustic Buffs. Damage from enemies directly targeting the player cannot be reduced by this effect.
-
-Damage Reduction:
-Min(AcousticBuffCount, 9) * SkillLvl
-
-Aggro Effect:
-While a song skill is active, Aggro output becomes 1.
-
-Restrictions:
-- Damage from enemies directly targeting the player cannot be reduced by Sound Veil.
-- Does not stack with Ad-Lib.
-- If both Sound Veil and Ad-Lib apply, the higher damage reduction value is used.
-
-Note:
-The source notes that a bug may occur where the damage reduction buff fails to activate.
-
-Game Description:
-Not provided in source.
-
-
-==================================================
-SKILL: BATTLE ANTHEM
-==================================================
-
-Category: Minstrel Skills
-Tier: III
-Required Level: Level 120
-
-Source Details:
-Type: Passive
-Mechanic: Song / Automatic Basic Attack
-
-Description:
-While a song skill is active, emits an aggressive sound and performs a normal attack against targets within weapon range while the player is stationary.
-
-Activation Condition:
-- A song skill must be active.
-- The player must be stationary.
-- The target must be within weapon range.
-
-Attack Interval:
-Max(0, (1100 - INT(ASPD * SkillLvl / 10)) / 1000) seconds
-
-Basic Attack Properties:
-No basic attack modifier changes.
-
-Notes:
-Activation interval depends on ASPD and Skill Level.
-
-Game Description:
-Not provided in source.
+Creates an area that enhances Guard and Evasion Recharge. The user's Cast Speed decreases and the effect ends when taking damage.
