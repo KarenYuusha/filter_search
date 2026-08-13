@@ -13,6 +13,9 @@ import search_items as core
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_SKILL_DATABASE = (
+    PROJECT_ROOT / "coryn_data/database/skills.sqlite"
+).resolve()
 
 
 @dataclass(frozen=True)
@@ -20,6 +23,7 @@ class DiscordBotConfig:
     token: str
     guild_ids: frozenset[int]
     database_path: Path = core.DEFAULT_DATABASE
+    skill_database_path: Path = DEFAULT_SKILL_DATABASE
 
     @property
     def guild_id(self) -> int:
@@ -53,7 +57,23 @@ def load_config(environ: Mapping[str, str] = os.environ) -> DiscordBotConfig:
     guild_ids = frozenset(int(part) for part in guild_parts)
     if not guild_ids:
         raise RuntimeError(f"{guild_setting} must contain at least one Discord server ID")
-    return DiscordBotConfig(token=token, guild_ids=guild_ids)
+
+    skill_path_text = environ.get("SKILL_DATABASE_PATH", "").strip()
+    if skill_path_text:
+        candidate = Path(skill_path_text).expanduser()
+        skill_database_path = (
+            candidate.resolve()
+            if candidate.is_absolute()
+            else (PROJECT_ROOT / candidate).resolve()
+        )
+    else:
+        skill_database_path = DEFAULT_SKILL_DATABASE
+
+    return DiscordBotConfig(
+        token=token,
+        guild_ids=guild_ids,
+        skill_database_path=skill_database_path,
+    )
 
 
 def build_intents() -> discord.Intents:
