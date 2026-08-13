@@ -71,6 +71,25 @@ class SkillSearchServiceTests(unittest.TestCase):
         )
         self.assertEqual(payload.tree.id, payload.skill.tree_id)
 
+    def test_repository_alias_resolution_path_returns_detail_without_semantic_runtime(self):
+        skill = SimpleNamespace(
+            id="tree-one/canonical-skill",
+            tree_id="tree-one",
+            name="Canonical Skill",
+            description="Alias target",
+            game_description=None,
+            tier=1,
+            skill_type="Active",
+            mp_cost_text="100",
+            damage_type="Physical",
+        )
+        payload = SkillSearchService(
+            FakeRepository((skill,)),
+            semantic_runtime=ExplodingSemanticRuntime(),
+        ).handle("legacy alias")
+        self.assertEqual(type(payload).__name__, "SkillDetailPayload")
+        self.assertEqual(payload.skill.id, skill.id)
+
     def test_multiple_exact_matches_return_results_in_repository_order(self):
         skills = (
             SimpleNamespace(
