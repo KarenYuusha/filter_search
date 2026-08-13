@@ -1,597 +1,583 @@
-Category: Blacksmith Skills
+Category: Support Skills
 
 GENERAL INFORMATION
 
 Tier Requirements:
-- Tier I: Level 25
-- Tier II: Level 50
-- Tier III: Level 100
-- Tier IV: Level 200
-- Tier V: Level 250
+- Tier I: Level 10
+- Tier II: Level 30
+- Tier III: Level 70
+- Tier IV: Level 150
+
+Shared Rules and Notes:
+- Support skills as the name suggests are various party buffer/healing skills to help support the party.
+- All support skills except Sanctuary are un-comboable.
+- The bottom 2 branches all have a nerf applied on the caster and disappear if the caster is damaged.
+- The positive stats are applied to the whole party inside the aura including the caster.
+- The bottom 2 branches support skills are all aura based support skills which generate [30 + 30 * PlayersConnected] amount of aggro per 3 seconds per active aura on all enemies having base aggro on you.
+- Aura aggro is unaffected by Aggro+% equipment.
+- Source note: using Asobimo aggro, 1 MP = 10 Aggro.
 
 
 ==================================================
-SKILL: PROCESS MATERIAL
+SKILL: FIRST AID
 ==================================================
 
-Category: Blacksmith Skills
+Category: Support Skills
 Tier: I
-Required Level: Level 25
+Required Level: Level 10
 
 Source Details:
-Type: Utility
+Type: Party healer
+Action Range: 2m
 
 Description:
-Allows the player to process items in the inventory and convert them into material points without spending Spina.
+Reduce the revive time for dead party members.
 
-Material Point Result:
-Items processed through this skill give material points at random, but provide at least:
+Revive Time Reduction:
+30 + 2 * Lvl % of current revive time
 
-Minimum Material Points =
-(80 + SkillLvl)% of the normal material point amount
+MP Cost:
+- Starts from 1 MP.
+- Increases by 1 MP every time you use it consecutively.
+- Reduced by 1 MP every 1 minute if no First Aid was given.
+- Resets back to 1 MP by changing maps.
 
 Notes:
-- This skill's level is shared with Process Material in the Alchemy Skills tree.
+- Click on a dead party member's HP bar or the character in the over world to drop a menu for giving first aid.
+- Without getting this skill revive time reduction for giving first aid will be 30% of current time fixed.
+- Giving first aid counts as party buffer aggro generation.
 
 Game Description:
-Process materials by yourself. The success rate increases as the skill levels up. It is a common skill in Smith and Alchemy Skills.
+"First Aid" effect in Support menu increases. The waiting time to revive is largely reduced.
 
 
 ==================================================
-SKILL: REFINE EQUIPMENT
+SKILL: MINI HEAL
 ==================================================
 
-Category: Blacksmith Skills
+Category: Support Skills
 Tier: I
-Required Level: Level 25
+Required Level: Level 10
 
 Source Details:
-Type: Refinement
+Type: Party/Self healer
+MP Cost: 100 MP
+Action Range: 48m (For healing party only)
+Base Cast Time: 1 second
+Cast Time Modifier: Affected by CSPD
 
 Description:
-Allows the player to refine equipment without spending Spina.
+Heal a small amount of the target character's HP. Reduce the revive time if they are dead.
 
-Skill Bonus Multiplier Increase:
-2 * SkillLvl
+Heal Amount:
+30 * Lvl + 1 * Lvl% of target's MaxHP
 
-Related Information:
-See the Refinement information for more details.
+Revive Time Reduction:
+1 * Lvl seconds
 
-Game Description:
-Refine Equipment by yourself. The success rate is lower than the blacksmiths but you don't need Spina.
-
-
-==================================================
-SKILL: PRIVATE ANVIL
-==================================================
-
-Category: Blacksmith Skills
-Tier: I
-Required Level: Level 25
-
-Source Details:
-Type: Passive
-
-Description:
-Increases the Blacksmith Proficiency limit.
-
-Blacksmith Proficiency Limit:
-50 + (40% + 6% * SkillLvl) * (CurrentGameLevelCap - 50)
+Notes:
+- Click on a party member's HP bar or click their over world sprite to use the spell on them.
+- If used on self it acts as a self buffer aggro generator.
+- If used on a party member it acts as a party buffer aggro generator.
 
 Game Description:
-Increases the proficiency limit of blacksmithing. You can level up the proficiency up to Lv50 without this skill. At Lv10, the limit increases to the level cap.
+Restore the target's HP a little. Reduce the target's waiting time to revive if the target is knocked out.
+Mini Heal will target the Caster automatically if no target is specified
 
 
 ==================================================
-SKILL: CREATE EQUIPMENT
+SKILL: RECOVERY
 ==================================================
 
-Category: Blacksmith Skills
-Tier: I
-Required Level: Level 25
-
-Source Details:
-Type: Crafting
-
-Description:
-Allows the player to create equipment without spending Spina.
-
-Crafting Notes:
-- Equipment crafted this way has a very low chance of having 2 slots.
-- The exact chances of producing 1-slot or 2-slot equipment are unknown in the source.
-- NPC Blacksmith crafting requires Spina and cannot produce 2-slot equipment.
-- NPC Blacksmith crafting and player crafting use the same material requirements.
-- Created equipment does not receive ordinary stats directly; instead it receives Potential.
-- On success, resulting Potential depends on base Potential, player stat allocation, equipment type, number of slots, and certain skills.
-- Full effects of all Potential modifiers are unknown in the source.
-- On failure, the resulting equipment may have lower Potential than its base Potential.
-- On success, equipment may have higher-than-normal base ATK or DEF and higher-than-normal Potential.
-
-Difficulty Limit:
-BlacksmithProficiencyLvl + TEC / 2 + TotalDEX / 6
-
-Crafting Success Rate at Create Equipment Level 10:
-10 + DifficultyLimit - EquipmentDifficulty + STR / 10
-
-Source Qualification:
-The source describes this success-rate formula as "supposedly" correct.
-
-Game Description:
-Create equipment by yourself. Create Equipment is required to attach stats.
-
-
-==================================================
-SKILL: CUSTOMIZE EQUIPMENT
-==================================================
-
-Category: Blacksmith Skills
-Tier: I
-Required Level: Level 25
-
-Source Details:
-Type: Equipment Stat Customization
-
-Description:
-Allows the player to add and modify stats on equipment that has Potential greater than 0.
-
-Base Statting Slots:
-3
-
-Rules:
-- If a statting slot is already occupied by a stat, the stat itself cannot be changed, but its value can be modified.
-- Adding stats consumes equipment Potential.
-- Adding negative stats restores some Potential.
-- Adding multiple stats from the same category applies a penalty to Potential removed or added.
-
-Statting Success Rate:
-230 * PotentialAfterStatting / PotentialBeforeStatting
-+ 100
-+ SkillStattingBonusRate
-
-Final-Step Potential Rule:
-If PotentialBeforeStatting is lower than the equipment's Base Potential on the final statting step:
-
-PotentialBeforeStatting = BasePotential
-
-Potential Returned by Negative Stats:
-(5 + TEC / 10)% of the stat's Potential cost
-
-Skill Statting Bonus Rate Increase:
-SkillLvl
-
-Game Description:
-Consume potential and attach stats to the equipment created by Create Equipment.
-
-
-==================================================
-SKILL: MID-CLASS REFINEMENT
-==================================================
-
-Category: Blacksmith Skills
+Category: Support Skills
 Tier: II
-Required Level: Level 50
+Required Level: Level 30
 
 Source Details:
-Type: Passive
+Type: Party/Self healer
+MP Cost: 100 MP
+Action Range: 48m (For healing party only)
 
 Description:
-Increases the success rate of Refine Equipment.
-
-Skill Bonus Base Chance Increase:
-Floor((SkillLvl + 1) / 2)
-
-Skill Bonus Multiplier Increase:
-0.5 * SkillLvl
-
-Game Description:
-Increases the success rate of Refine Equipment a little.
-
-
-==================================================
-SKILL: CRAFTSMAN'S ANVIL
-==================================================
-
-Category: Blacksmith Skills
-Tier: II
-Required Level: Level 50
-
-Source Details:
-Type: Passive
-
-Description:
-Reduces material points required for Customize Equipment.
-
-Material Cost Reduction:
-SkillLvl %
-
-Stacking:
-- Additive with reductions from other Anvil skills.
-- Multiplicative with reductions from Blacksmith Proficiency and Compassion skills.
-
-Game Description:
-Not provided in source.
-
-
-==================================================
-SKILL: CAREFUL CREATION
-==================================================
-
-Category: Blacksmith Skills
-Tier: II
-Required Level: Level 50
-
-Source Details:
-Type: Passive
-
-Description:
-Increases the Potential of equipment created by Create Equipment.
-
-Potential Increase:
-SkillLvl % of BasePotential
-
-Game Description:
-The potential of the equipment created by Create Equipment increases.
-
-
-==================================================
-SKILL: HIGH-CLASS REFINEMENT
-==================================================
-
-Category: Blacksmith Skills
-Tier: III
-Required Level: Level 100
-
-Source Details:
-Type: Passive
-
-Description:
-Increases the success rate of Refine Equipment.
-
-Skill Bonus Base Chance Increase:
-SkillLvl
-
-Skill Bonus Multiplier Increase:
-0.5 * SkillLvl
-
-Game Description:
-Increases the success rate of Refine Equipment.
-
-
-==================================================
-SKILL: BLACKSMITH'S ANVIL
-==================================================
-
-Category: Blacksmith Skills
-Tier: III
-Required Level: Level 100
-
-Source Details:
-Type: Passive
-
-Description:
-Reduces material points required for Customize Equipment.
-
-Material Cost Reduction:
-SkillLvl %
-
-Stacking:
-- Additive with reductions from other Anvil skills.
-- Multiplicative with reductions from Blacksmith Proficiency and Compassion skills.
-
-Game Description:
-Not provided in source.
-
-
-==================================================
-SKILL: ACCURATE CUSTOMIZATION
-==================================================
-
-Category: Blacksmith Skills
-Tier: III
-Required Level: Level 100
-
-Source Details:
-Type: Passive
-
-Description:
-Increases the success rate of Customize Equipment and increases the number of statting slots.
-
-Skill Statting Bonus Rate Increase:
-2 * SkillLvl
-
-Additional Statting Slots:
-- Skill Level 1: +0
-- Skill Levels 2 to 4: +1
-- Skill Levels 5 to 7: +2
-- Skill Levels 8 to 10: +3
-
-Game Description:
-The success rates of Customize Equipment increase a little. The number of abilities you can add increases.
-
-
-==================================================
-SKILL: EXPERT'S REFINEMENT
-==================================================
-
-Category: Blacksmith Skills
-Tier: IV
-Required Level: Level 200
-
-Source Details:
-Type: Passive
-
-Description:
-Increases the success rate of Refine Equipment.
-
-Skill Bonus Base Chance Increase:
-Floor(1.5 * SkillLvl)
-
-Skill Bonus Multiplier Increase:
-0.5 * SkillLvl
-
-Game Description:
-Increases the success rate of Refine Equipment more.
-
-
-==================================================
-SKILL: MASTER'S ANVIL
-==================================================
-
-Category: Blacksmith Skills
-Tier: IV
-Required Level: Level 200
-
-Source Details:
-Type: Passive
-
-Description:
-Reduces material points required for Customize Equipment.
-
-Material Cost Reduction:
-SkillLvl %
-
-Stacking:
-- Additive with reductions from other Anvil skills.
-- Multiplicative with reductions from Blacksmith Proficiency and Compassion skills.
-
-Game Description:
-Not provided in source.
-
-
-==================================================
-SKILL: EXPERT'S CREATION
-==================================================
-
-Category: Blacksmith Skills
-Tier: IV
-Required Level: Level 200
-
-Source Details:
-Type: Passive
-
-Description:
-Increases the Potential of equipment created by Create Equipment.
-
-Potential Increase:
-2 * SkillLvl % of BasePotential
-
-Game Description:
-The potential of the equipment created by Create Equipment increases.
-
-
-==================================================
-SKILL: EXPERT'S CUSTOMIZATION
-==================================================
-
-Category: Blacksmith Skills
-Tier: IV
-Required Level: Level 200
-
-Source Details:
-Type: Passive
-
-Description:
-Increases the statting capacity of Customize Equipment.
-
-Skill Statting Bonus Rate Increase:
-3 * SkillLvl
-
-Additional Statting Slots:
-- Skill Levels 1 to 5: +1
-- Skill Levels 6 to 10: +2
-
-Game Description:
-The number of abilities you can add with Customize Equipment increases.
-
-
-==================================================
-SKILL: MASTER'S ANVIL II
-==================================================
-
-Category: Blacksmith Skills
-Tier: V
-Required Level: Level 250
-
-Source Details:
-Type: Passive
-
-Description:
-Reduces material points required for Customize Equipment.
-
-Material Cost Reduction:
-SkillLvl %
-
-Stacking:
-- Additive with reductions from other Anvil skills.
-- Multiplicative with reductions from Blacksmith Proficiency and Compassion skills.
-
-Game Description:
-Not provided in source.
-
-
-==================================================
-SKILL: EXPERT'S CUSTOMIZATION II
-==================================================
-
-Category: Blacksmith Skills
-Tier: V
-Required Level: Level 250
-
-Source Details:
-Type: Passive
-
-Description:
-May allow the ability in the first stat slot to remain unchanged when Customize Equipment fails.
+Cast a spell to cure ailments. Prevent getting an ailment within a fixed duration if used on a character having no ailment.
 
 Effect:
-Still under investigation in the source.
+Heal ailment if any or give a buff that prevents getting an ailment once.
+
+MP Recovery:
+Lvl * Lvl MP
+
+MP Recovery Condition:
+Recover MP if an ailment is successfully removed or a given buff successfully prevents getting an ailment.
+
+Buff Duration:
+10 + 2 * Lvl seconds
 
 Notes:
-- The source states that this effect remains unchanged regardless of how much TEC the player has.
+- Click on a party member's HP bar or click their over world sprite to use the spell on them.
+- If used on self it acts as a self buffer aggro generator.
+- If used on a party member it acts a party buffer aggro generator.
+- Currently unknown which ailment gets priority to be removed in the case its casted on a char having more than 1 ailment.
+- This skill can not heal or prevent FLINCH, TUMBLE, STUN or KNOCKBACK ailments.
+- It also can not prevent MAGIC FLINCH (FLINCH caused when getting hit by a non ailment move while casting magic skills).
 
 Game Description:
-The ability in the first slot may remain unchanged even when Customize Equipment fails.
+Remove a target's one status ailment. If there is no ailment to remove, it becomes a buff to remove one ailment at once for a few seconds. Restore the user's MP a little when succeeding in removing an ailment.
+Recovery will target the Caster automatically if no target is specified
 
 
 ==================================================
-SKILL: METAL COMPASSION
+SKILL: SANCTUARY
 ==================================================
 
-Category: Blacksmith Skills
-Tier: I
-Required Level: Level 25
+Category: Support Skills
+Tier: III
+Required Level: Level 70
 
 Source Details:
-Type: Passive
+Type: Support skill {Placed}
+MP Cost: 400 MP
 
 Description:
-Reduces Metal points consumed by Customize Equipment.
+Generate a platform which reduces damage taken.
 
-Metal Point Consumption Reduction:
-SkillLvl %
+Effect:
+Place a platform on the ground standing on which reduces damage taken depending on your MaxHP.
 
-Stacking:
-Applied multiplicatively with material reduction from Smith Proficiency and Anvil skills.
+Condition:
+It will only reduce the damage taken if the damage is less than a % of your MaxHP.
+
+Platform Radius:
+1 + Lvl / 3 m (From centre = caster position)
+
+At Level 10:
+Platform Radius = 4.33m
+
+MaxHP Damage Threshold:
+(5 + 0.5 * Lvl)% of your MaxHP
+
+Damage Reduction:
+(30 + [(Lvl - 1) / 3] * 20)%
+
+Duration:
+5 + Lvl seconds
+
+Notes:
+- This skill acts as a party buffer aggro generator when placed at a position having party members within platform radius.
+- The damage reduction applies to any category of attack including fractionals as long as the condition is satisfied.
 
 Game Description:
-Reduces the Metal points consumed by Skill: [Customize Equipment].
+Create a sanctuary and protect allies. Reduce damage taken while in the area. The amount depends on each player's MaxHP. Ineffective against fatal damage.
 
 
 ==================================================
-SKILL: FABRIC COMPASSION
+SKILL: HEAL
 ==================================================
 
-Category: Blacksmith Skills
-Tier: I
-Required Level: Level 25
+Category: Support Skills
+Tier: IV
+Required Level: Level 150
 
 Source Details:
-Type: Passive
+Type: Party/Self healer
+MP Cost: 300 MP
+Action Range: 24m (For healing party only)
+Base Cast Time: 1 second
+Cast Time Modifier: Affected by CSPD
 
 Description:
-Reduces Cloth points consumed by Customize Equipment.
+Heal a large amount of the target character's HP. Reduce the revive time if they are dead.
 
-Cloth Point Consumption Reduction:
-SkillLvl %
+Heal Amount:
+300 * Lvl + (10 + 1 * Lvl)% of target's MaxHP
 
-Stacking:
-Applied multiplicatively with material reduction from Smith Proficiency and Anvil skills.
+Revive Time Reduction:
+10 + 2 * Lvl seconds
+
+Notes:
+- Click on a party member's HP bar or click their over world sprite to use the spell on them.
+- If used on self it acts as a self buffer aggro generator.
+- If used on a party member it acts a party buffer aggro generator.
 
 Game Description:
-Reduces the Fabric points consumed by Skill: [Customize Equipment].
+Restore a target's HP. Greatly shorten the time to revive when using this skill to a defeated player.
+Heal will target the Caster automatically if no target is specified
 
 
 ==================================================
-SKILL: BEAST COMPASSION
+SKILL: LIFE RECOVERY
 ==================================================
 
-Category: Blacksmith Skills
+Category: Support Skills
 Tier: I
-Required Level: Level 25
+Required Level: Level 10
 
 Source Details:
-Type: Passive
+Type: Aura based party/self buffer
+MP Cost: 300 MP
+Aura Radius: 5 + Lvl / 2 m (From caster as centre)
 
 Description:
-Reduces Beast points consumed by Customize Equipment.
+Cast an aura to heal the party's HP.
 
-Beast Point Consumption Reduction:
-SkillLvl %
+Effect:
+Generate an aura which gives a buff to heal HP of the party members inside the aura.
 
-Stacking:
-Applied multiplicatively with material reduction from Smith Proficiency and Anvil skills.
+Caster Penalty:
+Increase the damage taken.
+
+HP Heal Amount:
+10 + Lvl * 4 + TotalVITofCaster
+
+HP Healing Interval:
+Every 3 seconds while having the buff
+
+Damage Taken Increase:
++(400 - Lvl * 20)% more damage
+
+Damage Calculation Note:
+Applied multiplicatively at the end of damage calculation after added with Magic Barrier bonus and Gem effect.
+
+Duration on Caster:
+15 minutes
+
+Notes:
+- All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like Perfect Defense except Zantei).
+- The aura will stay if the caster dodges or evades however.
+- All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
+- Party members can get the buff only if they stand inside the radius of aura.
 
 Game Description:
-Reduces the Beast points consumed by Skill: [Customize Equipment].
+Create an area that regenerates HP. The player's DEF decreases. The effect ends when the player take damage.
 
 
 ==================================================
-SKILL: WOOD COMPASSION
+SKILL: BRAVE AURA
 ==================================================
 
-Category: Blacksmith Skills
-Tier: I
-Required Level: Level 25
+Category: Support Skills
+Tier: II
+Required Level: Level 30
 
 Source Details:
-Type: Passive
+Type: Aura based party/self buffer
+MP Cost: 400 MP
+Aura Radius: 5 + Lvl / 2 m (From caster as centre)
+Base Cast Time: 1 second
+Cast Time Modifier: Affected by CSPD
 
 Description:
-Reduces Wood points consumed by Customize Equipment.
+Cast an aura to increase the party's attack power.
 
-Wood Point Consumption Reduction:
-SkillLvl %
+Effect:
+Generate an aura which gives a buff to party member's damage dealt and WeaponATK.
 
-Stacking:
-Applied multiplicatively with material reduction from Smith Proficiency and Anvil skills.
+Caster Penalty:
+Reduce Accuracy%.
+
+Damage Dealt Increase:
++Lvl * 2%
+
+Damage Calculation Note:
+Applied multiplicatively at the end of damage calculation after added along with Mana Recharge reduction.
+
+WeaponATK Increase:
+(10 + Skill Level * 2)%
+
+Accuracy Reduction:
+-(75 - Skill Level * 2.5)%
+
+Duration on Caster:
+15 minutes
+
+Notes:
+- All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like Perfect Defense except Zantei).
+- The aura will stay if the caster dodges or evades however.
+- All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
+- Party members can get the buff only if they stand inside the radius of aura.
 
 Game Description:
-Reduces the Wood points consumed by Skill: [Customize Equipment].
+Create an area that enhances ATK and weapon performance. The player's Accuracy Rate decreases. The effect ends when the player takes damage.
 
 
 ==================================================
-SKILL: MEDICINE COMPASSION
+SKILL: HIGH CYCLE
 ==================================================
 
-Category: Blacksmith Skills
-Tier: I
-Required Level: Level 25
+Category: Support Skills
+Tier: III
+Required Level: Level 70
 
 Source Details:
-Type: Passive
+Type: Aura based party/self buffer
+MP Cost: 500 MP
+Aura Radius: 5 + Lvl / 2 m (From caster as centre)
+Base Cast Time: 2 seconds
+Cast Time Modifier: Affected by CSPD
 
 Description:
-Reduces Medicine points consumed by Customize Equipment.
+Cast an aura to shorten cast time.
 
-Medicine Point Consumption Reduction:
-SkillLvl %
+Effect:
+Generate an aura which gives a buff to party member's CSPD and CSPD%.
 
-Stacking:
-Applied multiplicatively with material reduction from Smith Proficiency and Anvil skills.
+Caster Penalty:
+Reduce AMPR% and Natural MP Regen.
+
+CSPD Increase:
+50 + Lvl * 50
+
+CSPD% Increase:
+25 * Lvl%
+
+Natural MP Regen Reduction:
+-(50.5 - Lvl * 2.5)%
+
+AMPR% Reduction:
+-(90.5 - Lvl * 1.5)%
+
+Duration on Caster:
+15 minutes
+
+Notes:
+- All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like Perfect Defense except Zantei).
+- The aura will stay if the caster dodges or evades however.
+- All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
+- Party members can get the buff only if they stand inside the radius of aura.
 
 Game Description:
-Reduces the Medicine points consumed by Skill: [Customize Equipment].
+Create the area to shorten charge and cast time. Your MP restoration will be weakened. The effects will end when taking damage.
 
 
 ==================================================
-SKILL: MANA COMPASSION
+SKILL: QUICK MOTION
 ==================================================
 
-Category: Blacksmith Skills
-Tier: I
-Required Level: Level 25
+Category: Support Skills
+Tier: IV
+Required Level: Level 150
 
 Source Details:
-Type: Passive
+Type: Aura based party/self buffer
+MP Cost: 600 MP
+Aura Radius: 5 + Lvl / 2 m (From caster as centre)
+Base Cast Time: 3 seconds
+Cast Time Modifier: Affected by CSPD
 
 Description:
-Reduces Mana points consumed by Customize Equipment.
+Cast an aura to enhance attack speed.
 
-Mana Point Consumption Reduction:
-SkillLvl %
+Effect:
+Generate an aura which gives a buff to party member's ASPD and ASPD%.
 
-Stacking:
-Applied multiplicatively with material reduction from Smith Proficiency and Anvil skills.
+Caster Penalty:
+Reduce AMPR%.
+
+ASPD Increase:
+100 + Lvl * 100
+
+ASPD% Increase:
+25 * Lvl%
+
+AMPR% Reduction:
+-(100 - Lvl * 3)%
+
+Duration on Caster:
+15 minutes
+
+Notes:
+- All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like Perfect Defense except Zantei).
+- The aura will stay if the caster dodges or evades however.
+- All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
+- Party members can get the buff only if they stand inside the radius of aura.
 
 Game Description:
-Reduces the Mana points consumed by Skill: [Customize Equipment].
+Create an area that enhances Attack Speed. The user's Attack MP Recovery is lowered and the effect ends when you take damage.
+
+
+==================================================
+SKILL: MANA RECHARGE
+==================================================
+
+Category: Support Skills
+Tier: I
+Required Level: Level 10
+
+Source Details:
+Type: Aura based party/self buffer
+MP Cost: 300 MP
+Aura Radius: 5 + Lvl / 2 m (From caster as centre)
+
+Description:
+Cast an aura to regenerate the party's MP.
+
+Effect:
+Generate an aura which gives a buff to regenerate MP of the party members inside the aura.
+
+Caster Penalty:
+Reduce the damage dealt.
+
+MP Regeneration:
+10 + 1.5 * Lvl + Total_INTofCaster / 10
+
+MP Healing Interval:
+Every 3 seconds while having the buff
+
+Damage Dealt Reduction:
+-(50 - Lvl * 2.5)%
+
+Damage Calculation Note:
+Applied multiplicatively at the end of damage calculation after added with Brave Aura bonus.
+
+Duration on Caster:
+15 minutes
+
+Notes:
+- All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like Perfect Defense except Zantei).
+- The aura will stay if the caster dodges or evades however.
+- All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
+- Party members can get the buff only if they stand inside the radius of aura.
+
+Game Description:
+Create an area that regenerates MP. The player's ATK decreases. The effect ends when the player takes damage.
+
+
+==================================================
+SKILL: MAGIC BARRIER
+==================================================
+
+Category: Support Skills
+Tier: II
+Required Level: Level 30
+
+Source Details:
+Type: Aura based party/self buffer
+MP Cost: 400 MP
+Aura Radius: 5 + Lvl / 2 m (From caster as centre)
+Base Cast Time: 1 second
+Cast Time Modifier: Affected by CSPD
+
+Description:
+Cast an aura to increase the party's defenses.
+
+Effect:
+Generate an aura which reduced the party member's damage taken and increase DEF/MDEF.
+
+Caster Penalty:
+Reduce Dodge%.
+
+Damage Taken Reduction:
+-Lvl * 2%
+
+Damage Calculation Note:
+Applied multiplicatively at the end of damage calculation after added along with Life Recovery nerf and Gem effects.
+
+DEF/MDEF Increase:
+10 + Lvl * 2%
+
+Dodge Reduction:
+-(75 - Lvl * 2.5)%
+
+Duration on Caster:
+15 minutes
+
+Notes:
+- All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like Perfect Defense except Zantei).
+- The aura will stay if the caster dodges or evades however.
+- All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
+- Party members can get the buff only if they stand inside the radius of aura.
+
+Game Description:
+Create an area that enhances DEF and armor performance. The player's Dodge Rate decreases. The effect ends when the player takes damage.
+
+
+==================================================
+SKILL: IMMUNITY
+==================================================
+
+Category: Support Skills
+Tier: III
+Required Level: Level 70
+
+Source Details:
+Type: Aura based party/self buffer
+MP Cost: 500 MP
+Aura Radius: 5 + Lvl / 2 m (From caster as centre)
+Base Cast Time: 2 seconds
+Cast Time Modifier: Affected by CSPD
+
+Description:
+Cast an aura to increase the party's resistance to ailments.
+
+Effect:
+Generate an aura which gives Ailment Resistance to the party.
+
+Caster Penalty:
+Reduce ASPD%.
+
+Ailment Resistance Increase:
+20 + Lvl * 3%
+
+Ailment Resistance Note:
+Applied separately from the Ailment Resistance% stat and MTL personal, as such can not be added to them to reach 100% Ailment Resistance.
+
+ASPD% Reduction:
+-(1000 - Lvl * 75)%
+
+Duration on Caster:
+15 minutes
+
+Notes:
+- All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like Perfect Defense except Zantei).
+- The aura will stay if the caster dodges or evades however.
+- All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
+- Party members can get the buff only if they stand inside the radius of aura.
+
+Game Description:
+Create an area that has chance to protect allies from status ailments. Your Attack Speed will be lowered. The effects will end when taking damage.
+
+
+==================================================
+SKILL: FAST REACTION
+==================================================
+
+Category: Support Skills
+Tier: IV
+Required Level: Level 150
+
+Source Details:
+Type: Aura based party/self buffer
+MP Cost: 600 MP
+Aura Radius: 5 + Lvl / 2 m (From caster as centre)
+Base Cast Time: 3 seconds
+Cast Time Modifier: Affected by CSPD
+
+Description:
+Cast an aura to enhances Guard and Evasion.
+
+Effect:
+Generate an aura which gives a buff to party member's Guard and Evasion rate.
+
+Caster Penalty:
+Reduce CSPD%.
+
+Guard Recharge Increase:
+10 + 1 * Lvl%
+
+Evasion Recharge Increase:
+1 * Lvl%
+
+CSPD% Reduction:
+-(1000 - Lvl * 75)%
+
+Duration on Caster:
+15 minutes
+
+Notes:
+- All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like Perfect Defense except Zantei).
+- The aura will stay if the caster dodges or evades however.
+- All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
+- Party members can get the buff only if they stand inside the radius of aura.
+
+Game Description:
+Creates an area that enhances Guard and Evasion Recharge. The user's Cast Speed decreases and the effect ends when taking damage.
