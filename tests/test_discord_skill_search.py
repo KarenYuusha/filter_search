@@ -9,11 +9,14 @@ from unittest.mock import patch
 from toram_discord.app import process_tagged_query
 from toram_discord.config import DiscordBotConfig
 from toram_discord.sessions import DiscordSessionManager
+from toram_discord.skill_detail_pages import build_skill_detail_pages
 from toram_discord.skill_ui import (
     SkillDetailView,
     SkillResultsView,
     build_skill_detail_embed,
+    build_skill_payload_message,
     build_skill_results_embed,
+    render_skill_detail_page,
 )
 from toram_search.service import ServiceOutcome
 from toram_skill_search.models import (
@@ -22,6 +25,7 @@ from toram_skill_search.models import (
     SkillResultItem,
     SkillResultsPayload,
 )
+from toram_skills.models import SkillSection
 from toram_skills.repository import SkillRepository
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,6 +44,32 @@ class FakeMessage:
 
     async def reply(self, **kwargs) -> None:
         self.replies.append(kwargs)
+
+
+class FakeInteractionResponse:
+    def __init__(self) -> None:
+        self.edits = []
+        self.messages = []
+
+    async def edit_message(self, **kwargs) -> None:
+        self.edits.append(kwargs)
+
+    async def send_message(self, *args, **kwargs) -> None:
+        self.messages.append((args, kwargs))
+
+
+class FakeInteraction:
+    def __init__(self, user_id: int = 20) -> None:
+        self.user = SimpleNamespace(id=user_id)
+        self.response = FakeInteractionResponse()
+
+
+def _button(view, label: str):
+    return next(
+        child
+        for child in view.children
+        if getattr(child, "label", None) == label
+    )
 
 
 class DiscordSkillRoutingTests(unittest.IsolatedAsyncioTestCase):
@@ -317,7 +347,173 @@ class DiscordSkillInteractionTests(unittest.TestCase):
         self.assertIn("Previous", labels)
         self.assertIn("Next", labels)
 
-    def test_skill_detail_view_has_back_to_results(self):
+
+class DiscordSkillDetailInteractionTests(unittest.IsolatedAsyncioTestCase):
+    @classmethod
+    def setUpClass(cls):
+        with SkillRepository(SKILL_DATABASE) as repo:
+            skill = repo.resolve_skill_name("magic: finale")[0]
+            tree = repo.get_tree(skill.tree_id)
+        cls.base_payload = SkillDetailPayload(skill, tree)
+        cls.long_payload = SkillDetailPayload(
+            replace(
+                skill,
+                description=None,
+                game_description=None,
+                sections=(
+                    SkillSection(
+                        position=0,
+                        label="Long Mechanics",
+                        normalized_label="long mechanics",
+                        body="\n".join(
+                            f"line-{index}: " + "x" * 220
+                            for index in range(80)
+                        ),
+                    ),
+                ),
+            ),
+            tree,
+        )
+        cls.long_pages = build_skill_detail_pages(cls.long_payload)
+        cls.short_payload = SkillDetailPayload(
+            replace(
+                skill,
+                description="Short detail.",
+                game_description=None,
+                sections=(),
+            ),
+            tree,
+        )
+        results = []
+        with SkillRepository(SKILL_DATABASE) as repo:
+            rows = tuple(
+                repo.connection.execute(
+                    "SELECT id FROM skills ORDER BY tree_id, source_order, id LIMIT 6"
+                )
+            )
+            for row in rows:
+                result_skill = repo.get_skill(str(row["id"]))
+                result_tree = repo.get_tree(result_skill.tree_id)
+                results.append(
+                    SkillResultItem(
+                        result_skill,
+                        result_tree,
+                        result_skill.description
+                        or result_skill.game_description
+                        or result_skill.name,
+                    )
+                )
+        cls.results_payload = SkillResultsPayload("skill query", tuple(results))
+
+    def test_rendered_detail_page_has_footer(self):
+        self.assertGreater(len(self.long_pages), 1)
+        embed = render_skill_detail_page(
+            self.long_pages[1],
+            page_index=1,
+            total_pages=len(self.long_pages),
+        )
+        self.assertEqual(embed.footer.text, f"Page 2 / {len(self.long_pages)}")
+
+    def test_detail_view_button_boundaries_and_back(self):
+        sessions = DiscordSessionManager()
+        key = (10, 30, 20)
+        session = sessions.start_query(key, "skill query")
+
+        first = SkillDetailView(
+            sessions=sessions,
+            key=key,
+            generation=session.generation,
+            pages=self.long_pages,
+            page_index=0,
+            results_payload=self.results_payload,
+        )
+        self.assertTrue(_button(first, "Previous").disabled)
+        self.assertFalse(_button(first, "Next").disabled)
+        self.assertIsNotNone(_button(first, "Back to Results"))
+
+        middle_index = min(1, len(self.long_pages) - 2)
+        middle = SkillDetailView(
+            sessions=sessions,
+            key=key,
+            generation=session.generation,
+            pages=self.long_pages,
+            page_index=middle_index,
+            results_payload=self.results_payload,
+        )
+        if len(self.long_pages) > 2:
+            self.assertFalse(_button(middle, "Previous").disabled)
+            self.assertFalse(_button(middle, "Next").disabled)
+
+        last = SkillDetailView(
+            sessions=sessions,
+            key=key,
+            generation=session.generation,
+            pages=self.long_pages,
+            page_index=len(self.long_pages) - 1,
+            results_payload=self.results_payload,
+        )
+        self.assertTrue(_button(last, "Next").disabled)
+
+    def test_direct_detail_has_only_needed_navigation(self):
+        sessions = DiscordSessionManager()
+        key = (10, 30, 20)
+        session = sessions.start_query(key, "skill query")
+        _, long_view = build_skill_payload_message(
+            self.long_payload,
+            bot_example_prefix="@bot",
+            sessions=sessions,
+            key=key,
+            generation=session.generation,
+        )
+        self.assertIsInstance(long_view, SkillDetailView)
+        labels = [getattr(child, "label", None) for child in long_view.children]
+        self.assertIn("Previous", labels)
+        self.assertIn("Next", labels)
+        self.assertNotIn("Back to Results", labels)
+
+        _, short_view = build_skill_payload_message(
+            self.short_payload,
+            bot_example_prefix="@bot",
+            sessions=sessions,
+            key=key,
+            generation=session.generation,
+        )
+        self.assertIsNone(short_view)
+
+    async def test_next_previous_and_back_preserve_result_page(self):
+        sessions = DiscordSessionManager()
+        key = (10, 30, 20)
+        session = sessions.start_query(key, "skill query")
+        session.page = 1
+        first = SkillDetailView(
+            sessions=sessions,
+            key=key,
+            generation=session.generation,
+            pages=self.long_pages,
+            page_index=0,
+            results_payload=self.results_payload,
+        )
+
+        next_interaction = FakeInteraction()
+        await first._next(next_interaction)
+        next_edit = next_interaction.response.edits[-1]
+        self.assertEqual(next_edit["embed"].footer.text, f"Page 2 / {len(self.long_pages)}")
+        self.assertEqual(session.page, 1)
+
+        second_view = next_edit["view"]
+        previous_interaction = FakeInteraction()
+        await second_view._previous(previous_interaction)
+        previous_edit = previous_interaction.response.edits[-1]
+        self.assertEqual(previous_edit["embed"].footer.text, f"Page 1 / {len(self.long_pages)}")
+        self.assertEqual(session.page, 1)
+
+        back_interaction = FakeInteraction()
+        await second_view._back(back_interaction)
+        back_edit = back_interaction.response.edits[-1]
+        self.assertIn("Showing 6–6 of 6", back_edit["embed"].description or "")
+        self.assertEqual(session.page, 1)
+
+    async def test_detail_view_preserves_owner_and_generation_protections(self):
         sessions = DiscordSessionManager()
         key = (10, 30, 20)
         session = sessions.start_query(key, "skill query")
@@ -325,10 +521,25 @@ class DiscordSkillInteractionTests(unittest.TestCase):
             sessions=sessions,
             key=key,
             generation=session.generation,
-            results_payload=self.six_result_payload,
+            pages=self.long_pages,
+            page_index=0,
+            results_payload=self.results_payload,
         )
-        labels = [child.label for child in view.children if hasattr(child, "label")]
-        self.assertIn("Back to Results", labels)
+
+        wrong_user = FakeInteraction(user_id=999)
+        self.assertFalse(await view.interaction_check(wrong_user))
+        self.assertIn(
+            "Only the person who started this search",
+            wrong_user.response.messages[-1][0][0],
+        )
+
+        sessions.start_query(key, "newer query")
+        stale = FakeInteraction(user_id=20)
+        self.assertFalse(await view.interaction_check(stale))
+        self.assertIn(
+            "no longer active",
+            stale.response.messages[-1][0][0],
+        )
 
 
 if __name__ == "__main__":
