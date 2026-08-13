@@ -16,6 +16,7 @@ Category: Partisan Skills
 Tier: I
 Required Level: None
 
+Source Details:
 T1; THS only
 MP Cost: 200
 Base Skill Constant: 200
@@ -31,7 +32,9 @@ This skill inflicts Normal Auto Attack proration. Its damage is based on Normal 
 This skill won't deal damage if you don't have a boomerang.
 If a boomerang collides with a wall, then that boomerang will return to you instantly but no 100MP gain.
 This skill damage is unaffected by srd%/lrd%/Long Range(Shot tree)
-Game Description: “Throws Lepage's boomerang sword. It will only hit the target and return after traveling a certain distance with the chance of hitting the target again. The skill will do no damage without a boomerang.”
+
+Game Description:
+“Throws Lepage's boomerang sword. It will only hit the target and return after traveling a certain distance with the chance of hitting the target again. The skill will do no damage without a boomerang.”
 
 
 ==================================================
@@ -42,6 +45,7 @@ Category: Partisan Skills
 Tier: II
 Required Level: Level 160
 
+Source Details:
 T2; THS only
 MP Cost: 100
 Base Skill Constant: 100
@@ -55,7 +59,9 @@ This skill inflicts Normal Auto Attack proration. Its damage is based on Normal 
 This skill won't deal damage if you don't have a boomerang.
 If a boomerang collides with a wall, then that boomerang will return to you instantly but no 100 MP gain.
 This skill damage is unaffected by srd%/lrd%/Long Range(Shot tree)
-Game Description: “Throws the boomerang while moving backward, however, it is less powerful. Without a boomerang, you will only move backward.”
+
+Game Description:
+“Throws the boomerang while moving backward, however, it is less powerful. Without a boomerang, you will only move backward.”
 
 
 ==================================================
@@ -66,6 +72,7 @@ Category: Partisan Skills
 Tier: III
 Required Level: Level 250
 
+Source Details:
 T3; THS only
 MP Cost: 400
 Base Skill Constant: 400
@@ -80,7 +87,9 @@ This skill inflicts Normal Auto Attack proration. Its damage is based on Normal 
 This skill won't deal damage if you don't have a boomerang.
 If a boomerang collides with a wall, then that boomerang will return to you instantly but no 100MP gain.
 This skill damage is unaffected by srd%/lrd%/Long Range(Shot tree)
-Game Description: “Critical Rate and Physical Pierce go up. The boomerang will go after the target. It will return after traveling a certain distance or colliding with an obstacle with the chance of hitting the target again. The skill will do no damage without a boomerang.”
+
+Game Description:
+“Critical Rate and Physical Pierce go up. The boomerang will go after the target. It will return after traveling a certain distance or colliding with an obstacle with the chance of hitting the target again. The skill will do no damage without a boomerang.”
 
 
 ==================================================
@@ -91,6 +100,7 @@ Category: Partisan Skills
 Tier: I
 Required Level: None
 
+Source Details:
 T1; Bow/Bowgun only
 MP Cost: 0
 Skill Effect:
@@ -103,9 +113,11 @@ Bow, heal every 2 seconds that last for 10 seconds.
 Bowgun, heal every 1 second that lasts for 5 seconds.
 On the other hand.. for pets/merc seem to get only one heal time per use(with bow or bowgun) instead of heal buff per second which is for players only…
 Heal amount to pets/merc = Floor((5 + Skill Level)/3)% of their hp?
-Game Description: “Consumes your own HP (min 100) and shoots a straight healing arrow toward the furthest party member. The heal amount is different for mercenary, partner, and pet.”
 You cannot heal yourself from this skill!
 This skill can be put in combo, but cannot be put as opener due to 0mp
+
+Game Description:
+“Consumes your own HP (min 100) and shoots a straight healing arrow toward the furthest party member. The heal amount is different for mercenary, partner, and pet.”
 
 
 ==================================================
@@ -116,6 +128,7 @@ Category: Partisan Skills
 Tier: II
 Required Level: Level 160
 
+Source Details:
 T2; Bow/Bowgun only
 MP Cost: 100
 Buff Effect:
@@ -123,7 +136,9 @@ Auto Attack will have its Physical Pierce increased by +MAX(Skill Level ; Base S
 Auto Attack will get critical damage bonus by +MAX(Skill Level ; Base DEX/25 * Skill Level)% [this is same as +cd% from eq etc.]
 Auto Attack will have its animation speed increased by +MAX(Skill Level ; Base AGI/? * Skill Level) Motion Speed%?
 Buff Duration: until you auto attack 1 times
-Game Description: “Enhances the next normal attack used. STR increases Physical Pierce, AGI increases Action Speed, and DEX increases critical performance.”
+
+Game Description:
+“Enhances the next normal attack used. STR increases Physical Pierce, AGI increases Action Speed, and DEX increases critical performance.”
 
 
 ==================================================
@@ -134,11 +149,15 @@ Category: Partisan Skills
 Tier: III
 Required Level: Level 250
 
+Source Details:
 T3; Bow/Bowgun only
 Passive Effect:
 When other player(not merc) or pet knocked down, you get additional HP by (500 * Skill Level HP + Skill Level% MaxHP) for 20 seconds.
 Also, you will gain Fractional Damage Reduction by (2.5 * Skill Level)% for 20 seconds.
 Other players or pets have to be knocked down in a normal way to get these passive effects, not from other ways such as Regretless death, etc.
+
+Game Description:
+Not provided in source.
 
 
 ==================================================
@@ -149,6 +168,7 @@ Category: Partisan Skills
 Tier: III
 Required Level: Level 250
 
+Source Details:
 T3; Halberd only
 MP Cost: 500
 Base Skill Constant (First Hit): 0
@@ -166,7 +186,9 @@ Restores MP when the skill succeeds without taking damage. The amount of MP rest
 MP Recovery Amount:
 MP Recovery: 10 * Dragon Tooth Skill Level
 MP Recovery (retreat): 30 * Dragon Tooth Skill Level
-Game Description: “The Dragon Tooth invented by Nino. Attacks the target and moves backward. Slightly raises the piercing power of the next skill used. Acquiring the skill "Dragon Tooth" will increase the power further.”
+
+Game Description:
+“The Dragon Tooth invented by Nino. Attacks the target and moves backward. Slightly raises the piercing power of the next skill used. Acquiring the skill "Dragon Tooth" will increase the power further.”
 
 
 ==================================================
@@ -177,6 +199,7 @@ Category: Partisan Skills
 Tier: I
 Required Level: None
 
+Source Details:
 T1; No Limit
 MP Cost: 100
 Skill Effect:
@@ -185,7 +208,9 @@ Buff Effect:
 Gain your Physical Barrier by (100 * Skill Level * number of players in your party). Note: it has to be players that are alive and don't have aggro. Doesn't work with merc/pets.
 Gain your +Aggro% by +(2 * Skill Level)% [note: it is additively with eq etc.]
 Buff duration: 60 seconds
-Game Description: “The determination to never back down. Increases your own Aggro and raises the increase of Aggro for 60 seconds. Additionally gains Physical Barrier according to the number of nontarget members.”
+
+Game Description:
+“The determination to never back down. Increases your own Aggro and raises the increase of Aggro for 60 seconds. Additionally gains Physical Barrier according to the number of nontarget members.”
 
 
 ==================================================
@@ -196,8 +221,11 @@ Category: Partisan Skills
 Tier: II
 Required Level: Level 160
 
+Source Details:
 T2; No Limit
 Passive Effect:
 Allow you to gain Magic Barrier by (100 * Skill Level * number of players in your party). Note: it has to be players that are alive and don't have aggro. Doesn't work with merc/pets.
 Passively gain your MaxHP by (100 * Skill Level + Player Level * 10)
-Game Description: “Gains Magic Barrier too when gaining Physical Barrier from the skill "Frontliner". Additionally, there is a passive effect that increases MaxHP permanently in line with skill acquisition.”
+
+Game Description:
+“Gains Magic Barrier too when gaining Physical Barrier from the skill "Frontliner". Additionally, there is a passive effect that increases MaxHP permanently in line with skill acquisition.”

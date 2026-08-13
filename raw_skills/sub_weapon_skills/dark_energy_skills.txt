@@ -17,6 +17,7 @@ Category: Dark Energy Skills
 Tier: I
 Required Level: None
 
+Source Details:
 Active Skill (Physical) [Single Target]
 MP Cost: 100MP
 Action Range: 4m
@@ -31,6 +32,9 @@ NOTES:
 ---Additional HP healed not affected by Max HP heal limit. Max HP limit is only applicable to base heal so as such actual max limit is max limit + additional heal.
 ---Dark Stinger buff is removed if this skill is used while the buff is active
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: DARK STINGER
@@ -40,6 +44,7 @@ Category: Dark Energy Skills
 Tier: II
 Required Level: Level 60
 
+Source Details:
 Active Skill (Physical) [AOE straight ahead]
 MP Cost: 200MP
 Action Range: 8m
@@ -59,6 +64,9 @@ NOTE:
 ---This skill consumes 10% of currentHP for every use.
 ---Additional Constant and Rate applied to the damage calculation before the currentHP% cost and maxHP reduction buff are applied.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: RED TEAR
@@ -68,6 +76,7 @@ Category: Dark Energy Skills
 Tier: III
 Required Level: Level 120
 
+Source Details:
 Active Skill (Physical) [AOE circular around the enemy] {Placed}
 MP Cost: 300MP
 Action Range: 4m
@@ -93,6 +102,9 @@ Aggro Reduction:{This part is only tested for SkillLvl10 and may not have accura
 Reduced aggro = 300 - (60*CurrentAggroPointsOnEnemy)/100
 Minimum reduced aggro is 0 (This skill can not generate negative aggro)
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: SACRIFICE
@@ -102,6 +114,7 @@ Category: Dark Energy Skills
 Tier: I
 Required Level: None
 
+Source Details:
 Active Skill (Special) [Single Target]
 MP Cost: 100MP
 Action Range: 4m
@@ -115,6 +128,9 @@ NOTES:
 ---This skill's HIT reaction is applied as a physical skill as such it can graze/miss,critical,Get evaded/guarded [Being critical the damage is not multiplied by the CDMG stat, It only acts as a bypass for enemy dodge]
 ---This skill does not inflict any proration
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: DEMON CLAW
@@ -124,6 +140,7 @@ Category: Dark Energy Skills
 Tier: II
 Required Level: Level 60
 
+Source Details:
 Active Skill (Physical) [AOE Circular around the user]
 MP Cost: 400MP
 Action Range: 8m
@@ -139,6 +156,9 @@ NOTES:
 ---The total damage is divided for every enemy hit
 ---This skill can only hit up to the first 10 active enemies within the radius of AOE
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: REGRETLESS
@@ -148,6 +168,7 @@ Category: Dark Energy Skills
 Tier: III
 Required Level: Level 120
 
+Source Details:
 Support Skill [Self Buffer]
 MP Cost: 200MP
 Effect: Increase AMPR, MaxMP, ATK, MATK, Physical/Magical resistance at the cost of maxHP%. Also heal the user's HP completely.
@@ -169,8 +190,8 @@ NOTES:-
 ---The buff is only removed when loading screen appears not immediately after the boss is defeated so the skill can cause death during the rank reward screen.
 ---If you got regretless death and you have registlet "Final Resistance", also you're the last people in party(must not solo) to be knocked out, then Final Resistance will trigger as soon you got regretless death, but you will die again in 1-10 seconds later due to Final Resistance
 
-Soul Hunter
-This skill has two action name = first Soul Hunter, then Death Reaper in one use/animation/skill. We just call it SH aka. Soul Hunter
+Game Description:
+Not provided in source.
 
 
 ==================================================
@@ -180,6 +201,9 @@ SKILL: SOUL HUNTER
 Category: Dark Energy Skills
 Tier: IV
 Required Level: Level 180
+
+Source Details:
+This skill has two action name = first Soul Hunter, then Death Reaper in one use/animation/skill. We just call it SH aka. Soul Hunter
 
 Active Skill (Single Target No Damage)
 Mp Cost: 400mp
@@ -228,6 +252,9 @@ MP Heal amount is doubled
 If KNUCKLES:
 Base Skill Multiplier(First Hit) +(baseAgi/200)
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: ETERNAL NIGHTMARE
@@ -237,6 +264,7 @@ Category: Dark Energy Skills
 Tier: IV
 Required Level: Level 180
 
+Source Details:
 Support Skill [Self Buffer]
 Lvl 4 Skill; No limit
 MP Cost: 300 MP
@@ -269,6 +297,9 @@ Floor((100 - CurrentHP% + Enm Lvl)/10) * 10 [Maximum 90]
 When your currentHP% reach 20%, then demon claw will deal max damage
 Regretless' regret effect now has a slight chance to be nullified (1% * Enm Lvl)
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: INTIMIDATING EVIL EYE
@@ -278,6 +309,7 @@ Category: Dark Energy Skills
 Tier: I
 Required Level: None
 
+Source Details:
 T1; [Active] All Weapons
 MP Cost: 100 MP
 Damage Type: Magic (uses MATK)
@@ -290,7 +322,9 @@ Ailment Chance [Flinch]: (Player Level + Eternal Nightmare Skill Level - Monster
 -This Flinch ailment chance can bypass Flinch Resistance.
 Ailment Chance [Slow]: 100%
 This skill is affected by short/long Range Damage; affected by long range skill; uses and deals magic proration.
-Game Description: Makes the target flinch with a sharp glare. The lower the target's level, the higher the chance to inclict [Flinch]. If unsuccessful, inflicts [Slow]. Not expected to deal much damage.
+
+Game Description:
+Makes the target flinch with a sharp glare. The lower the target's level, the higher the chance to inclict [Flinch]. If unsuccessful, inflicts [Slow]. Not expected to deal much damage.
 The level of Eternal Nightmare increases the chance to inflict [Flinch].
 
 
@@ -302,6 +336,7 @@ Category: Dark Energy Skills
 Tier: II
 Required Level: Level 60
 
+Source Details:
 T2; [Active] All Weapons
 MP Cost: 300 MP
 Damage Type: Magic (uses MATK)
@@ -318,7 +353,9 @@ Ailment Chance: Skill Level² %
 Ailment Duration: 10 + Eternal Nightmare Level seconds
 Ailment Resistance: 30 seconds
 This skill is affected by short/long Range Damage; affected by long range skill; uses and deals magic proration.
-Game Description: Pins the target in place with evil power. Chance to inflict [Charm] on the target. Increases damage if the target is already charmed.
+
+Game Description:
+Pins the target in place with evil power. Chance to inflict [Charm] on the target. Increases damage if the target is already charmed.
 Charm duration is extended based on the level of Eternal Nightmare. Resistance duration remains unchanged.
 
 
@@ -330,6 +367,7 @@ Category: Dark Energy Skills
 Tier: III
 Required Level: Level 120
 
+Source Details:
 T3; [Active] All Weapons
 MP Cost: 100 MP
 Damage Type: Magic (uses ATK/MATK, whichever is higher)
@@ -347,7 +385,9 @@ Explosion Effects:
 -Hidden counter is halved and rounded down.
 -Your character take a Max HP Damage as much as: MAX(1000; INT(Character's Max HP * 30%)). If the character were to get knocked out from the explosion, they are left with 1 HP and Stunned.
 This skill is affected by short/long Range Damage; affected by long range skill; uses and deals magic proration.
-Game Description: Uses dark flames to burn the target who makes direct eye contact. Deals magic damage absed on ATK or MATK, whichever is higher. Critical hit guaranteed when the enemy is targeting you. Overusing black flames comes at a price...
+
+Game Description:
+Uses dark flames to burn the target who makes direct eye contact. Deals magic damage absed on ATK or MATK, whichever is higher. Critical hit guaranteed when the enemy is targeting you. Overusing black flames comes at a price...
 *Power increases based on the level of Eternal Nightmare.
 
 
@@ -359,6 +399,7 @@ Category: Dark Energy Skills
 Tier: IV
 Required Level: Level 180
 
+Source Details:
 T4; [Active] All Weapons
 MP Cost: 500 MP
 Damage Type: Magic (uses MATK)
@@ -371,4 +412,6 @@ Base Skill Constant: 50 * Skill Level
 Ailment: Blind/Fear/Lethargy/Paralysis/Fatigue/Dizzy/Silence/Stop/Curse/Freeze
 Ailment Chance: 100%
 This skill is affected by short/long Range Damage; affected by long range skill; uses current highest proration type and deals current lowest proration type (magic proration if all proration value is equal).
-Game Description: Swirling chaos torments the enemy. Exploits the target's weak element to deal magic damage and inflicts a status ailment (randomly selected from 10 types). Damage greatly increases if successful. Ignores Guard when the enemy is targeting you.
+
+Game Description:
+Swirling chaos torments the enemy. Exploits the target's weak element to deal magic damage and inflicts a status ailment (randomly selected from 10 types). Damage greatly increases if successful. Ignores Guard when the enemy is targeting you.

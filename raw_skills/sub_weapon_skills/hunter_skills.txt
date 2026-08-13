@@ -18,7 +18,7 @@ Category: Hunter Skills
 Tier: I
 Required Level: Level 15
 
-Kick the target to knockback it farther. Chance to inflict KNOCKBACK.
+Source Details:
 Active Skill (Physical) [Single Target]
 MP Cost: 100MP
 Limitation: No Limit
@@ -39,6 +39,9 @@ NOTES:
 -- Enemies resist KNOCKBACK status for distance * 0.1 seconds
 --The bonus multiplier from BaseSTR is not affected by STR+ and STR+% equipment.
 
+Game Description:
+Kick the target to knockback it farther. Chance to inflict KNOCKBACK.
+
 
 ==================================================
 SKILL: SUNRISE ARROW
@@ -48,7 +51,7 @@ Category: Hunter Skills
 Tier: II
 Required Level: Level 35
 
-Shoot an arrow in a linear aoe and deal more damage to targets inflicted by SLEEP.
+Source Details:
 Active Skill (Physical) [AOE = Linear]
 MP Cost: 200MP
 Limitations: Bow and Bowgun only
@@ -61,6 +64,9 @@ Arrow bonus: Skill Multiplier+(TotalDEX/100)
 -- Total Skill Multiplier x2 if used on target inflicted with SLEEP
 Fixed Element: LIGHT
 
+Game Description:
+Shoot an arrow in a linear aoe and deal more damage to targets inflicted by SLEEP.
+
 
 ==================================================
 SKILL: MAGIC ARROW
@@ -70,7 +76,7 @@ Category: Hunter Skills
 Tier: III
 Required Level: Level 125
 
-Increase AMPR of regular attacks and add MATK value to their base power.
+Source Details:
 Support Skill (Self Buffer only)
 MP Cost = 300MP
 Limitations: Bow and Bowgun only
@@ -85,6 +91,9 @@ NOTES:
 -- The skill has a BUG/Feature which turns on the MP recovery even on skills as long as the buff is active
 -- Decoy can enjoy this skill buff without wasting its stack/auto attack duration
 
+Game Description:
+Increase AMPR of regular attacks and add MATK value to their base power.
+
 
 ==================================================
 SKILL: SATELLITE ARROW
@@ -94,7 +103,7 @@ Category: Hunter Skills
 Tier: IV
 Required Level: Level 205
 
-Fires arrow towards sky and it falls down after 4sec with 1sec interval between each arrow depending on skill level. Ignores certain amount of enemy's DEF depending on skill level.
+Source Details:
 Active Skill (Physical) {PLACED} [AOE circular with foe on center when fired]
 MP Cost: 300MP
 Limitation: Bow and Bowgun only
@@ -111,6 +120,9 @@ NOTES:
 --if used again before all three hits are landed then previous cast gets cancelled
 --damage calculation (guard/evasion/crit/graze/miss) is done for each hit
 
+Game Description:
+Fires arrow towards sky and it falls down after 4sec with 1sec interval between each arrow depending on skill level. Ignores certain amount of enemy's DEF depending on skill level.
+
 
 ==================================================
 SKILL: SLEEP TRAP
@@ -120,7 +132,7 @@ Category: Hunter Skills
 Tier: I
 Required Level: Level 15
 
-Place a trap on the ground that inflicts SLEEP when triggered by an enemy.
+Source Details:
 Active Skill (Magical) {PLACED} [AOE circular with center at placement]
 MP Cost: 100MP
 Limitation: No Limit
@@ -136,6 +148,9 @@ Fixed Element: Water
 --Traps have a placement duration of 30 seconds after which they disappear
 --You can not place two of the same trap, the one placed earlier will disappear if you do.
 
+Game Description:
+Place a trap on the ground that inflicts SLEEP when triggered by an enemy.
+
 
 ==================================================
 SKILL: BEAR TRAP
@@ -145,7 +160,7 @@ Category: Hunter Skills
 Tier: II
 Required Level: Level 35
 
-Place a trap on the ground that inflicts STOP on the enemy when triggered.
+Source Details:
 Active Skill (Magical) {PLACED} [AOE circular with center at placement]
 MP Cost: 200MP
 Limitation: No Limit
@@ -160,6 +175,9 @@ Fixed Element: Earth
 --Traps have a placement duration of 30 seconds after which they disappear
 --You can not place two of the same trap, the one placed earlier will disappear if you do.
 
+Game Description:
+Place a trap on the ground that inflicts STOP on the enemy when triggered.
+
 
 ==================================================
 SKILL: LAND MINE
@@ -169,7 +187,7 @@ Category: Hunter Skills
 Tier: III
 Required Level: Level 125
 
-Place a land mine on the ground that explodes when triggered causing IGNITE to the enemies
+Source Details:
 Active Skill (Magical) {PLACED} [AOE circular with center at placement]
 MP Cost: 400MP
 Limitation: No Limit
@@ -184,6 +202,9 @@ Fixed Element: Fire
 --Traps have a placement duration of 30 seconds after which they disappear
 --You can not place two of the same trap, the one placed earlier will disappear if you do.
 
+Game Description:
+Place a land mine on the ground that explodes when triggered causing IGNITE to the enemies
+
 
 ==================================================
 SKILL: DARK TRAP
@@ -193,7 +214,7 @@ Category: Hunter Skills
 Tier: IV
 Required Level: Level 205
 
-Place a dark trap in ground that inflicts LETHARGY on the enemy when triggered
+Source Details:
 Active Skill (Magical) {PLACED} [AOE circular with center at placement]
 MP Cost: 300MP
 Limitation: No Limit
@@ -208,6 +229,9 @@ Fixed Element: Dark
 --Traps have a placement duration of 30 seconds after which they disappear
 --You can not place two of the same trap, the one placed earlier will disappear if you do.
 
+Game Description:
+Place a dark trap in ground that inflicts LETHARGY on the enemy when triggered
+
 
 ==================================================
 SKILL: HOMING SHOT
@@ -217,6 +241,7 @@ Category: Hunter Skills
 Tier: I
 Required Level: Level 15
 
+Source Details:
 T1, Bow and Bowgun Only
 MP Cost: 200
 Damage Type: Physical
@@ -229,10 +254,12 @@ This skill inflict Normal Attack Proration, and this skill damage based on Norma
 This skill damage is unaffected by srd%, lrd% and Long Range passive
 This skill has Absolute accuracy by (Skill Level^2)%
 This skill recover your MP by (your Total AMPR/20 * Skill Level) [not every hit, but per cast]
-Game Description: “Shoots a magic arrow that pursues threats. "Normal attack proration" is applied. Accuracy gets higher depending on the skill level. Slightly increases MP when hitting a target.”
 Arrow bonus: Skill Constant +200
 Arrow bonus: MP Recovered from this skill will be doubled
 Arrow bonus: This skill damage can bypass evasion check; however it cannot bypass special evasion/mechanics such as Evil Crystal Beast phase/etc.
+
+Game Description:
+“Shoots a magic arrow that pursues threats. "Normal attack proration" is applied. Accuracy gets higher depending on the skill level. Slightly increases MP when hitting a target.”
 
 
 ==================================================
@@ -243,6 +270,7 @@ Category: Hunter Skills
 Tier: II
 Required Level: Level 35
 
+Source Details:
 T2, Bow and Bowgun Only
 MP Cost: 300
 Buff Effect:
@@ -250,7 +278,9 @@ Buff Duration: 40 seconds
 Gives aggro reduction buff by -(10 + Skill Level)% Aggro. However if you have Hunter Bowgun regardless level and you're using main bowgun with any sub weapon other than arrow, then you will gain additional aggro reduction buff furthermore by -(5 + 0.5 * Skill Level)% Aggro. Note: they are additively with other aggro% from eq, food, ava, etc.
 Gives crit rate buff by +(Skill Level)
 When you get targeted during this buff, then you will automatically cast Decoy and this buff will end immediately. Note: must learn Decoy or otherwise it won’t work, also its effect based on Decoy’s level.
-Game Description: “Ability to sense danger in nature. Reduces Aggro against you and slightly increases Critical Rate for 40 sec. The effect ends when you are targeted.”
+
+Game Description:
+“Ability to sense danger in nature. Reduces Aggro against you and slightly increases Critical Rate for 40 sec. The effect ends when you are targeted.”
 
 
 ==================================================
@@ -261,6 +291,7 @@ Category: Hunter Skills
 Tier: III
 Required Level: Level 125
 
+Source Details:
 T3, Bow Only
 MP Cost: 100
 Damage Type: Physical
@@ -274,10 +305,12 @@ Ailment: Flinch
 Base Ailment Chance: [Skill Level^2]%
 Ailment Duration: 2 seconds
 Ailment Resistance: 35 seconds
-Game Description: “An arrow skill that creates a tornado. Deals small damage but has a chance to inflict [Flinch] to a target and engulfs the monsters near it.”
 Arrow Bonus: Base Skill Multiplier +(TotalDex/200)
 Arrow Bonus: Hit Range Radius will be doubled
 [Note: altho, this skill look like Sword Tempest, but this skill still inflict physical proration madge]
+
+Game Description:
+“An arrow skill that creates a tornado. Deals small damage but has a chance to inflict [Flinch] to a target and engulfs the monsters near it.”
 
 
 ==================================================
@@ -288,6 +321,7 @@ Category: Hunter Skills
 Tier: IV
 Required Level: Level 205
 
+Source Details:
 T4, Bow Only
 MP Cost: 400
 Damage Type: Physical
@@ -303,7 +337,9 @@ Buff Effect: Invincibility
 Buff Duration: 2 seconds
 Skill Effect:
 Second Hit of this skill has (2.5 * Skill Level)% Physical Pierce bonus, meanwhile Third Hit of this skill has (5 * Skill Level)% Physical Pierce bonus.
-Game Description: “A deadly arrow skill combining evasion and counterattack. The hit counts increase depending on the distance.(Up to 3 times). Grants [Invincible] to yourself when activating the skill.
+
+Game Description:
+“A deadly arrow skill combining evasion and counterattack. The hit counts increase depending on the distance.(Up to 3 times). Grants [Invincible] to yourself when activating the skill.
 Arrow Bonus: Physical Pierce Bonus of Second Hit and Third Hit will be doubled
 
 
@@ -315,11 +351,14 @@ Category: Hunter Skills
 Tier: III
 Required Level: Level 125
 
+Source Details:
 T3; Bowgun Only
 Passive Effect:
 Bowgun that use other than an arrow as a sub-weapon, can receive the Arrow bonus of all Hunter skills. Note: This effect doesn’t work if your sub-weapon is empty, so make sure to equip any sub-weapon in order to work.
 For any sub-weapon other than arrow, Gives Base ATK by +(Floor(Skill Level * 1.5) * 5 / 3) of Base Bowgun Weapon ATK
-Game Description: “Enhances the versatility of hunting. Even with a non-arrow sub-weapon, Hunter Skills will exhibit the properties of arrow skills. Raising the skill level will increase Bowgun ATK.”
+
+Game Description:
+“Enhances the versatility of hunting. Even with a non-arrow sub-weapon, Hunter Skills will exhibit the properties of arrow skills. Raising the skill level will increase Bowgun ATK.”
 
 
 ==================================================
@@ -385,8 +424,6 @@ Skill Effect:
 
 -(35 - Skill Level)
 
-Game Description:
-"Hunting techniques using Sub-Weapon. When activated using a weapon other than Dagger, Magic Device, or Shield, it deals damage to the target and there is a high chance to inflict [Armor Break] with higher Physical Pierce."
 
 
 --------------------------------------------------
@@ -553,6 +590,10 @@ Short Range Damage:
 
 This Short Range Damage bonus is independent of Skill Level.
 
+Game Description:
+"Hunting techniques using Sub-Weapon. When activated using a weapon other than Dagger, Magic Device, or Shield, it deals damage to the target and there is a high chance to inflict [Armor Break] with higher Physical Pierce."
+
+
 ==================================================
 SKILL: FOCUS
 ==================================================
@@ -561,6 +602,7 @@ Category: Hunter Skills
 Tier: V
 Required Level: Level 285
 
+Source Details:
 [Active] Bow/Bowgun Only
 MP Cost: 600
 Skill Effect:
@@ -571,10 +613,12 @@ If you have Dagger/Shield as sub-weapon, then you will gain srd% when attacking 
 This Mark Focus Debuff affect timing of Satellite Arrow
 => For Bow, Make second and third hits of Satellite Arrow become homing shots. Also, Waiting time for all hits of Satellite Arrow to land damage will be faster = -(Skill Level * 0.1) second
 => For Bowgun, Interval of between Satellite Arrow hits will be reduced = -(Skill Level * 0.05) second
-Game Description: Issues a hunting command. Marks an enemy as a “target”. Increases long-range attack power (from party members too) to the target.
 Bow bonus: “Satellite Arrow” will land on the target faster and will be re-aimed after each attack.
 Bowgun bonus: The interval between “Satellite Arrow” hits becomes shorter from the second hit onward.
 Dagger/Shield bonus: Adds a passive effect that increases close-range attack power on target (starting from Skill Lv2).
+
+Game Description:
+Issues a hunting command. Marks an enemy as a “target”. Increases long-range attack power (from party members too) to the target.
 
 
 ==================================================
@@ -585,6 +629,7 @@ Category: Hunter Skills
 Tier: V
 Required Level: Level 285
 
+Source Details:
 [Active] All weapons
 MP Cost: 400
 Buff Effect:
@@ -592,10 +637,12 @@ Buff Duration: 3 min OR until you get aggro/targeted. You will get stunned for 5
 Reduce Aggro from MP by (20 + 4 * Skill Level)%. However, it cannot reduce aggro below 1MP. If your weapon is Bow, then half of this effect will become passive, and of course, this passive will get overridden when this buff is active.
 Gives flat Critical Rate by (4 * Skill Level). If your weapon is Bowgun, then half of this effect will become passive, and of course this passive will get overridden when this buff is active.
 Gives flat ATK by (Player Level / 2 * Skill Level / 10) [Bow/Bowgun Bonus: This flat Atk will be doubled]
-Game Description: Greatly reduces aggro that depends on MP consumption, increases ATK and Critical Rate for 180 seconds. If targeted while the effect is active, the effect will be lost and you will be ( * ) stunned.
 ( * ) When not in party, you won’t be stunned.
 Bow bonus: * Half of the aggro reduction effect from Camouflage that depends on MP consumption will always be active as a passive effect even if the skill is not activated. * The duration of stun due to Camouflage becomes half.
 Bowgun bonus: * Half of the Critical Rate boost effect from Camouflage will always be active as a passive effect even if the skill is not activated. *the duration of stun due to Camouflage becomes half.
+
+Game Description:
+Greatly reduces aggro that depends on MP consumption, increases ATK and Critical Rate for 180 seconds. If targeted while the effect is active, the effect will be lost and you will be ( * ) stunned.
 
 
 ==================================================
@@ -606,7 +653,10 @@ Category: Hunter Skills
 Tier: V
 Required Level: Level 285
 
+Source Details:
 [Passive] Bowgun Only
 Passive Effect:
 Increase Base Skill Multiplier of all Multiple Hunt(Sharp Sniper, Sniper Volley, Tri Ace Shooter, Wolf Sniper) by +(0.25 * Skill Level)
-Game Description: Accumulates knowledge about various hunting tools. Increases the power of the skill “Multiple Hunt”.
+
+Game Description:
+Accumulates knowledge about various hunting tools. Increases the power of the skill “Multiple Hunt”.

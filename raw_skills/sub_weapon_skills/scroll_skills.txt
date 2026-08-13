@@ -23,6 +23,7 @@ Category: Scroll Skills
 Tier: Not explicitly specified in source
 Required Level: Not explicitly specified in source
 
+Source Details:
 Active Skill (Magic) (Single Target)
 MP Cost = 600
 Action Range = 8m
@@ -44,6 +45,9 @@ Hit Count = 1 Aoe hits, 1 single target additional hits
 When you use this Blazing Explosion, then Normal Fire Release(single target additional hits) is activated in addition to the Blazing AoE damage, but that additional hit is unaffected by combo tags. Also, completely remove Ignite of yourself and your target.
 Srd/Lrd can affect Fire Release and Blazing Explosion
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: THUNDER RELEASE
@@ -53,6 +57,7 @@ Category: Scroll Skills
 Tier: Not explicitly specified in source
 Required Level: Not explicitly specified in source
 
+Source Details:
 Active Skill (Physical) (Single Target)
 MP Cost = 600
 Action Range = 12m
@@ -67,6 +72,9 @@ Skill Effect:
 - If your main weapon is katana, then this skill will transform into Lightning Flash.
 Lightning Flash still same as Thunder Release above, except it has Absolute Critical.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: WIND RELEASE
@@ -76,6 +84,7 @@ Category: Scroll Skills
 Tier: Not explicitly specified in source
 Required Level: Not explicitly specified in source
 
+Source Details:
 Active Skill (Magic) (Aoe circular around users)
 MP Cost = 500
 Action Range = Default Weapon’s Auto Attack Range
@@ -96,6 +105,9 @@ Skill Effect:
 - If your main weapon is katana, then using this skill without moving, will transform into SkullBreaker(if used while moving, then it will cast Wind Release instead). And Its new effect, If your ATK is higher than MATK, then use ATK as the main dmg. If MATK is higher than ATK, then use MATK as the main dmg. But this skill still inflicts Magic proration, uses Magic Stability, Magic Critical Rate/Damage, damage based on Magic proration and MDEF/M.Res can reduce this skill damage. Also, animation of this SkullBreaker is slightly faster than normal Wind Release.
 - Srd can affect this skill.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: KUNAI
@@ -105,6 +117,7 @@ Category: Scroll Skills
 Tier: Not explicitly specified in source
 Required Level: Not explicitly specified in source
 
+Source Details:
 Active Skill (Physical) (Single Target)
 MP Cost = 300
 Action Range = 8m
@@ -119,6 +132,9 @@ Skill Effect:
 - If you’re in kunai hit animation and the target is 9m away or above, then kunai hit will miss. Kunai Miss = no ampr/prorate/damage.
 Katana Bonus= Base Skill Multiplier is doubled
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: WATER RELEASE
@@ -128,6 +144,7 @@ Category: Scroll Skills
 Tier: Not explicitly specified in source
 Required Level: Not explicitly specified in source
 
+Source Details:
 Active Skill (Buff) (Aoe Circular around users)
 MP Cost = 700
 Action Range = Infinite
@@ -152,6 +169,9 @@ NOTES:
 FrostHydra97 = "Vortex is 2s hit interval. And vortex animation starts to dissipate at the 11th second, and fully disappears roughly 1s later. Also, keep that in mind, kunai will not activate a new vortex until the previous one fully disappear aka after the 12th second"
 Srd/Lrd doesn't affect this skill, Long range doesn't affect as well. Also, combo tags doesn't affect this skill damage
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: EARTH RELEASE
@@ -161,6 +181,7 @@ Category: Scroll Skills
 Tier: Not explicitly specified in source
 Required Level: Not explicitly specified in source
 
+Source Details:
 Active Skill (Buff & Magic) (Single Target)
 MP Cost = 600
 Action Range = Infinite
@@ -176,6 +197,9 @@ Note:
 - Srd/Lrd can affect this skill
 - Long Range cannot affect this skill damage. Also, Combo Tags doesn’t affect damage
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: DEMON WIND SHURIKEN
@@ -185,6 +209,7 @@ Category: Scroll Skills
 Tier: Not explicitly specified in source
 Required Level: Not explicitly specified in source
 
+Source Details:
 Active Skill (Physical) (AOE Straight Ahead Boomerang)
 MP Cost = 500
 Action Range = 12m
@@ -203,6 +228,9 @@ This skill damage is affected by srd/lrd which one of them is higher. Meanwhile 
 When using this skill, Shuriken will travel 12m to the target then going back to the caster's position. It look like boomerang Xd
 Motion Speed doesn’t affect this animation speed
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: CLONING
@@ -212,6 +240,7 @@ Category: Scroll Skills
 Tier: Not explicitly specified in source
 Required Level: Not explicitly specified in source
 
+Source Details:
 Active Skill (Buff)
 MP Cost = 600
 Action Range = Infinite
@@ -230,3 +259,6 @@ NOTES:
 If Distance between you and the shadow clone is over 12m away, then that shadow clone will stop attacking. But if you shukuchi to target, then that shadow clone 12m away from you, will follow the target where you shukuchi before automatically and attack them. However if their distance is over 20m, then that shadow clone will disappear
 Srd/Lrd doesn't affect this skill damage
 Combo tags affect this skill damage
+
+Game Description:
+Not provided in source.

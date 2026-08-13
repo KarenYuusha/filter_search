@@ -18,7 +18,7 @@ Category: Priest Skills
 Tier: I
 Required Level: Level 15
 
-Cast a spell to heal HP of the party members at fixed durations
+Source Details:
 Support Skill (Party Buffer)
 MP Cost = 100MP
 Limitation: No Limit
@@ -40,6 +40,9 @@ Total Duration = (BlessCount + AdvancedCount - 1) * 5 seconds
 --> Simplified formula for both Bless and Advanced Bless at Lvl10 with staff = 120 + INT * (10/100) + MATK * (8/100) with a duration of 45seconds with 1 tick every 5 seconds + 1 tick when casted = total of 10 ticks
 NOTE:
 --For every Party Buffer Support skill, skillLvl takes priority when multiple casts at a time instance.
+
+Game Description:
+Cast a spell to heal HP of the party members at fixed durations
 
 
 ==================================================
@@ -50,7 +53,7 @@ Category: Priest Skills
 Tier: III
 Required Level: Level 125
 
-Cast a spell to heal HP of the party members at fixed durations
+Source Details:
 Support Skill (Party Buffer)
 MP Cost = 100MP
 Limitation: No Limit
@@ -73,6 +76,9 @@ Total Duration = (BlessCount + AdvancedCount - 1) * 5 seconds
 NOTE:
 --For every Party Buffer Support skill, skillLvl takes priority when multiple casts at a time instance.
 
+Game Description:
+Cast a spell to heal HP of the party members at fixed durations
+
 
 ==================================================
 SKILL: GLORIA
@@ -82,7 +88,7 @@ Category: Priest Skills
 Tier: II
 Required Level: Level 35
 
-Cast a spell to boost the DEF and MDEF of the party.
+Source Details:
 Support Skill (Party buffer)
 MP Cost = 100MP
 Limitations: No Limit
@@ -94,6 +100,9 @@ Duration = 30 seconds
 NOTE:
 --For every Party Buffer Support skill, skillLvl takes priority when multiple casts at a time instance. If same skill, then duration takes priority
 
+Game Description:
+Cast a spell to boost the DEF and MDEF of the party.
+
 
 ==================================================
 SKILL: HOLY FIST
@@ -103,7 +112,7 @@ Category: Priest Skills
 Tier: I
 Required Level: Level 15
 
-Smite the enemy with the power of light in your fist!
+Source Details:
 Active Skill (Physical proration) (Part Magical + Part Physical)
 MP Cost = 100MP
 Limitations = No Limit
@@ -121,6 +130,9 @@ NOTES:
 -- This skill still inflicts Physical prorate.
 -- In case of Staff main Knuc sub staff will overwrite knuc bonuses
 
+Game Description:
+Smite the enemy with the power of light in your fist!
+
 
 ==================================================
 SKILL: HOLY LIGHT
@@ -130,7 +142,7 @@ Category: Priest Skills
 Tier: II
 Required Level: Level 35
 
-Cast a holy light on the enemy to deal damage.
+Source Details:
 Active Skill (Magical)
 MP Cost = 200MP
 Limitations: No Limit
@@ -145,6 +157,9 @@ Fixed Element: Light
 NOTES:
 -- In the case of Staff main Magic Device sub, staff bonus will overwrite magic device bonus.
 
+Game Description:
+Cast a holy light on the enemy to deal damage.
+
 
 ==================================================
 SKILL: ETHER BARRIER
@@ -154,7 +169,7 @@ Category: Priest Skills
 Tier: III
 Required Level: Level 125
 
-Casts a barrier over the party to prevent flinching.
+Source Details:
 Support Skill (Party Buffer)
 MP Cost: 300MP
 Limitations: No Limit
@@ -167,6 +182,9 @@ NOTES:
 -- The FLINCH resistance applies for both MAGIC FLINCH and regular FLINCH but in case of regular FLINCH it will not stack with ailment resistance % stat additively
 -- For every Party Buffer Support skill, skillLvl takes priority when multiple casts at a time instance. If same skill, then duration takes priority
 
+Game Description:
+Casts a barrier over the party to prevent flinching.
+
 
 ==================================================
 SKILL: ROYAL HEAL
@@ -176,13 +194,16 @@ Category: Priest Skills
 Tier: IV
 Required Level: Level 205
 
-Restores your HP and that of the allies around. Unlike Heal from Support Skill, there is no effect to reduce revival time.
+Source Details:
 Party/Self healer.
 MP Cost = 400MP
 ActionRange = Infinite
 Cast Time = 3 second (Affected by CSPD)
 Heal Amount = 500 * Skill Level + (10 + 2 * Skill Level)% of target's maxHP
 Heal Range (Radius) = (7 + 0.3 * Skill Level)m
+
+Game Description:
+Restores your HP and that of the allies around. Unlike Heal from Support Skill, there is no effect to reduce revival time.
 
 
 ==================================================
@@ -193,7 +214,7 @@ Category: Priest Skills
 Tier: IV
 Required Level: Level 205
 
-Offers a prayer to increase Mana. Raises MATK for some time. Chance to remove [Weaken] when activated.
+Source Details:
 Support Skill (Party Buffer)
 MP Cost: 500MP
 Limitations: No Limit
@@ -203,6 +224,9 @@ Effect: Increases Matk% of the party and has chance to remove Weaken Ailments
 Amount of Matk% = 1 * Skill Level% (Magic Device Bonus = +5% matk)
 Chance to remove Weaken = 75% Chance (Shield Bonus = +25% chance)
 
+Game Description:
+Offers a prayer to increase Mana. Raises MATK for some time. Chance to remove [Weaken] when activated.
+
 
 ==================================================
 SKILL: STAFF THRUST
@@ -210,9 +234,9 @@ SKILL: STAFF THRUST
 
 Category: Priest Skills
 Tier: I
-Required Level:Level 15
+Required Level: Level 15
 
-A powerful hit with a staff. Ignore the target's defense as STR gets higher. Chance to inflict [Flinch] on the target.
+Source Details:
 Active Skill (Physical) [Single Target]
 MP Cost = 100MP
 Limitations = Staff only
@@ -223,6 +247,9 @@ Fixed Element = Neutral
 This skill has pp% = +(25 + Base STR/10)%
 Chance to Inflict FLINCH = (25 + SkillLvl * 5)% (Shield Bonus = +25%)
 
+Game Description:
+A powerful hit with a staff. Ignore the target's defense as STR gets higher. Chance to inflict [Flinch] on the target.
+
 
 ==================================================
 SKILL: EXORCISM
@@ -232,7 +259,7 @@ Category: Priest Skills
 Tier: II
 Required Level: Level 35
 
-Performs light element magic attacks around you. Can halves MP Cost of the next skill used. More damage and has a chance to inflict either Dizzy/Dazzled/Fear against dark targets.
+Source Details:
 Active Skill (Magic) [Circle Aoe with center on caster]
 MP Cost = 200MP
 Limitations = Staff / Shield only
@@ -247,6 +274,9 @@ Note:
 - This skill has different animations for each weapon. Staff when using this skill = has faster javelin animation. Meanwhile Sub-shield = slower guardian animation. Staff animation takes precedence over Shield animation.
 - This skill has a bug on “critical damage based on physical” which is related to critical rate. Because I tried to check critical damage, but it was still based on magic. Already Fixed.
 
+Game Description:
+Performs light element magic attacks around you. Can halves MP Cost of the next skill used. More damage and has a chance to inflict either Dizzy/Dazzled/Fear against dark targets.
+
 
 ==================================================
 SKILL: HOLY BOOK
@@ -256,7 +286,7 @@ Category: Priest Skills
 Tier: III
 Required Level: Level 125
 
-Gives little Dark Resistance buff for 10 mins. Also, has a chance to activate Holy Light when dealing magic damage to non-light ele.
+Source Details:
 Support Skill (Self Buffer)
 MP Cost = 100MP
 Limitations = OHS / Staff / Knuckle only
@@ -271,6 +301,9 @@ Note:
 - Also, OHS Bonus = Holy Light that activated from the Holy Book, will have its bonus same as that Staff. (mean ohs can use Holy Light with Staff bonus via bible)
 - Currently, all skills in magic tree, magic warrior tree, priest tree, wizard tree, ninja/scroll skills can activate Holy Light, said by cy-grimoire
 
+Game Description:
+Gives little Dark Resistance buff for 10 mins. Also, has a chance to activate Holy Light when dealing magic damage to non-light ele.
+
 
 ==================================================
 SKILL: NEMESIS
@@ -280,7 +313,7 @@ Category: Priest Skills
 Tier: IV
 Required Level: Level 205
 
-Deals single target physical damage on the target, and makes a link between you and target. The effect will stack and when activating this skill again, a magic AoE will be added according to the number of stacks after dealing physical.
+Source Details:
 Active Skill (Single target Physical & Magic Wall Aoe on target) with Self Buffer
 MP Cost = 200MP
 Limitations = OHS / Staff / Knuckle only
@@ -314,6 +347,9 @@ Even if you have ailres% from gear/equip or guard.... nemesis/link buff still di
 This skill can get cr bonus from Meikyo for the entire duration if you use this skill with meikyo buff before or even worked during meikyo buff.
 Once a critical hit occurs during the repeated magic damage of this skill, all subsequent damage will also be critical.
 
+Game Description:
+Deals single target physical damage on the target, and makes a link between you and target. The effect will stack and when activating this skill again, a magic AoE will be added according to the number of stacks after dealing physical.
+
 
 ==================================================
 SKILL: SACRED TEACHINGS
@@ -323,6 +359,7 @@ Category: Priest Skills
 Tier: V
 Required Level: Level 285
 
+Source Details:
 [Passive] All weapons
 Passive Effect:
 Allows you and your teammates in your party to gain Temporary HP whenever you or they have full hp and receive excess healing from you. It will be displayed as charge% below the hp bar. That Charge% represents the percentage of how full the temporary HP bank is.
@@ -340,8 +377,10 @@ Below are those skill that cannot give:
 Buster Blade; Breathwork; Shining Cross; Crescent Saber; Bouncing Blade; Perfect Defense; Holy Light; Bloody Bite; Nature Wonders; Healing shot; Multiple hunt (shield ver.); Element starter passive; Bloodsucker combo; Remedial rampage Registlet;
 Extra Recovery; etc.
 *Death Truffle variations -100% Total HP effect does not include temporary HP, so with this skill you can survive consuming death truffle.
-Game Description: Grants temporary HP exceeding your MaxHP when recovering with a Heal-type skill ( * ). ATK and MATK will slightly increase according to the value of temporary HP gained.
 ( * ) If the total HP (MaxHP + temporary HP) exceeds the 99,999 HP limit, the number of temporary HP gained will be reduced.
+
+Game Description:
+Grants temporary HP exceeding your MaxHP when recovering with a Heal-type skill ( * ). ATK and MATK will slightly increase according to the value of temporary HP gained.
 
 
 ==================================================
@@ -352,15 +391,18 @@ Category: Priest Skills
 Tier: V
 Required Level: Level 285
 
+Source Details:
 [Passive] All weapons
 Passive Effect:
 Gain Fractional Resistance by +(Skill Level + Ceiling[Skill Level / 2] * number of members alive).
 Note: members refer to Players, Merc, Pets. Plus this frac resist additive with Fareth, Knight Stance, Blink Sword
 When initiating boss battle, you will get Free Recovery Buff for (Ceiling[Skill Level / 2] * 3) seconds
 When you're recovering from an ailment(via ailment timer run out), then this passive also gives another Free Recovery Buff for (Ceiling[Skill Level / 2]) seconds
-Game Description: The shield of faith. Gains a permanent effect that reduces Fractional Damage aimed at you and when targeted under certain conditions (*attacks that target non-tanks, such as long-range and random targeting). Also gains an effect that prevents status ailments at a certain time.
 When in a party, Fractional Damage resistance is increased further according to the number of members (up to 3) who are still alive.
 The effect that prevents status ailments is gained at the beginning of a boss battle and when naturally recovering from a status ailment.
+
+Game Description:
+The shield of faith. Gains a permanent effect that reduces Fractional Damage aimed at you and when targeted under certain conditions (*attacks that target non-tanks, such as long-range and random targeting). Also gains an effect that prevents status ailments at a certain time.
 
 
 ==================================================
@@ -371,6 +413,7 @@ Category: Priest Skills
 Tier: V
 Required Level: Level 285
 
+Source Details:
 [Active] All weapons
 MP Cost: 500
 Base Skill Multiplier: 5 + BaseInt/100
@@ -386,5 +429,7 @@ Buff Effect:
 Buff Duration: (10 * Skill Level)seconds
 The next skill has its MP Cost divided by half and rounded up to the nearest multiple of 100 (e.g. 300/2 = 150 -> 200 MP; 600/2 = 300 -> 300 MP). [Halves MP for next skill of this skill still there for some reason when duration ends… at least until you do something beside walking?]
 Allow the party to retain all consumable items when they get knocked out. This retain all consumables buff works for outside party, like chakra warcry etc. Good for guild raid.
-Game Description: A miracle that blesses the good ones and punishes the evil ones. Grants an effect that maintains item effect once to the party for a certain period of time even if you get knocked out. Halves the MP Cost for the character that activates Holy Grace when using the next skill.
 Staff/Magic Device (main) bonus: Deals magic damage to all monsters in the battle you are in if the effect that halves the MP Cost of the next skill used is consumed with a certain buff skill. It is a damage with “normal attack proration”.
+
+Game Description:
+A miracle that blesses the good ones and punishes the evil ones. Grants an effect that maintains item effect once to the party for a certain period of time even if you get knocked out. Halves the MP Cost for the character that activates Holy Grace when using the next skill.

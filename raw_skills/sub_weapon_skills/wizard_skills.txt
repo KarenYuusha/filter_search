@@ -35,6 +35,7 @@ Category: Wizard Skills
 Tier: I
 Required Level: Level 15
 
+Source Details:
 Limitation: Staff, MD, MD sub weapon only
 Self buffer (Active)
 MP cost: 300mp
@@ -45,7 +46,9 @@ Increase Max MP+ by (100 + 10 * skill level)
 Increase Matk by (PlayerLvl / (10 - Skill lvl * 0.6)
 Familia Chance to not escape when get hit is roughly 99% at level 10
 Duration = (30 * Skill Lvl) seconds.
-Game Description: Summons familiar and while it's around, MATK, MaxMP and Additional Magic increases a little. The familiar may flee if it receives damage.
+
+Game Description:
+Summons familiar and while it's around, MATK, MaxMP and Additional Magic increases a little. The familiar may flee if it receives damage.
 
 
 ==================================================
@@ -56,6 +59,7 @@ Category: Wizard Skills
 Tier: I
 Required Level: Level 15
 
+Source Details:
 Limitation: Staff, MD, MD sub weapon only
 Support skill (Active)
 MP cost: 0
@@ -66,8 +70,10 @@ Skill Effect:
 - The crystal spawns between you and your Familia. (This crystal can be used by you or your party member)
 - When player touch crystal, then that player will get MP restoration by (100 + 20 * Skill Lvl) MP
 - Only one crystal can exist at the same time, and the previous one will disappear when the second one is placed.
-Game Description: Creates crystal that restores Mana. Pick it up to restore a small amount of MP. The cast time becomes longer if the familiar is doing something else when the skill is used.
 Note: This skill cannot be used as an opener, but can in mid-combo
+
+Game Description:
+Creates crystal that restores Mana. Pick it up to restore a small amount of MP. The cast time becomes longer if the familiar is doing something else when the skill is used.
 
 
 ==================================================
@@ -78,6 +84,7 @@ Category: Wizard Skills
 Tier: II
 Required Level: Level 35
 
+Source Details:
 Limitation: Staff, MD, MD sub weapon only
 Magic skill (active)
 MP cost: 0 mp
@@ -89,9 +96,11 @@ Base Skill Constant: 80
 Hit Count: 1 hit
 Ailment: Paralysis
 Base Ailment Chance: (2 * skill level)% (unconfirmed)
-Game Description: Familiar is told to perform a lightning magic. Deals wind element magic damage to the target. Chance to inflict [Paralysis] on the target.
 Note: This skill cannot be used as an opener, but can in mid-combo
 This skill is always affected by lrd regardless distance.
+
+Game Description:
+Familiar is told to perform a lightning magic. Deals wind element magic damage to the target. Chance to inflict [Paralysis] on the target.
 
 
 ==================================================
@@ -102,6 +111,7 @@ Category: Wizard Skills
 Tier: II
 Required Level: Level 35
 
+Source Details:
 Limitation: Staff, MD, MD sub weapon only
 Magic skill (active)
 MP cost: 100 mp
@@ -115,8 +125,10 @@ Aoe Radius = 8 meter
 Duration = (3 + Floor((Skill Lvl - 1)/2) * 1.5) sec
 Ailment: Freeze
 Base Ailment Chance: (2 * skill level)% (unconfirmed)
-Game Description: Familiar is told to perform a snowstorm magic. Creates a wide AOE that does water element magic damage. Chance to inflict [Freeze] on the target.
 Note: This skill damage is not affected by Srd/Lrd
+
+Game Description:
+Familiar is told to perform a snowstorm magic. Creates a wide AOE that does water element magic damage. Chance to inflict [Freeze] on the target.
 
 
 ==================================================
@@ -127,6 +139,7 @@ Category: Wizard Skills
 Tier: III
 Required Level: Level 125
 
+Source Details:
 Limitation: Staff, MD, MD sub weapon only
 Magic skill (active)
 MP cost: 300 mp
@@ -142,11 +155,13 @@ Ailment: Ignition
 Base Ailment Chance: (10 * Skill Lvl)% (unconfirmed)
 Ailment: Dizzy
 Base Ailment Chance: (5 * Skill Lvl)% (unconfirmed)
-Game Description: Familiar is told to perform a meteorite magic. Drops 3 meteorites near the target. Chance to inflict [Ignite] & [Dizzy].
 Note:
 After the skill is activated, 3 meteors will land randomly within “Fall Radius 24m (center of the target’s position”.
 Currently, it is confirmed that Personal stats LUK affect this Fall Radius. According to this test link https://www.taptap.com/topic/18663241, it looks like that 255 LUK can reduce Fall Radius 24m into 12m(halves radius).
 This skill damage is affected by srd/lrd which one of them is higher.
+
+Game Description:
+Familiar is told to perform a meteorite magic. Drops 3 meteorites near the target. Chance to inflict [Ignite] & [Dizzy].
 
 
 ==================================================
@@ -157,6 +172,7 @@ Category: Wizard Skills
 Tier: III
 Required Level: Level 125
 
+Source Details:
 Limitation: Staff, MD, MD sub weapon only
 Buff skill(active)
 MP cost: 200 mp
@@ -168,10 +184,12 @@ Skill Effect:
 - If the damage received is higher than Shield HP, then you will receive more than 1 damage and will get hidden effects that can halve that damage higher than Shield HP. [Example = You have 2240 Shield HP, and you receive 5000 damage. Then Shield HP became 0 because 5000 dmg > 2240 shield hp, and 5000 damage became 2760 damage because 5000 - 2240, then got halved into 1380 damage. Now you will receive 1380 damage and the stone barrier shield buff will end.]
 - Ignition & poison damage increase by 100% [applied additively with Serum]
 - Skill buff duration = 30 + (3 * skill level) seconds
-Game Description: Familiar is told to perform a safeguard magic. It gives protection to reduce certain damage, but the damage from Ignite and Poison increases(drawback). Can't be used repeatedly.
 Note:
 - You cannot use this skill if you already have this skill buff effect.
 - When your teammates already have this skill buff and you use this skill, then this skill only gives shield buff to you and teammates who don't have this skill buff only, and doesn’t replace teammate’s previous shield buff at all.
+
+Game Description:
+Familiar is told to perform a safeguard magic. It gives protection to reduce certain damage, but the damage from Ignite and Poison increases(drawback). Can't be used repeatedly.
 
 
 ==================================================
@@ -182,6 +200,7 @@ Category: Wizard Skills
 Tier: IV
 Required Level: Level 205
 
+Source Details:
 Limitation: Staff, MD, MD sub weapon only
 Magic skill(active)
 MP cost: 400 mp
@@ -207,12 +226,14 @@ The additional hit from this skill will always be critical if casted while famil
 Ailment: Weaken
 Ailment Chance: 100%; only when the additional hit has element advantage against the target (for neutral targets, additional hit has to have no element/neutral to inflict [Weaken])
 Ailment Resistance: 10 seconds
-Game description: An Attack technique to unleash aggregated mana. Additional attack with certain Magic Skills will create a huge additional mana explosion. Collaboration with the cat results in a critical hit.
-Game description: An attack that detonates condensed mana. An additional attack with certain Magic Skills will trigger a massive mana explosion that guarantees a critical hit and inflicts [Weaken] to targets with elements you are weak to.
 Note:
 This Additional hit doesn’t inflict prorate.
 This Additional hit’s damage is not affected by combo tags and final damage increase from brave aura.
 Srd/Lrd can affect this skill damage(both initial hit and additional hit)
+
+Game Description:
+An Attack technique to unleash aggregated mana. Additional attack with certain Magic Skills will create a huge additional mana explosion. Collaboration with the cat results in a critical hit.
+An attack that detonates condensed mana. An additional attack with certain Magic Skills will trigger a massive mana explosion that guarantees a critical hit and inflicts [Weaken] to targets with elements you are weak to.
 
 
 ==================================================
@@ -223,6 +244,7 @@ Category: Wizard Skills
 Tier: IV
 Required Level: Level 205
 
+Source Details:
 Limitation: Staff, MD, MD sub weapon only
 Magical skill (Active & Passive)
 MP cost: 300
@@ -238,7 +260,9 @@ If the user doesn't have the following skills (Lightning, Blizzard, Meteor) lear
 But if you only learn Blizzard, then familia cat will auto-cast Blizzard only for the entire of this buff time. Likewise, if only learn Lightning, then familia only auto-cast Lightning.
 Auto-casted Wizard skill’s damage/effect is based on that auto-cast's skill level, not this advanced familia skill level.
 Auto-casted Wizard skill doesn't inflict prorate.
-Game description: Summons and makes familiar act unpredictably. Lightning, Blizzard, or Meteor Strike is cast randomly at fixed time intervals. Familiar's ability and the skill generated depends on the skill level acquired.
+
+Game Description:
+Summons and makes familiar act unpredictably. Lightning, Blizzard, or Meteor Strike is cast randomly at fixed time intervals. Familiar's ability and the skill generated depends on the skill level acquired.
 
 
 ==================================================
@@ -249,6 +273,7 @@ Category: Wizard Skills
 Tier: II
 Required Level: Level 35
 
+Source Details:
 Lv 2 Skill; Staff / Main Magic Device Only
 MP Cost: 200
 Damage Type: Magic
@@ -261,7 +286,9 @@ Skill Effect:
 This skill will release a laser from the Mana Crystal position to the target. That Mana Crystal will vanish upon use. However if you use this skill without Mana Crystal in present, then it will act as nothing happened other than just cost mp only.
 Player within AOE of this skill that occur, will receive MP Recovery by ((5 + Mana Crystal Level) * Skill Level)
 This skill damage is affected by srd/lrd depend on distance.
-Game Description: “Shoots out mana from Mana Crystal in a straight line to attack. Slightly restores the MP of the party members within the attack area.”
+
+Game Description:
+“Shoots out mana from Mana Crystal in a straight line to attack. Slightly restores the MP of the party members within the attack area.”
 
 
 ==================================================
@@ -272,6 +299,7 @@ Category: Wizard Skills
 Tier: III
 Required Level: Level 125
 
+Source Details:
 Lv 3 Skill; Staff / Main Magic Device Only
 MP Cost: 100
 Buff Effect:
@@ -283,8 +311,10 @@ Note:
 - You can still use this skill during silence debuff. (just don't get silence again or else bye bye this skill buff)
 - When you have 1 Current HP during this skill buff, then using any skill that need chant time still doesn't end this skill buff, and also didn't cost your HP as well..
 - This skill's motion speed is always set to +50%.
-Game Description: “A secret technique to maximize element power. For 90 seconds, the power of all elements (magic only) except neutral increases, but CSPD decreases and 1% of Max HP is lost each time you cast.”
 This dte% bonus from this skill is same as INT Dte% bonus, which is you must need to have awaken element or skill element specific, in order to get this dte buff. Neutral attacks cannot get this dte buff.
+
+Game Description:
+“A secret technique to maximize element power. For 90 seconds, the power of all elements (magic only) except neutral increases, but CSPD decreases and 1% of Max HP is lost each time you cast.”
 
 
 ==================================================
@@ -295,11 +325,14 @@ Category: Wizard Skills
 Tier: IV
 Required Level: Level 205
 
+Source Details:
 Lv 4 Skill; Staff / Main Magic Device Only
 Passive Effect:
 - Strengthen Overlimit’s INT DTE% buff by +(Skill Level)% additively
 - Also relieves Overlimit’s CSPD debuff by (50 * Skill Level), so -500 in total if Overlimit and this skill are maxed
-Game Description: “Mitigates CSPD loss due to Overlimit and increases element power further”
+
+Game Description:
+“Mitigates CSPD loss due to Overlimit and increases element power further”
 
 
 ==================================================
@@ -310,6 +343,7 @@ Category: Wizard Skills
 Tier: I
 Required Level: Level 15
 
+Source Details:
 Lv 1 Skill; Staff / Main Magic Device only
 Passive Effect:
 Increase your CSPD% by (Floor[Skill Level * 1.5] + (Total Wizard Skills Learned - 1) * Floor[Skill Level/2])
@@ -317,7 +351,9 @@ Increase your +CSPD by (Skill Level * Total Wizard Skills points)
 Decrease ATK% by -(Ceiling[50 - 2.5 * Skill Level])%
 ATK% formula kinda weird as your char level up???
 Also, This ATK% debuff doesn’t affect Wizard ATK value, so Wizard ATK still uses Total ATK without this skill ATK% debuff.
-Game Description: “Accumulates knowledge to speed up incantation. Loses ATK in exchange for an increase in CSPD according to the acquisition status of Wizard Skills. *The attack power of familiar will not decrease.”
+
+Game Description:
+“Accumulates knowledge to speed up incantation. Loses ATK in exchange for an increase in CSPD according to the acquisition status of Wizard Skills. *The attack power of familiar will not decrease.”
 
 
 ==================================================
@@ -328,12 +364,15 @@ Category: Wizard Skills
 Tier: V
 Required Level: Level 285
 
+Source Details:
 [Passive] Staff/Magic Device/Sub Magic Device Only
 Passive Effect:
 Reduce Cast Time for all skill casted with Familiar by (0.1 * Skill Level) seconds. Even affect Advanced Familiar
 Increase Base Skill Multiplier(Initial Hit) of Imperial Ray by (0.2 * Skill Level)
 Increase Base Skill Multiplier(Additional Hit) of Imperial Ray by (0.4 * Skill Level)
-Game Description: Deepens your understanding of magic through research. Increases the power of “Imperial Ray” and shortens the casting time of magic used by the familiar.
+
+Game Description:
+Deepens your understanding of magic through research. Increases the power of “Imperial Ray” and shortens the casting time of magic used by the familiar.
 
 
 ==================================================
@@ -344,10 +383,13 @@ Category: Wizard Skills
 Tier: V
 Required Level: Level 285
 
+Source Details:
 [Passive] Staff/Main Magic Device Only
 Passive Effect:
 Whenever your familiar successfully cast time Wizard Skills(so far only just need familiar not caster to cast skill which is Blizzard, Lightning, Meteor Strike, Stone Barrier), then it has chance to spawn Mana Crystal in front of Familia by (Skill Level * Skill Level)%
-Game Description: I’ll put it here if there’s any extra, meow! The skill “Mana Crystal” may be deployed after a successful cast by the familiar.
+
+Game Description:
+I’ll put it here if there’s any extra, meow! The skill “Mana Crystal” may be deployed after a successful cast by the familiar.
 
 
 ==================================================
@@ -358,6 +400,7 @@ Category: Wizard Skills
 Tier: V
 Required Level: Level 285
 
+Source Details:
 [Active] Staff/Main Magic Device Only
 MP Cost: 200[if not in Shift Mode] OR 0MP[when in Shift Mode]
 Skill Effect:
@@ -377,8 +420,10 @@ lv8 23sec
 lv9 26sec
 lv10 30sec
 You can extend the remaining buff duration with the new buff duration. But this buff duration max/cap at 60 sec.
-Game Description: Slips into another dimension to escape from danger. During Shift, you will be unable to attack and MP will be drained continuously. but your aggro will be removed and you will always be [Invincible]. The effect cannot be triggered if you are being targeted.
 Staff/Magic Device bonus: Avoiding damage during Shift will give you Action Speed boost when you return to the original dimension according to the number of times you avoid it. (max 60 seconds).
 Note: if you’re the only one alive in party and you’re in Shift Mode, then either one of two below will happen
 => If not in boss map or dungeon etc., all monsters will lose aggro and vanish.
 => If in boss map etc., then you will exit Shift immediately as soon as you’re last one alive, and remaining monsters will target you.
+
+Game Description:
+Slips into another dimension to escape from danger. During Shift, you will be unable to attack and MP will be drained continuously. but your aggro will be removed and you will always be [Invincible]. The effect cannot be triggered if you are being targeted.

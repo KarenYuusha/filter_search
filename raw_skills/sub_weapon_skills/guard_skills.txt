@@ -16,10 +16,13 @@ Category: Guard Skills
 Tier: I
 Required Level: Level 30
 
-Increase guard rate for heavy armors
+Source Details:
 Passive Skill
 Limitation: Heavy Armor
 Amount of Guard Recharge increase: 1*Lvl %
+
+Game Description:
+Increase guard rate for heavy armors
 
 
 ==================================================
@@ -30,11 +33,14 @@ Category: Guard Skills
 Tier: II
 Required Level: Level 120
 
-Increase guard rate and power for heavy armors
+Source Details:
 Passive Skill
 Limitation: Heavy Armor
 Amount of Guard Recharge increase: 1*Lvl %
 Amount of Guard Power increase: (1 + Lvl)/2 %
+
+Game Description:
+Increase guard rate and power for heavy armors
 
 
 ==================================================
@@ -45,11 +51,14 @@ Category: Guard Skills
 Tier: III
 Required Level: Level 180
 
-Increase Ailment Resistance from Guard when running low on HP. Higher skill level enables the skill to be activated with more HP remaining
+Source Details:
 Passive Skill
 Limitation: None
 Hp Condition needed to doubles ailres from guard = (5 * Lvl)% of your MaxHP
 - At level 10, Doubles guard’s ailment resistance when your HP is below than 50%
+
+Game Description:
+Increase Ailment Resistance from Guard when running low on HP. Higher skill level enables the skill to be activated with more HP remaining
 
 
 ==================================================
@@ -60,10 +69,13 @@ Category: Guard Skills
 Tier: I
 Required Level: Level 30
 
-Increase evasion rate for light armors
+Source Details:
 Passive Skill
 Limitation: Light Armor
 Amount of Evasion Recharge increase: 1*Lvl %
+
+Game Description:
+Increase evasion rate for light armors
 
 
 ==================================================
@@ -74,10 +86,13 @@ Category: Guard Skills
 Tier: II
 Required Level: Level 120
 
-Increase evasion rate for light armors
+Source Details:
 Passive Skill
 Limitation: Light Armor
 Amount of Evasion Recharge increase: 1*Lvl %
+
+Game Description:
+Increase evasion rate for light armors
 
 
 ==================================================
@@ -88,7 +103,10 @@ Category: Guard Skills
 Tier: III
 Required Level: Level 180
 
-Evasion becomes usable while charging or casting. The effect of this skill is lost for a few seconds if used. The duration depends on the skill level.
+Source Details:
 Passive Skill
 Limitation: None
 Allow you can use evasion during cast/chant time. But it has a cooldown (20 - Skill Level) seconds after you use mirage evasion.
+
+Game Description:
+Evasion becomes usable while charging or casting. The effect of this skill is lost for a few seconds if used. The duration depends on the skill level.

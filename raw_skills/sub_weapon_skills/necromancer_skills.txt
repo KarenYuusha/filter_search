@@ -16,6 +16,7 @@ Category: Necromancer Skills
 Tier: I
 Required Level: None
 
+Source Details:
 T1; [Active] All Weapons
 MP Cost: 100
 Time needed for 1 stack gain:
@@ -29,8 +30,10 @@ Spirit Stack Buff (Staff only):
 Attack MP Recovery: 0.1 * Skill Level * Stack% * Character's Total Attack MP Recovery
 Grave Digger Ailment Resistance: 0.05 * Skill Level * Stack%
 -Grave Digger Ailment Resistance is applied multiplicatively with character's Ailment Resistance status and Immunity buff.
-Game Description: Deploys a conceptual graveyard to prepare for necromancy. Spirit Stacks are gained while in the graveyard. Spirit slowly returns if you leave the graveyard.
 Staff Bonus: Gains 1 Spirit Stack per second regardless of skill level. Attack MP Recovery increases based on the Spirit stacks gained. Gains resistance to status ailments. Both Attack MP Recovery per Spirit stack and resistance to status ailments increases with skill level.
+
+Game Description:
+Deploys a conceptual graveyard to prepare for necromancy. Spirit Stacks are gained while in the graveyard. Spirit slowly returns if you leave the graveyard.
 
 
 ==================================================
@@ -41,6 +44,7 @@ Category: Necromancer Skills
 Tier: I
 Required Level: None
 
+Source Details:
 T1; [Active] Staff Only
 MP Cost: 500
 Damage Type: Magic
@@ -53,7 +57,9 @@ This skill uses physical critical rate, but uses magic properties for the rest o
 Each time this skill deals a critical hit, it adds +(0.1 * Skill Level) base skill multiplier for all of the following hits. This bonus multiplier can be stacked; which means, max multiplier for 10th hit is 10 multiplier, and max skill multiplier if all hits are combined is 55.
 Each of Phantom Missile hits adds Chain Cast stack.
 This skill is not affected by short/long range damage; not affected by long range skill; affected by magic critical damage, spell burst, concentrate; uses and deals magic proration (following hits uses the same proration value as first hit).
-Game Description: Sends forth evil spirits to attack. Performs a magic attack on the target by consuming spirit stacks (max 10). Consuming more spirit increases it's duration (number of hits), and it's power increases with each critical hit (physical).
+
+Game Description:
+Sends forth evil spirits to attack. Performs a magic attack on the target by consuming spirit stacks (max 10). Consuming more spirit increases it's duration (number of hits), and it's power increases with each critical hit (physical).
 
 
 ==================================================
@@ -64,6 +70,7 @@ Category: Necromancer Skills
 Tier: II
 Required Level: Level 205
 
+Source Details:
 T2; [Active] Staff Only
 MP Cost: 400
 Maximum Cast Range: Weapon Range
@@ -76,7 +83,9 @@ Buff Range: 7m (just below 8m)
 -Changes Time Left to (Time Left/10) beyond Buff Range
 -Changes Time Left to (Time Left * 10) re-entering Buff Range
 This skill does not generate proration.
-Game Description: Puts a blood-sucking curse on the target. A portion of the damage dealt is absorbed as HP. Warning: Low chance to absorb status ailments too. Chance to inflict [Flinch] if VIT is 50 or higher. The curse is instantly removed when the target is too far.
+
+Game Description:
+Puts a blood-sucking curse on the target. A portion of the damage dealt is absorbed as HP. Warning: Low chance to absorb status ailments too. Chance to inflict [Flinch] if VIT is 50 or higher. The curse is instantly removed when the target is too far.
 
 
 ==================================================
@@ -87,6 +96,7 @@ Category: Necromancer Skills
 Tier: III
 Required Level: Level 260
 
+Source Details:
 T3; [Active] Staff Only
 MP Cost: 900
 Damage Type: Magic
@@ -100,7 +110,9 @@ Ailment: Lethargy
 Base Ailment Chance: MIN(10 * Spirit Stack used, 100)%
 Restores your MP by: Spirit Stack used * 100 MP
 This skill is affected by short/long range damage; affected by long range skill; affected by concentrate; uses and deals magic proration.
-Game Description: Unleashes a spiritual particle beam. Performs a magic attack. Restores MP and raises the chance to inflict [Lethargy] based on spirit stacks used. The number of spirit stacks used depends on the amount of MP consumed when the skill is activated. (max 20)
+
+Game Description:
+Unleashes a spiritual particle beam. Performs a magic attack. Restores MP and raises the chance to inflict [Lethargy] based on spirit stacks used. The number of spirit stacks used depends on the amount of MP consumed when the skill is activated. (max 20)
 
 
 ==================================================
@@ -111,6 +123,7 @@ Category: Necromancer Skills
 Tier: II
 Required Level: Level 205
 
+Source Details:
 T2; [Active] All Weapons
 MP Cost: 0 MP
 Maximum Cast Range: infinite
@@ -137,7 +150,9 @@ Hit Range: 1 + (Skill Level - 1)/6 m radius AOE
 -This attack is always stronger element against the enemy.
 -Explosion is triggered by resummon and if the skeleton takes damage; but explosion attack only happens if you are engaging a target.
 -This attack is forced to be and affected by short range damage; not affected by Long Range Skill; affected by concentrate; uses and deals normal proration.
-Game Description: Uses 3 spirit stacks to summon a skeleton soldier. (max 3 on the field) The soldier performs close-range attack. It explodes and disappears when caught in an AoE. Attack power is based on ATK or MATK, whichever is higher.
+
+Game Description:
+Uses 3 spirit stacks to summon a skeleton soldier. (max 3 on the field) The soldier performs close-range attack. It explodes and disappears when caught in an AoE. Attack power is based on ATK or MATK, whichever is higher.
 
 
 ==================================================
@@ -148,6 +163,7 @@ Category: Necromancer Skills
 Tier: III
 Required Level: Level 260
 
+Source Details:
 T3; [Ex Skill] All Weapons
 MP Cost: MIN(ROUNDDOWN(Current MP;-2); 2000)
 Damage Type: Physical (Uses ATK+MATK)
@@ -210,7 +226,9 @@ Activates Demonic Barrier, Barrier Expansion, Spirit Distortion..
 Range: 21m from demon
 Reduces Magical, Physical, and Fractional Damage
 Doubles Damage Reduction.
-Game Description: A contract with a demon. The ability changes based on the amount of MP offered when forming the contract. Each attack by the demon costs the caster some HP. Reusing the skill will terminate the contract. The Demon may betray you if things turn bad (when all party members dies, except for you, you will be killed by the Demon).
+
+Game Description:
+A contract with a demon. The ability changes based on the amount of MP offered when forming the contract. Each attack by the demon costs the caster some HP. Reusing the skill will terminate the contract. The Demon may betray you if things turn bad (when all party members dies, except for you, you will be killed by the Demon).
 
 
 ==================================================
@@ -221,11 +239,14 @@ Category: Necromancer Skills
 Tier: II
 Required Level: Level 205
 
+Source Details:
 T2; [Passive] Staff Only
 Passive Effect:
 Initial Spirit Stack: Skill Level + Total Necromancer Skills Points/10
 Grave Digger Range: +0.6 * Skill Level meter
-Game Description: Gains additional spirit stacks when deploying "Grave Digger" for the first time. You can now continue gaining spirit stacks even when wlightly away from the graveyard.
+
+Game Description:
+Gains additional spirit stacks when deploying "Grave Digger" for the first time. You can now continue gaining spirit stacks even when wlightly away from the graveyard.
 
 
 ==================================================
@@ -236,6 +257,7 @@ Category: Necromancer Skills
 Tier: II
 Required Level: Level 205
 
+Source Details:
 T2; [Passive] Staff Only
 Skill Effect:
 HP & MP recovery upon activation:
@@ -243,7 +265,9 @@ HP Recovery: Character's Max HP * Skill Level%
 MP Recovery: 10 * Skill Level
 Summons a skeleton from your left side if there are not 3 skeletons already deployed.
 Summoned Skeleton Level: Skeleton Call Skill Level
-Game Description: Recovers a small amount of HP and MP instantly when a monster is killed. (activates only once per second.) A skeleton soldier will be summoned upon recovery if "Skeleton Call" has been acquired. (There can't be more than 3 skeleton soldiers on the field).
+
+Game Description:
+Recovers a small amount of HP and MP instantly when a monster is killed. (activates only once per second.) A skeleton soldier will be summoned upon recovery if "Skeleton Call" has been acquired. (There can't be more than 3 skeleton soldiers on the field).
 
 
 ==================================================
@@ -254,11 +278,14 @@ Category: Necromancer Skills
 Tier: III
 Required Level: Level 260
 
+Source Details:
 T3; [Passive] Staff Only
 Skill Effect: Activates "Harvest" when a skeleton explodes due to monsters attacks (take damage). Harvest Level: Harvest Skill Level.
 Activation Rate: 8% * Skill Level??
 (not confirmed, need more testings)
-Game Description: The effect of "Harvest" may still be applied even when a skeleton soldier explodes and disappears.
+
+Game Description:
+The effect of "Harvest" may still be applied even when a skeleton soldier explodes and disappears.
 
 
 ==================================================
@@ -269,6 +296,7 @@ Category: Necromancer Skills
 Tier: I
 Required Level: None
 
+Source Details:
 T1; [Active] All Weapons
 MP Cost: 300
 Damage Type: Physical
@@ -286,7 +314,9 @@ Base Skill Constant (Additional Hit): 30 * Skill Level
 Additional Hit Count: MIN(Spirit Stacks used/3; 3)
 Hit Range: 3m radius AOE
 This skill is affected by short range damage; affected by whack; uses and deals physical proration.
-Game Description: Summons tombstones that spike out of the ground. Performs a physical attack on the target. Chance to inflict [Tumble] if VIT is 50 or higher. Using 3 spirit stacks adds an AoE attack, activating up to 3 times at once.
+
+Game Description:
+Summons tombstones that spike out of the ground. Performs a physical attack on the target. Chance to inflict [Tumble] if VIT is 50 or higher. Using 3 spirit stacks adds an AoE attack, activating up to 3 times at once.
 
 
 ==================================================
@@ -297,6 +327,7 @@ Category: Necromancer Skills
 Tier: II
 Required Level: Level 205
 
+Source Details:
 T2; [Active] Staff/Halberd Only
 MP Cost: 200
 Damage Type: Physical
@@ -316,7 +347,9 @@ Ailment Chance: 10% * Stack
 Ailment Resistance: 30 seconds
 -If Stun is inflicted, stacks are reset to 0 (includes fail Stun because of cooldown).
 This skill is affected by short range damage; affected by whack; uses and deals physical proration.
-Game Description: Delivers a heavy blow to the top of the head with a staff. Performs a physical attack to the target. Chance to inflict [Dizzy]. Each successful hit increases the power and may inflict [Stun] on the target. The effect resets upon inflicting [Stun],
+
+Game Description:
+Delivers a heavy blow to the top of the head with a staff. Performs a physical attack to the target. Chance to inflict [Dizzy]. Each successful hit increases the power and may inflict [Stun] on the target. The effect resets upon inflicting [Stun],
 
 
 ==================================================
@@ -327,6 +360,7 @@ Category: Necromancer Skills
 Tier: III
 Required Level: Level 260
 
+Source Details:
 T3; [Active] Staff/Halberd Only
 MP Cost: 100 MP (Main Hit) + 100 MP (Additional hit)
 Damage Type: Physical
@@ -357,4 +391,6 @@ Staff: 7.5 + 0.25 * Skill Level
 Base Skill Constant: 100
 -Performs backstep as an attack animation.
 This skill is affected by short range damage; affected by whack; uses and deals physical proration.
-Game Description: A versatile staff technique that changes according to the situation. A physical attack that can trigger a follow-up move by consuming an additional 100 MP depending on the key input. Up (high power), Left/Right (damage reduction), Down (backstep).
+
+Game Description:
+A versatile staff technique that changes according to the situation. A physical attack that can trigger a follow-up move by consuming an additional 100 MP depending on the key input. Up (high power), Left/Right (damage reduction), Down (backstep).
