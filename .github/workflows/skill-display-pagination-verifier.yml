@@ -23,3 +23,5 @@ jobs:
             tests.test_discord_skill_search \
             tests.test_discord_skill_review_regressions \
             tests.test_discord_module_boundaries -v
+      - name: Run complete repository test suite
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
