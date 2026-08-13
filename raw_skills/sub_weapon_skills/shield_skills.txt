@@ -15,8 +15,8 @@ SKILL: SHIELD MASTERY
 ==================================================
 
 Category: Shield Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: Level 5
 
 Get better at using a shield, ASPD with shield increases.
 Passive Skill
@@ -31,8 +31,8 @@ SKILL: SHIELD BASH
 ==================================================
 
 Category: Shield Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 20
 
 Bash your shield on the enemy's head to inflict STUN.
 Active Skill (Physical) [Single Target]
@@ -48,8 +48,8 @@ SKILL: SHIELD CANNON
 ==================================================
 
 Category: Shield Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 50
 
 Throw your shield at a high speed at the enemy to inflict STUN.
 Active Skill (Physical) [Single Target]
@@ -70,8 +70,8 @@ SKILL: GUARD STRIKE
 ==================================================
 
 Category: Shield Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 110
 
 Gain the ability to reflect back enemy attacks by guarding.
 Passive Skill
@@ -90,8 +90,8 @@ SKILL: FORCE SHIELD
 ==================================================
 
 Category: Shield Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 20
 
 Increase your DEF while having a shield equipped.
 Passive Skill
@@ -108,8 +108,8 @@ SKILL: MAGICAL SHIELD
 ==================================================
 
 Category: Shield Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 50
 
 Increase your MDEF while having a shield equipped.
 Passive Skill
@@ -126,8 +126,8 @@ SKILL: PROTECTION
 ==================================================
 
 Category: Shield Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: Level 5
 
 Cast a barrier on the party that increase physical resistance.
 Support Skill (Party Buffer)
@@ -144,8 +144,8 @@ SKILL: AEGIS
 ==================================================
 
 Category: Shield Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 20
 
 Cast a barrier on the party that increase magical resistance.
 Support Skill (Party Buffer)
@@ -162,8 +162,8 @@ SKILL: GUARDIAN
 ==================================================
 
 Category: Shield Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 110
 
 Cast an aura which gives various buffs to the party members inside it.
 Connected players are represented with a yellow line.
