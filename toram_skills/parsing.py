@@ -14,7 +14,9 @@ _SKILL_BLOCK_RE = re.compile(
 _SECTION_HEADING_RE = re.compile(
     r"(?m)^(?P<label>[A-Za-z][A-Za-z0-9 /+()'\"%&.-]{0,79}):\s*$"
 )
-_LINE_FIELD_RE = re.compile(r"(?mi)^\s*(?P<label>[A-Za-z][A-Za-z0-9 /+()'\"%&.-]{0,79}):\s*(?P<value>.*?)\s*$")
+_LINE_FIELD_RE = re.compile(
+    r"(?mi)^[ \t]*(?P<label>[A-Za-z][A-Za-z0-9 /+()'\"%&.-]{0,79}):[ \t]*(?P<value>.*?)[ \t]*$"
+)
 _LEGACY_TYPE_RE = re.compile(
     r"(?i)^(?P<kind>Active|Passive|Support)\s+skill(?:\s*\((?P<detail>[^)]+)\))?"
 )
@@ -300,7 +302,8 @@ def parse_standard_skill_file(source: SkillSource) -> ParsedSkillFile:
     seen_names: set[str] = set()
 
     for source_order, match in enumerate(matches):
-        name = match.group("name").strip()
+        source_name = match.group("name").strip()
+        name = source_name.title() if source.relative_path == _MINSTREL_PATH else source_name
         normalized_name = normalize_skill_name(name)
         if normalized_name in seen_names:
             issues.append(
@@ -339,6 +342,11 @@ def parse_standard_skill_file(source: SkillSource) -> ParsedSkillFile:
         source_file=source.relative_path,
         general_text=general_text,
         tier_requirements=_parse_tier_requirements(source.text),
+        weapon_restrictions=(
+            _minstrel_weapon_restrictions(source.text)
+            if source.relative_path == _MINSTREL_PATH
+            else ()
+        ),
     )
     return ParsedSkillFile(
         tree=tree,

@@ -112,7 +112,11 @@ def build_search_documents(
                 position=len(documents),
                 kind="section",
                 label=section.label,
-                text=f"{section.label}\n{body}",
+                text=(
+                    f"Skill: {skill.name}\n"
+                    f"Tree: {tree.name}\n"
+                    f"{section.label}\n{body}"
+                ),
             )
         )
 
