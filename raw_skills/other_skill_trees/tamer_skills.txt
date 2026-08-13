@@ -16,6 +16,8 @@ SKILL: TAMING
 Category: Tamer Skills
 Tier: I
 Required Level: Not specified in source
+
+Source Details:
 Type: Active / Capture
 
 MP Cost: 300
@@ -117,6 +119,8 @@ SKILL: CAPTURE TECHNIQUE I
 Category: Tamer Skills
 Tier: I
 Required Level: Not specified in source
+
+Source Details:
 Type: Passive
 
 Description:
@@ -152,6 +156,8 @@ SKILL: SKILLFUL CAPTURE
 Category: Tamer Skills
 Tier: I
 Required Level: Not specified in source
+
+Source Details:
 Type: Passive
 
 Description:
@@ -174,6 +180,8 @@ SKILL: PET HEAL
 Category: Tamer Skills
 Tier: I
 Required Level: Not specified in source
+
+Source Details:
 Type: Active / Pet Support
 
 MP Cost: 100
@@ -224,6 +232,8 @@ SKILL: CAPTURE TECHNIQUE II
 Category: Tamer Skills
 Tier: II
 Required Level: Not specified in source
+
+Source Details:
 Type: Passive
 
 Description:
@@ -259,6 +269,8 @@ SKILL: PET MP CHARGE
 Category: Tamer Skills
 Tier: II
 Required Level: Not specified in source
+
+Source Details:
 Type: Active / Pet Support
 
 MP Cost: 300
@@ -295,6 +307,8 @@ SKILL: CAREFUL CAPTURE
 Category: Tamer Skills
 Tier: III
 Required Level: Not specified in source
+
+Source Details:
 Type: Passive
 
 Description:

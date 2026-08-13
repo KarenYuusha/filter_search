@@ -16,7 +16,9 @@ SKILL: PROCESS MATERIAL
 
 Category: Alchemy Skills
 Tier: I
-Required Level: 25
+Required Level: Level 25
+
+Source Details:
 Type: Utility
 
 Description:
@@ -28,11 +30,11 @@ Items processed through this skill give material points at random, but provide a
 Minimum Material Points =
 (80 + SkillLvl)% of the normal material point amount
 
-Game Description:
-Process materials by yourself. The success rate increases as the skill levels up. It is a common skill in Smith and Alchemy Skills.
-
 Notes:
 - This skill's level is shared with Process Material in the Smith Skills tree.
+
+Game Description:
+Process materials by yourself. The success rate increases as the skill levels up. It is a common skill in Smith and Alchemy Skills.
 
 
 ==================================================
@@ -41,7 +43,9 @@ SKILL: ITEM SYNTHESIS
 
 Category: Alchemy Skills
 Tier: I
-Required Level: 25
+Required Level: Level 25
+
+Source Details:
 Type: Crafting / Synthesis
 
 Description:
@@ -74,7 +78,9 @@ SKILL: NOVICE'S BOTTLE
 
 Category: Alchemy Skills
 Tier: I
-Required Level: 25
+Required Level: Level 25
+
+Source Details:
 Type: Passive
 
 Description:
@@ -96,7 +102,9 @@ SKILL: MID-CLASS SYNTHESIS
 
 Category: Alchemy Skills
 Tier: II
-Required Level: 50
+Required Level: Level 50
+
+Source Details:
 Type: Passive
 
 Description:
@@ -118,7 +126,9 @@ SKILL: CRAFTSMAN'S BOTTLE
 
 Category: Alchemy Skills
 Tier: II
-Required Level: 50
+Required Level: Level 50
+
+Source Details:
 Type: Passive
 
 Description:
@@ -137,7 +147,9 @@ SKILL: SYNTHESIZE EQUIPMENT
 
 Category: Alchemy Skills
 Tier: II
-Required Level: 50
+Required Level: Level 50
+
+Source Details:
 Type: Equipment Synthesis
 
 Description:
@@ -202,7 +214,9 @@ SKILL: HIGH-CLASS SYNTHESIS
 
 Category: Alchemy Skills
 Tier: III
-Required Level: 100
+Required Level: Level 100
+
+Source Details:
 Type: Passive
 
 Description:
@@ -224,7 +238,9 @@ SKILL: SYNTHESIST'S BOTTLE
 
 Category: Alchemy Skills
 Tier: III
-Required Level: 100
+Required Level: Level 100
+
+Source Details:
 Type: Passive
 
 Description:
@@ -243,7 +259,9 @@ SKILL: TECHNICAL SYNTHESIS
 
 Category: Alchemy Skills
 Tier: III
-Required Level: 100
+Required Level: Level 100
+
+Source Details:
 Type: Passive
 
 Description:
@@ -262,7 +280,9 @@ SKILL: EXPERT'S SYNTHESIS
 
 Category: Alchemy Skills
 Tier: IV
-Required Level: 200
+Required Level: Level 200
+
+Source Details:
 Type: Passive
 
 Description:
@@ -284,7 +304,9 @@ SKILL: MASTER'S BOTTLE
 
 Category: Alchemy Skills
 Tier: IV
-Required Level: 200
+Required Level: Level 200
+
+Source Details:
 Type: Passive
 
 Description:
@@ -303,7 +325,9 @@ SKILL: TECHNICAL SYNTHESIS II
 
 Category: Alchemy Skills
 Tier: IV
-Required Level: 200
+Required Level: Level 200
+
+Source Details:
 Type: Passive
 
 Description:
@@ -322,7 +346,9 @@ SKILL: EXPERT'S SYNTHESIS II
 
 Category: Alchemy Skills
 Tier: V
-Required Level: 250
+Required Level: Level 250
+
+Source Details:
 Type: Passive
 
 Description:
@@ -344,7 +370,9 @@ SKILL: MASTER'S BOTTLE II
 
 Category: Alchemy Skills
 Tier: V
-Required Level: 250
+Required Level: Level 250
+
+Source Details:
 Type: Passive
 
 Description:
@@ -353,11 +381,11 @@ Increases the maximum Synthesis Proficiency Level.
 Synthesis Proficiency Limit Increase:
 5 * SkillLvl
 
-Game Description:
-Increases the limit of proficiency level by 5 per skill level.
-
 Special Note:
 If all Bottle skills reach Level 10, proficiency increases to the current level cap.
+
+Game Description:
+Increases the limit of proficiency level by 5 per skill level.
 
 
 ==================================================
@@ -366,7 +394,9 @@ SKILL: TECHNICAL SYNTHESIS III
 
 Category: Alchemy Skills
 Tier: V
-Required Level: 250
+Required Level: Level 250
+
+Source Details:
 Type: Passive
 
 Description:

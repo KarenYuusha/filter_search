@@ -14,6 +14,10 @@ SKILL: IRON PIPE
 ==================================================
 
 Category: Stargem Skills
+Tier: Not specified in source
+Required Level: Not specified in source
+
+Source Details:
 Source: 2024 Halloween Stargem
 Type: Active
 Allowed Weapons: All Weapons
@@ -74,6 +78,10 @@ SKILL: RETRO BOWGUN
 ==================================================
 
 Category: Stargem Skills
+Tier: Not specified in source
+Required Level: Not specified in source
+
+Source Details:
 Source: 2024 Halloween Stargem
 Type: Active
 Allowed Weapons: All Weapons
@@ -125,6 +133,10 @@ SKILL: MAGNUM
 ==================================================
 
 Category: Stargem Skills
+Tier: Not specified in source
+Required Level: Not specified in source
+
+Source Details:
 Source: 2024 Halloween Stargem
 Type: Active
 Allowed Weapons: All Weapons

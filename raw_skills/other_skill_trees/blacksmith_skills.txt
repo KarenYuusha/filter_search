@@ -16,7 +16,9 @@ SKILL: PROCESS MATERIAL
 
 Category: Blacksmith Skills
 Tier: I
-Required Level: 25
+Required Level: Level 25
+
+Source Details:
 Type: Utility
 
 Description:
@@ -28,11 +30,11 @@ Items processed through this skill give material points at random, but provide a
 Minimum Material Points =
 (80 + SkillLvl)% of the normal material point amount
 
-Game Description:
-Process materials by yourself. The success rate increases as the skill levels up. It is a common skill in Smith and Alchemy Skills.
-
 Notes:
 - This skill's level is shared with Process Material in the Alchemy Skills tree.
+
+Game Description:
+Process materials by yourself. The success rate increases as the skill levels up. It is a common skill in Smith and Alchemy Skills.
 
 
 ==================================================
@@ -41,7 +43,9 @@ SKILL: REFINE EQUIPMENT
 
 Category: Blacksmith Skills
 Tier: I
-Required Level: 25
+Required Level: Level 25
+
+Source Details:
 Type: Refinement
 
 Description:
@@ -50,11 +54,11 @@ Allows the player to refine equipment without spending Spina.
 Skill Bonus Multiplier Increase:
 2 * SkillLvl
 
-Game Description:
-Refine Equipment by yourself. The success rate is lower than the blacksmiths but you don't need Spina.
-
 Related Information:
 See the Refinement information for more details.
+
+Game Description:
+Refine Equipment by yourself. The success rate is lower than the blacksmiths but you don't need Spina.
 
 
 ==================================================
@@ -63,7 +67,9 @@ SKILL: PRIVATE ANVIL
 
 Category: Blacksmith Skills
 Tier: I
-Required Level: 25
+Required Level: Level 25
+
+Source Details:
 Type: Passive
 
 Description:
@@ -82,7 +88,9 @@ SKILL: CREATE EQUIPMENT
 
 Category: Blacksmith Skills
 Tier: I
-Required Level: 25
+Required Level: Level 25
+
+Source Details:
 Type: Crafting
 
 Description:
@@ -118,7 +126,9 @@ SKILL: CUSTOMIZE EQUIPMENT
 
 Category: Blacksmith Skills
 Tier: I
-Required Level: 25
+Required Level: Level 25
+
+Source Details:
 Type: Equipment Stat Customization
 
 Description:
@@ -159,7 +169,9 @@ SKILL: MID-CLASS REFINEMENT
 
 Category: Blacksmith Skills
 Tier: II
-Required Level: 50
+Required Level: Level 50
+
+Source Details:
 Type: Passive
 
 Description:
@@ -181,7 +193,9 @@ SKILL: CRAFTSMAN'S ANVIL
 
 Category: Blacksmith Skills
 Tier: II
-Required Level: 50
+Required Level: Level 50
+
+Source Details:
 Type: Passive
 
 Description:
@@ -194,6 +208,9 @@ Stacking:
 - Additive with reductions from other Anvil skills.
 - Multiplicative with reductions from Blacksmith Proficiency and Compassion skills.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: CAREFUL CREATION
@@ -201,7 +218,9 @@ SKILL: CAREFUL CREATION
 
 Category: Blacksmith Skills
 Tier: II
-Required Level: 50
+Required Level: Level 50
+
+Source Details:
 Type: Passive
 
 Description:
@@ -220,7 +239,9 @@ SKILL: HIGH-CLASS REFINEMENT
 
 Category: Blacksmith Skills
 Tier: III
-Required Level: 100
+Required Level: Level 100
+
+Source Details:
 Type: Passive
 
 Description:
@@ -242,7 +263,9 @@ SKILL: BLACKSMITH'S ANVIL
 
 Category: Blacksmith Skills
 Tier: III
-Required Level: 100
+Required Level: Level 100
+
+Source Details:
 Type: Passive
 
 Description:
@@ -255,6 +278,9 @@ Stacking:
 - Additive with reductions from other Anvil skills.
 - Multiplicative with reductions from Blacksmith Proficiency and Compassion skills.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: ACCURATE CUSTOMIZATION
@@ -262,7 +288,9 @@ SKILL: ACCURATE CUSTOMIZATION
 
 Category: Blacksmith Skills
 Tier: III
-Required Level: 100
+Required Level: Level 100
+
+Source Details:
 Type: Passive
 
 Description:
@@ -287,7 +315,9 @@ SKILL: EXPERT'S REFINEMENT
 
 Category: Blacksmith Skills
 Tier: IV
-Required Level: 200
+Required Level: Level 200
+
+Source Details:
 Type: Passive
 
 Description:
@@ -309,7 +339,9 @@ SKILL: MASTER'S ANVIL
 
 Category: Blacksmith Skills
 Tier: IV
-Required Level: 200
+Required Level: Level 200
+
+Source Details:
 Type: Passive
 
 Description:
@@ -322,6 +354,9 @@ Stacking:
 - Additive with reductions from other Anvil skills.
 - Multiplicative with reductions from Blacksmith Proficiency and Compassion skills.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: EXPERT'S CREATION
@@ -329,7 +364,9 @@ SKILL: EXPERT'S CREATION
 
 Category: Blacksmith Skills
 Tier: IV
-Required Level: 200
+Required Level: Level 200
+
+Source Details:
 Type: Passive
 
 Description:
@@ -348,7 +385,9 @@ SKILL: EXPERT'S CUSTOMIZATION
 
 Category: Blacksmith Skills
 Tier: IV
-Required Level: 200
+Required Level: Level 200
+
+Source Details:
 Type: Passive
 
 Description:
@@ -371,7 +410,9 @@ SKILL: MASTER'S ANVIL II
 
 Category: Blacksmith Skills
 Tier: V
-Required Level: 250
+Required Level: Level 250
+
+Source Details:
 Type: Passive
 
 Description:
@@ -384,6 +425,9 @@ Stacking:
 - Additive with reductions from other Anvil skills.
 - Multiplicative with reductions from Blacksmith Proficiency and Compassion skills.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: EXPERT'S CUSTOMIZATION II
@@ -391,7 +435,9 @@ SKILL: EXPERT'S CUSTOMIZATION II
 
 Category: Blacksmith Skills
 Tier: V
-Required Level: 250
+Required Level: Level 250
+
+Source Details:
 Type: Passive
 
 Description:
@@ -414,6 +460,8 @@ SKILL: METAL COMPASSION
 Category: Blacksmith Skills
 Tier: Not specified in source
 Required Level: Not specified in source
+
+Source Details:
 Type: Passive
 
 Description:
@@ -425,6 +473,9 @@ SkillLvl %
 Stacking:
 Applied multiplicatively with material reduction from Smith Proficiency and Anvil skills.
 
+Game Description:
+Reduces the Metal points consumed by Skill: [Customize Equipment].
+
 
 ==================================================
 SKILL: FABRIC COMPASSION
@@ -433,6 +484,8 @@ SKILL: FABRIC COMPASSION
 Category: Blacksmith Skills
 Tier: Not specified in source
 Required Level: Not specified in source
+
+Source Details:
 Type: Passive
 
 Description:
@@ -444,6 +497,9 @@ SkillLvl %
 Stacking:
 Applied multiplicatively with material reduction from Smith Proficiency and Anvil skills.
 
+Game Description:
+Reduces the Fabric points consumed by Skill: [Customize Equipment].
+
 
 ==================================================
 SKILL: BEAST COMPASSION
@@ -452,6 +508,8 @@ SKILL: BEAST COMPASSION
 Category: Blacksmith Skills
 Tier: Not specified in source
 Required Level: Not specified in source
+
+Source Details:
 Type: Passive
 
 Description:
@@ -463,6 +521,9 @@ SkillLvl %
 Stacking:
 Applied multiplicatively with material reduction from Smith Proficiency and Anvil skills.
 
+Game Description:
+Reduces the Beast points consumed by Skill: [Customize Equipment].
+
 
 ==================================================
 SKILL: WOOD COMPASSION
@@ -471,6 +532,8 @@ SKILL: WOOD COMPASSION
 Category: Blacksmith Skills
 Tier: Not specified in source
 Required Level: Not specified in source
+
+Source Details:
 Type: Passive
 
 Description:
@@ -482,6 +545,9 @@ SkillLvl %
 Stacking:
 Applied multiplicatively with material reduction from Smith Proficiency and Anvil skills.
 
+Game Description:
+Reduces the Wood points consumed by Skill: [Customize Equipment].
+
 
 ==================================================
 SKILL: MEDICINE COMPASSION
@@ -490,6 +556,8 @@ SKILL: MEDICINE COMPASSION
 Category: Blacksmith Skills
 Tier: Not specified in source
 Required Level: Not specified in source
+
+Source Details:
 Type: Passive
 
 Description:
@@ -501,6 +569,9 @@ SkillLvl %
 Stacking:
 Applied multiplicatively with material reduction from Smith Proficiency and Anvil skills.
 
+Game Description:
+Reduces the Medicine points consumed by Skill: [Customize Equipment].
+
 
 ==================================================
 SKILL: MANA COMPASSION
@@ -509,6 +580,8 @@ SKILL: MANA COMPASSION
 Category: Blacksmith Skills
 Tier: Not specified in source
 Required Level: Not specified in source
+
+Source Details:
 Type: Passive
 
 Description:
@@ -519,3 +592,6 @@ SkillLvl %
 
 Stacking:
 Applied multiplicatively with material reduction from Smith Proficiency and Anvil skills.
+
+Game Description:
+Reduces the Mana points consumed by Skill: [Customize Equipment].
