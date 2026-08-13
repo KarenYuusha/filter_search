@@ -6,9 +6,12 @@ from .models import (
     SkillResultsPayload,
     SkillUnavailablePayload,
 )
+from .runtime import DEFAULT_SEMANTIC_RUNTIME, SemanticRuntimeCache
 from .service import SkillSearchService, parse_skill_command
 
 __all__ = [
+    "DEFAULT_SEMANTIC_RUNTIME",
+    "SemanticRuntimeCache",
     "SkillDetailPayload",
     "SkillHelpPayload",
     "SkillPayload",
