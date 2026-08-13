@@ -129,10 +129,10 @@ class SkillDetailPageBuilderTests(unittest.TestCase):
                 normalized_label=f"filler {index}",
                 body=first_body,
             )
-            for index in range(5)
+            for index in range(6)
         )
         medium = SkillSection(
-            position=5,
+            position=6,
             label="Medium Section",
             normalized_label="medium section",
             body="m" * 900,
