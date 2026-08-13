@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
 import unittest
@@ -196,6 +197,59 @@ class DiscordSkillRenderingTests(unittest.TestCase):
         self.assertIn(self.results_payload.results[0].skill.name, visible)
         self.assertNotIn("semantic", visible.casefold())
         self.assertNotIn("rrf", visible.casefold())
+
+    def test_compact_skill_results_show_metadata_and_short_preview(self):
+        skill = replace(
+            self.results_payload.results[0].skill,
+            tier=4,
+            mp_cost_text="1600MP",
+            mp_cost_value=1600,
+            damage_type="Magic",
+        )
+        payload = SkillResultsPayload(
+            "finale",
+            (
+                SkillResultItem(
+                    skill,
+                    self.results_payload.results[0].tree,
+                    "preview word " * 50,
+                ),
+            ),
+        )
+        embed = build_skill_results_embed(payload, page=0)
+        lines = (embed.description or "").splitlines()
+        self.assertIn(f"1. **{skill.name}**", lines)
+        metadata = next(line.strip() for line in lines if " • " in line)
+        self.assertEqual(
+            metadata,
+            f"{payload.results[0].tree.name} • Tier 4 • MP 1600 • Magic",
+        )
+        preview = next(
+            line.strip()
+            for line in lines
+            if line.strip().startswith("preview word")
+        )
+        self.assertLessEqual(len(preview), 160)
+        self.assertTrue(preview.endswith("…"))
+
+    def test_compact_skill_results_fall_back_to_skill_type(self):
+        base = self.results_payload.results[0]
+        skill = replace(
+            base.skill,
+            tier=None,
+            mp_cost_text=None,
+            mp_cost_value=None,
+            damage_type=None,
+            skill_type="Support",
+        )
+        payload = SkillResultsPayload(
+            "support",
+            (SkillResultItem(skill, base.tree, "support preview"),),
+        )
+        visible = build_skill_results_embed(payload, page=0).description or ""
+        self.assertIn(f"{base.tree.name} • Support", visible)
+        self.assertNotIn("None", visible)
+        self.assertNotIn("•  •", visible)
 
     def test_empty_skill_results_are_deterministic(self):
         embed = build_skill_results_embed(SkillResultsPayload("nope", ()), page=0)
