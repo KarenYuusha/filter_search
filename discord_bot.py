@@ -29,6 +29,15 @@ from toram_discord.render import (
     visible_attachment_name,
 )
 from toram_discord.sessions import DiscordSearchSession, DiscordSessionManager, SessionKey
+from toram_discord.skill_ui import (
+    SkillDetailView,
+    SkillResultsView,
+    build_skill_detail_embed,
+    build_skill_help_embed,
+    build_skill_payload_message,
+    build_skill_results_embed,
+    run_skill_query_sync,
+)
 from toram_discord.views import (
     VIEW_TIMEOUT_SECONDS,
     ActionButton,
