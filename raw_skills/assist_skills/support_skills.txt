@@ -9,7 +9,12 @@ Tier Requirements:
 - Tier IV: Level 150
 
 Shared Rules and Notes:
---Support skills as the name suggests are various party buffer/healing skills to help support the party. --All support skills except sanctuary are un-comboable. --The bottom 2 branches all have a nerf applied on the caster and disappear if the caster is damaged. The positive stats are applied to the whole party inside the aura including the caster. --The bottom 2 branches support skills are all aura based support skills which generate [30 + 30*PlayersConnected] amount of aggro per 3seconds per active auras on all the the enemies having base aggro on you (Unaffected by aggro+% equipment)[Fyi, using Asobimo aggro, 1MP = 10Aggro]
+--Support skills as the name suggests are various party buffer/healing skills to help support the party.
+--All support skills except Sanctuary are un-comboable.
+--The bottom 2 branches all have a nerf applied on the caster and disappear if the caster is damaged.
+--The positive stats are applied to the whole party inside the aura including the caster.
+--The bottom 2 branches support skills are all aura based support skills which generate [30 + 30*PlayersConnected] amount of aggro per 3seconds per active auras on all the enemies having base aggro on you (Unaffected by aggro+% equipment)
+--Fyi, using Asobimo aggro, 1MP = 10Aggro
 
 
 ==================================================
@@ -21,27 +26,16 @@ Tier: I
 Required Level: Level 10
 
 Source Details:
-Description:
-Reduce the revive time for dead party members.
-
-Type: Party healer
+Party healer
 Action Range: 2m
-
-Revive Time Reduction:
-30 + 2 * Lvl % of current revive time
-
-MP Cost:
-- Starts at 1 MP.
-- Increases by 1 MP every time First Aid is used consecutively.
-- Reduced by 1 MP every 1 minute if no First Aid was given.
-- Resets to 1 MP by changing maps.
-
-Notes:
-- Click on a dead party member's HP bar or the character in the over world to drop a menu for giving first aid.
-- Without getting this skill revive time reduction for giving first aid will be 30% of current time fixed.
-- The MP cost of using first aid starts from 1MP and increases by 1MP every time you use it consecutively
-- The MP cost is reduced by 1MP every 1min if no first aid was given. Reset back to 1MP by changing maps.
-- Giving first aid counts as party buffer aggro generation.
+Amount of Revive Time Reduced: 30 + 2*Lvl % of current revive time
+MP cost: Starts from 1MP and increases by 1MP every time you use it consecutively
+MP Cost Reduction: Reduced by 1MP every 1min if no First Aid was given
+MP Cost Reset: Reset back to 1MP by changing maps
+NOTES:
+---Click on a dead party member's HP bar or the character in the over world to drop a menu for giving first aid.
+---Without getting this skill revive time reduction for giving first aid will be 30% of current time fixed.
+---Giving first aid counts as party buffer aggro generation.
 
 Game Description:
 "First Aid" effect in Support menu increases. The waiting time to revive is largely reduced.
@@ -56,23 +50,17 @@ Tier: I
 Required Level: Level 10
 
 Source Details:
-Description:
-Heal a small amount of the target character's HP. Reduce the revive time if they are dead.
-
-Type: Party/Self healer
-MP Cost: 100 MP
+Party/Self healer
+MP cost: 100MP
 Action Range: 48m (For healing party only)
-Base Cast Time: 1 second (Affected by CSPD)
-
-Heal Amount:
-30 * Lvl + 1 * Lvl% of target's MaxHP
-
-Revive Time Reduction:
-1 * Lvl seconds
-
-Notes:
-- Click on a party member's HP bar or click their over world sprite to use the spell on them.
-- If used on self it acts as a self buffer aggro generator. If used on a party member it acts a party buffer aggro generator.
+Base Cast Time: 1 second
+Cast Time: Affected by CSPD
+Heal Amount: 30 * Lvl + 1 * Lvl% of target's maxHP
+Revive Time Reduced: 1 * Lvl seconds
+NOTES:
+---Click on a party member's HP bar or click their over world sprite to use the spell on them.
+---If used on self it acts as a self buffer aggro generator.
+---If used on a party member it acts a party buffer aggro generator.
 
 Game Description:
 Restore the target's HP a little. Reduce the target's waiting time to revive if the target is knocked out.
@@ -88,30 +76,19 @@ Tier: II
 Required Level: Level 30
 
 Source Details:
-Description:
-Cast a spell to cure ailments. Prevent getting an ailment within a fixed duration if used on a character having no ailment.
-
-Type: Party/Self healer
-MP Cost: 100 MP
+Party/Self healer
+MP cost: 100MP
 Action Range: 48m (For healing party only)
-
-Effect:
-Heal ailment if any or give a buff that prevents getting an ailment once.
-
-MP Recovery:
-Lvl * Lvl MP
-
-MP Recovery Condition:
-Recover MP if an ailment is successfully removed or a given buff successfully prevents getting an ailment.
-
-Buff Duration:
-10 + 2 * Lvl seconds
-
-Notes:
-- Click on a party member's HP bar or click their over world sprite to use the spell on them.
-- If used on self it acts as a self buffer aggro generator. If used on a party member it acts a party buffer aggro generator.
-- Currently unknown which ailment gets priority to be removed in the case its casted on a char having more than 1 ailment.
-- This skill can not heal or prevent FLINCH, TUMBLE, STUN or KNOCKBACK ailments. It also can not prevent MAGIC FLINCH (FLINCH caused when getting hit by a non ailment move while casting magic skills)
+Effect: Heal ailment if any or give a buff that prevents getting an ailment once
+MP Recovery: (Lvl * Lvl) MP if an ailment is successfully removed or a given buff successfully prevents getting an ailment
+Buff Duration: 10 + 2 * Lvl seconds
+NOTES:
+---Click on a party member's HP bar or click their over world sprite to use the spell on them.
+---If used on self it acts as a self buffer aggro generator.
+---If used on a party member it acts a party buffer aggro generator.
+---Currently unknown which ailment gets priority to be removed in the case its casted on a char having more than 1 ailment.
+---This skill can not heal or prevent FLINCH, TUMBLE, STUN or KNOCKBACK ailments.
+---It also can not prevent MAGIC FLINCH (FLINCH caused when getting hit by a non ailment move while casting magic skills).
 
 Game Description:
 Remove a target's one status ailment. If there is no ailment to remove, it becomes a buff to remove one ailment at once for a few seconds. Restore the user's MP a little when succeeding in removing an ailment.
@@ -127,36 +104,18 @@ Tier: III
 Required Level: Level 70
 
 Source Details:
-Description:
-Generate a platform which reduces damage taken.
-
-Type: Support skill {Placed}
-MP Cost: 400 MP
-
-Effect:
-Place a platform on the ground standing on which reduces damage taken depending on your MaxHP.
-
-Condition:
-It will only reduce the damage taken if the damage is less than a % of your MaxHP.
-
-Platform Radius:
-1 + Lvl / 3 m (From centre = caster position)
-
-At Level 10:
-Platform Radius = 4.33m
-
-MaxHP Damage Threshold:
-(5 + 0.5 * Lvl)% of your MaxHP
-
-Damage Reduction:
-(30 + [(Lvl - 1) / 3] * 20)%
-
-Duration:
-5 + Lvl seconds
-
-Notes:
-- This skill acts as a party buffer aggro generator when placed at a position having party members within platform radius
-- The damage reduction applies to any category of attack including fractionals as long as the condition is satisfied.
+Support skill {Placed}
+MP cost: 400MP
+Effect: Place a platform on the ground standing on which reduces damage taken depending on your maxHP
+Condition: It will only reduce the damage taken if the damage is less than a % of your maxHP
+Radius of Platform: 1 + Lvl/3 m (From centre = caster position)
+Radius at Lvl10: 4.33m
+Amount of % of MaxHP the Damage Needs to be Lower Than to Activate Reduction: (5 + 0.5 * Lvl)% of your maxHP
+Amount of Damage Reduction if Condition Satisfied: (30 + [(Lvl - 1)/3] * 20)%
+Duration: 5 + Lvl seconds
+NOTES:
+---This skill acts as a party buffer aggro generator when placed at a position having party members within platform radius.
+---The damage reduction applies to any category of attack including fractionals as long as the condition is satisfied.
 
 Game Description:
 Create a sanctuary and protect allies. Reduce damage taken while in the area. The amount depends on each player's MaxHP. Ineffective against fatal damage.
@@ -171,23 +130,17 @@ Tier: IV
 Required Level: Level 150
 
 Source Details:
-Description:
-Heal a large amount of the target character's HP. Reduce the revive time if they are dead.
-
-Type: Party/Self healer
-MP Cost: 300 MP
+Party/Self healer
+MP cost: 300MP
 Action Range: 24m (For healing party only)
-Base Cast Time: 1 second (Affected by CSPD)
-
-Heal Amount:
-300 * Lvl + (10 + 1 * Lvl)% of target's MaxHP
-
-Revive Time Reduction:
-10 + 2 * Lvl seconds
-
-Notes:
-- Click on a party member's HP bar or click their over world sprite to use the spell on them.
-- If used on self it acts as a self buffer aggro generator. If used on a party member it acts a party buffer aggro generator.
+Base Cast Time: 1 second
+Cast Time: Affected by CSPD
+Heal Amount: 300 * Lvl + (10 + 1 * Lvl)% of target's maxHP
+Revive Time Reduced: 10 + 2 * Lvl seconds
+NOTES:
+---Click on a party member's HP bar or click their over world sprite to use the spell on them.
+---If used on self it acts as a self buffer aggro generator.
+---If used on a party member it acts a party buffer aggro generator.
 
 Game Description:
 Restore a target's HP. Greatly shorten the time to revive when using this skill to a defeated player.
@@ -203,38 +156,21 @@ Tier: I
 Required Level: Level 10
 
 Source Details:
-Description:
-Cast an aura to heal the party's HP.
-
-Type: Aura based party/self buffer
-MP Cost: 300 MP
-Aura Radius: 5 + Lvl / 2 m (From caster as centre)
-
-Effect:
-Generate an aura which gives a buff to heal HP of the party members inside the aura.
-
-Caster Penalty:
-Increase the damage taken.
-
-HP Heal Amount:
-10 + Lvl * 4 + TotalVITofCaster
-
-HP Healing Interval:
-Every 3 seconds while having the buff
-
-Damage Taken Increase:
-+(400 - Lvl * 20)% more damage
-
-Damage Calculation Note:
-Applied multiplicatively at the end of damage calculation after added with Magic Barrier bonus and Gem effect.
-
-Duration on Caster:
-15 minutes
-
-Notes:
-- All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like perfect defense except zantei). The aura will stay if the caster dodges or evades however.
-- All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
-- Party members can get the buff only if they stand inside the radius of aura.
+Aura based party/self buffer
+MP cost: 300MP
+Radius of Aura: 5 + Lvl/2 m (From caster as centre)
+Effect: Generate an aura which gives a buff to heal HP of the party members inside the aura
+Nerf on Caster: Increase the damage taken
+Amount of HP Healed: 10 + Lvl * 4 + TotalVITofCaster
+HP Healing Ticks: Every 3 seconds while having the buff
+Amount of Damage Increased on Caster: + (400 - Lvl * 20)% more damage
+Damage Calculation: Applied multiplicatively at the end of damage calculation after added with Magic Barrier bonus and Gem effect
+Duration on Caster: 15minutes
+NOTES:
+---All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like Perfect Defense except Zantei).
+---The aura will stay if the caster dodges or evades however.
+---All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
+---Party members can get the buff only if they stand inside the radius of aura.
 
 Game Description:
 Create an area that regenerates HP. The player's DEF decreases. The effect ends when the player take damage.
@@ -249,39 +185,23 @@ Tier: II
 Required Level: Level 30
 
 Source Details:
-Description:
-Cast an aura to increase the party's attack power.
-
-Type: Aura based party/self buffer
-MP Cost: 400 MP
-Aura Radius: 5 + Lvl / 2 m (From caster as centre)
-Base Cast Time: 1 second (Affected by CSPD)
-
-Effect:
-Generate an aura which gives a buff to party member's damage dealt and WeaponATK.
-
-Caster Penalty:
-Reduce Accuracy%.
-
-Damage Dealt Increase:
-+Lvl * 2%
-
-Damage Calculation Note:
-Applied multiplicatively at the end of damage calculation after added along with Mana Recharge reduction.
-
-WeaponATK Increase:
-(10 + Skill Level * 2)%
-
-Accuracy Reduction:
--(75 - Skill Level * 2.5)%
-
-Duration on Caster:
-15 minutes
-
-Notes:
-- All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like perfect defense except zantei). The aura will stay if the caster dodges or evades however.
-- All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
-- Party members can get the buff only if they stand inside the radius of aura.
+Aura based party/self buffer
+MP cost: 400MP
+Radius of Aura: 5 + Lvl/2 m (From caster as centre)
+Base Cast Time: 1 second
+Cast Time: Affected by CSPD
+Effect: Generate an aura which gives a buff to party member's damage dealt and weaponATK
+Nerf on Caster: Reduce accuracy%
+Amount of Damage Dealt Increase: + Lvl * 2%
+Damage Calculation: Applied multiplicatively at the end of damage calculation after added along with Mana Recharge reduction
+Amount of WeaponATK Increase: (10 + Skill Level * 2)%
+Amount of Accuracy Drop on Caster: - (75 - Skill Level * 2.5)%
+Duration on Caster: 15minutes
+NOTES:
+---All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like Perfect Defense except Zantei).
+---The aura will stay if the caster dodges or evades however.
+---All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
+---Party members can get the buff only if they stand inside the radius of aura.
 
 Game Description:
 Create an area that enhances ATK and weapon performance. The player's Accuracy Rate decreases. The effect ends when the player takes damage.
@@ -296,39 +216,23 @@ Tier: III
 Required Level: Level 70
 
 Source Details:
-Description:
-Cast an aura to shorten cast time.
-
-Type: Aura based party/self buffer
-MP Cost: 500 MP
-Aura Radius: 5 + Lvl / 2 m (From caster as centre)
-Base Cast Time: 2 seconds (Affected by CSPD)
-
-Effect:
-Generate an aura which gives a buff to party member's CSPD and CSPD%.
-
-Caster Penalty:
-Reduce AMPR% and Natural MP Regen.
-
-CSPD Increase:
-50 + Lvl * 50
-
-CSPD% Increase:
-25 * Lvl%
-
-Natural MP Regen Reduction:
--(50.5 - Lvl * 2.5)%
-
-AMPR% Reduction:
--(90.5 - Lvl * 1.5)%
-
-Duration on Caster:
-15 minutes
-
-Notes:
-- All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like perfect defense except zantei). The aura will stay if the caster dodges or evades however.
-- All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
-- Party members can get the buff only if they stand inside the radius of aura.
+Aura based party/self buffer
+MP cost: 500MP
+Radius of Aura: 5 + Lvl/2 m (From caster as centre)
+Base Cast Time: 2 seconds
+Cast Time: Affected by CSPD
+Effect: Generate an aura which gives a buff to party member's CSPD and CSPD%
+Nerf on Caster: Reduce AMPR% and Natural MP Regen
+Amount of CSPD Increase: 50 + Lvl * 50
+Amount of CSPD% Increase: 25 * Lvl%
+Amount of Natural MP Regen Reduced for Caster: - (50.5 - Lvl * 2.5)%
+Amount of AMPR% Reduced for Caster: - (90.5 - Lvl * 1.5)%
+Duration on Caster: 15minutes
+NOTES:
+---All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like Perfect Defense except Zantei).
+---The aura will stay if the caster dodges or evades however.
+---All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
+---Party members can get the buff only if they stand inside the radius of aura.
 
 Game Description:
 Create the area to shorten charge and cast time. Your MP restoration will be weakened. The effects will end when taking damage.
@@ -343,36 +247,22 @@ Tier: IV
 Required Level: Level 150
 
 Source Details:
-Description:
-Cast an aura to enhance attack speed.
-
-Type: Aura based party/self buffer
-MP Cost: 600 MP
-Aura Radius: 5 + Lvl / 2 m (From caster as centre)
-Base Cast Time: 3 seconds (Affected by CSPD)
-
-Effect:
-Generate an aura which gives a buff to party member's ASPD and ASPD%.
-
-Caster Penalty:
-Reduce AMPR%.
-
-ASPD Increase:
-100 + Lvl * 100
-
-ASPD% Increase:
-25 * Lvl%
-
-AMPR% Reduction:
--(100 - Lvl * 3)%
-
-Duration on Caster:
-15 minutes
-
-Notes:
-- All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like perfect defense except zantei). The aura will stay if the caster dodges or evades however.
-- All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
-- Party members can get the buff only if they stand inside the radius of aura.
+Aura based party/self buffer
+MP cost: 600MP
+Radius of Aura: 5 + Lvl/2 m (From caster as centre)
+Base Cast Time: 3 seconds
+Cast Time: Affected by CSPD
+Effect: Generate an aura which gives a buff to party member's ASPD and ASPD%
+Nerf on Caster: Reduce AMPR%
+Amount of ASPD Increase: 100 + Lvl * 100
+Amount of ASPD% Increase: 25 * Lvl%
+Amount of AMPR Reduced on Caster: -(100 - Lvl * 3)%
+Duration on Caster: 15minutes
+NOTES:
+---All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like Perfect Defense except Zantei).
+---The aura will stay if the caster dodges or evades however.
+---All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
+---Party members can get the buff only if they stand inside the radius of aura.
 
 Game Description:
 Create an area that enhances Attack Speed. The user's Attack MP Recovery is lowered and the effect ends when you take damage.
@@ -387,38 +277,21 @@ Tier: I
 Required Level: Level 10
 
 Source Details:
-Description:
-Cast an aura to regenerate the party's MP.
-
-Type: Aura based party/self buffer
-MP Cost: 300 MP
-Aura Radius: 5 + Lvl / 2 m (From caster as centre)
-
-Effect:
-Generate an aura which gives a buff to regenerate MP of the party members inside the aura.
-
-Caster Penalty:
-Reduce the damage dealt.
-
-MP Regeneration:
-10 + 1.5 * Lvl + Total_INTofCaster / 10
-
-MP Healing Interval:
-Every 3 seconds while having the buff
-
-Damage Dealt Reduction:
--(50 - Lvl * 2.5)%
-
-Damage Calculation Note:
-Applied multiplicatively at the end of damage calculation after added with Brave Aura bonus.
-
-Duration on Caster:
-15 minutes
-
-Notes:
-- All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like perfect defense except zantei). The aura will stay if the caster dodges or evades however.
-- All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
-- Party members can get the buff only if they stand inside the radius of aura.
+Aura based party/self buffer
+MP cost: 300MP
+Radius of Aura: 5 + Lvl/2 m (From caster as centre)
+Effect: Generate an aura which gives a buff to regenerate MP of the party members inside the aura
+Nerf on Caster: Reduce the damage dealt
+Amount of MP Regenerated: 10 + 1.5 * Lvl + Total_INTofCaster/10
+MP Healing Ticks: Every 3 seconds while having the buff
+Reduction of Damage Dealt by Caster: - (50 - Lvl * 2.5)%
+Damage Calculation: Applied multiplicatively at the end of damage calculation after added with Brave Aura bonus
+Duration on Caster: 15minutes
+NOTES:
+---All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like Perfect Defense except Zantei).
+---The aura will stay if the caster dodges or evades however.
+---All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
+---Party members can get the buff only if they stand inside the radius of aura.
 
 Game Description:
 Create an area that regenerates MP. The player's ATK decreases. The effect ends when the player takes damage.
@@ -433,39 +306,23 @@ Tier: II
 Required Level: Level 30
 
 Source Details:
-Description:
-Cast an aura to increase the party's defenses.
-
-Type: Aura based party/self buffer
-MP Cost: 400 MP
-Aura Radius: 5 + Lvl / 2 m (From caster as centre)
-Base Cast Time: 1 second (Affected by CSPD)
-
-Effect:
-Generate an aura which reduces the party member's damage taken and increases DEF/MDEF.
-
-Caster Penalty:
-Reduce Dodge%.
-
-Damage Taken Reduction:
--Lvl * 2%
-
-Damage Calculation Note:
-Applied multiplicatively at the end of damage calculation after added along with Life Recovery nerf and Gem effects.
-
-DEF/MDEF Increase:
-10 + Lvl * 2%
-
-Dodge Reduction:
--(75 - Lvl * 2.5)%
-
-Duration on Caster:
-15 minutes
-
-Notes:
-- All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like perfect defense except zantei). The aura will stay if the caster dodges or evades however.
-- All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
-- Party members can get the buff only if they stand inside the radius of aura.
+Aura based party/self buffer
+MP cost: 400MP
+Radius of Aura: 5 + Lvl/2 m (From caster as centre)
+Base Cast Time: 1 second
+Cast Time: Affected by CSPD
+Effect: Generate an aura which reduced the party member's damage taken and increase DEF/MDEF
+Nerf on Caster: Reduce dodge%
+Amount of Damage Taken Reduction: - Lvl * 2%
+Damage Calculation: Applied multiplicatively at the end of damage calculation after added along with Life Recovery nerf and Gem effects
+Amount of DEF/MDEF Increase: 10 + Lvl * 2%
+Amount of Dodge Drop on Caster: - (75 - Lvl * 2.5)%
+Duration on Caster: 15minutes
+NOTES:
+---All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like Perfect Defense except Zantei).
+---The aura will stay if the caster dodges or evades however.
+---All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
+---Party members can get the buff only if they stand inside the radius of aura.
 
 Game Description:
 Create an area that enhances DEF and armor performance. The player's Dodge Rate decreases. The effect ends when the player takes damage.
@@ -480,36 +337,22 @@ Tier: III
 Required Level: Level 70
 
 Source Details:
-Description:
-Cast an aura to increase the party's resistance to ailments.
-
-Type: Aura based party/self buffer
-MP Cost: 500 MP
-Aura Radius: 5 + Lvl / 2 m (From caster as centre)
-Base Cast Time: 2 seconds (Affected by CSPD)
-
-Effect:
-Generate an aura which gives Ailment Resistance to the party.
-
-Caster Penalty:
-Reduce ASPD%.
-
-Ailment Resistance Increase:
-20 + Lvl * 3%
-
-Ailment Resistance Note:
-Applied separately from the Ailment Resistance% stat and MTL personal, so it cannot be added to them to reach 100% Ailment Resistance.
-
-ASPD% Reduction:
--(1000 - Lvl * 75)%
-
-Duration on Caster:
-15 minutes
-
-Notes:
-- All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like perfect defense except zantei). The aura will stay if the caster dodges or evades however.
-- All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
-- Party members can get the buff only if they stand inside the radius of aura.
+Aura based party/self buffer
+MP cost: 500MP
+Radius of Aura: 5 + Lvl/2 m (From caster as centre)
+Base Cast Time: 2 seconds
+Cast Time: Affected by CSPD
+Effect: Generate an aura which gives ailment resistance to the party
+Nerf on Caster: Reduce ASPD%
+Amount of Ailment Resistance Given: 20 + Lvl * 3%
+Ailment Resistance Calculation: Applied separately from the ailment resistance % stat and MTL personal, as such can not be added to them to reach 100% ailment resistance
+Amount of ASPD% Drop on Caster: - (1000 - Lvl * 75)%
+Duration on Caster: 15minutes
+NOTES:
+---All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like Perfect Defense except Zantei).
+---The aura will stay if the caster dodges or evades however.
+---All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
+---Party members can get the buff only if they stand inside the radius of aura.
 
 Game Description:
 Create an area that has chance to protect allies from status ailments. Your Attack Speed will be lowered. The effects will end when taking damage.
@@ -524,36 +367,22 @@ Tier: IV
 Required Level: Level 150
 
 Source Details:
-Description:
-Cast an aura to enhances Guard and Evasion.
-
-Type: Aura based party/self buffer
-MP Cost: 600 MP
-Aura Radius: 5 + Lvl / 2 m (From caster as centre)
-Base Cast Time: 3 seconds (Affected by CSPD)
-
-Effect:
-Generate an aura which gives a buff to party member's Guard and Evasion rate.
-
-Caster Penalty:
-Reduce CSPD%.
-
-Guard Recharge Increase:
-10 + 1 * Lvl%
-
-Evasion Recharge Increase:
-1 * Lvl%
-
-CSPD% Reduction:
--(1000 - Lvl * 75)%
-
-Duration on Caster:
-15 minutes
-
-Notes:
-- All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like perfect defense except zantei). The aura will stay if the caster dodges or evades however.
-- All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
-- Party members can get the buff only if they stand inside the radius of aura.
+Aura based party/self buffer
+MP cost: 600MP
+Radius of Aura: 5 + Lvl/2 m (From caster as centre)
+Base Cast Time: 3 seconds
+Cast Time: Affected by CSPD
+Effect: Generate an aura which gives a buff to party member's guard and evasion rate
+Nerf on Caster: Reduce CSPD%
+Amount of Guard Recharge Increase: 10 + 1 * Lvl%
+Amount of Evasion Recharge Increase: 1 * Lvl%
+Amount of CSPD% Drop on Caster: - (1000 - Lvl * 75)%
+Duration on Caster: 15minutes
+NOTES:
+---All aura based support skills get removed if the caster is damaged (This includes 0 dmg from skills like Perfect Defense except Zantei).
+---The aura will stay if the caster dodges or evades however.
+---All aura based support skills apply positive buff to party inside aura including the caster however the nerf is only applied to caster.
+---Party members can get the buff only if they stand inside the radius of aura.
 
 Game Description:
 Creates an area that enhances Guard and Evasion Recharge. The user's Cast Speed decreases and the effect ends when taking damage.
