@@ -1,17 +1,22 @@
 from __future__ import annotations
 
+from pathlib import Path
+import sqlite3
+
 from toram_skill_search.models import (
     SkillDetailPayload,
     SkillHelpPayload,
     SkillPayload,
     SkillResultItem,
     SkillResultsPayload,
+    SkillUnavailablePayload,
 )
 from toram_skill_search.runtime import DEFAULT_SEMANTIC_RUNTIME
 from toram_skills.hybrid_search import HybridSkillSearcher
 from toram_skills.models import SkillDraft
 from toram_skills.repository import SkillRepository
 from toram_skills.retrieval_config import DEFAULT_FUSION_CONFIG
+from toram_skills.schema import SchemaError
 from toram_skills.semantic_search import EmbeddingIndexError, EmbeddingUnavailable
 
 
@@ -113,4 +118,28 @@ class SkillSearchService:
         )
 
 
-__all__ = ["SkillSearchService", "parse_skill_command"]
+def run_skill_search(
+    database_path: Path,
+    query: str,
+    *,
+    repository_factory=SkillRepository,
+    semantic_runtime=DEFAULT_SEMANTIC_RUNTIME,
+) -> SkillPayload:
+    repository = None
+    try:
+        repository = repository_factory(Path(database_path).expanduser().resolve())
+        return SkillSearchService(
+            repository,
+            semantic_runtime=semantic_runtime,
+        ).handle(query)
+    except (FileNotFoundError, OSError, sqlite3.DatabaseError, SchemaError):
+        return SkillUnavailablePayload(
+            "Skill search is currently unavailable. "
+            "Item and stat search are still available."
+        )
+    finally:
+        if repository is not None:
+            repository.close()
+
+
+__all__ = ["SkillSearchService", "parse_skill_command", "run_skill_search"]
