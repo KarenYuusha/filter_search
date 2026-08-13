@@ -32,12 +32,12 @@ Example:
 
 Metadata is assembled from available values only. Missing values are omitted instead of rendering placeholders such as `None`.
 
-The compact metadata may include, in order when present:
+The compact metadata includes, in order when present:
 
 1. skill tree
 2. tier
 3. MP cost
-4. skill type or damage type, preferring the value that is most useful without making the line noisy
+4. damage type; if damage type is absent, skill type instead
 
 The preview is intentionally short and may be truncated with an ellipsis. Full text is available only in the detail view.
 
@@ -88,7 +88,7 @@ Rules:
 3. If a section is itself too large for one page/field, split its body into multiple chunks.
 4. Continuation chunks use the label `<Section name> (continued)`.
 5. Splitting should prefer natural boundaries in this order where practical: paragraph/newline, sentence boundary, whitespace, then hard character boundary as a last resort.
-6. No stored non-empty detail text may be silently dropped because of Discord field, description, field-count, or 6000-character embed limits.
+6. No non-empty text selected for the detail view may be silently dropped because of Discord field, description, field-count, or 6000-character embed limits.
 7. Every generated page must independently satisfy Discord limits.
 
 The paginator should pre-build the logical pages once for a detail view rather than recomputing a different split on every button click.
@@ -170,7 +170,7 @@ Add focused tests covering:
 11. owner/current-generation interaction protections remain intact
 12. existing item-search and skill-search routing behavior remains unchanged
 
-A regression assertion should reconstruct the displayed detail text from generated pages and verify that all source detail content appears in order, allowing only display labels such as `(continued)` to be added.
+A regression assertion should reconstruct the logical detail content from generated pages and verify that every non-empty value/section selected for the detail view appears in order, allowing only display labels such as `(continued)` to be added.
 
 ## Out of Scope
 
