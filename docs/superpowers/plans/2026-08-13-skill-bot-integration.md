@@ -4,7 +4,7 @@
 
 **Goal:** Add explicit `skill ...` Discord search that returns canonical skill details or ranked free-text skill matches without changing the existing item/stat/help/database/Qwen flow.
 
-**Architecture:** Add a frontend-neutral `toram_skill_search` application layer above `toram_skills`, with deterministic command parsing, canonical payloads, and a lazy cached MiniLM semantic runtime. The Discord layer intercepts only token-bounded `skill` commands, runs the skill application in `asyncio.to_thread(...)`, and renders skill-specific embeds/views; all non-skill queries continue through the existing `SearchService` unchanged.
+**Architecture:** Add a frontend-neutral `toram_skill_search` application layer above `toram_skills`, with deterministic command parsing, canonical payloads, and a lazy cached MiniLM semantic runtime. The Discord layer intercepts only token-bounded `skill` commands, runs the skill application in `asyncio.to_thread(...)`, and renders skill-specific embeds/views; every non-skill query continues through the existing `SearchService` unchanged.
 
 **Tech Stack:** Python >=3.12; standard-library `dataclasses`, `pathlib`, `sqlite3`, `threading`; SQLite skill database; existing `toram_skills` hybrid retrieval; optional `sentence-transformers>=5,<6` and `transformers>=4.41,<5`; `discord.py>=2.7.1,<3`; existing `unittest` style.
 
@@ -34,7 +34,7 @@ toram_skill_search/
     __init__.py          # public application-layer exports only
     models.py            # immutable frontend-neutral skill payloads
     runtime.py           # lazy provider/semantic-index cache
-    service.py           # skill command parser + DB-backed application service
+    service.py           # command parser + DB-backed skill application service
 
 tests/
     test_skill_search_service.py
@@ -44,13 +44,12 @@ tests/
 Modify:
 
 ```text
-toram_discord/config.py      # independent skill database path
-toram_discord/app.py         # explicit-prefix routing only
-toram_discord/render.py      # skill help/results/detail embeds
-toram_discord/views.py       # sync bridge + skill result/detail interactions
-toram_discord/sessions.py    # no new skill domain state; reuse page/generation only
-discord_bot.py               # compatibility re-exports for new Discord helpers
-.env.example                 # optional SKILL_DATABASE_PATH setting
+toram_discord/config.py
+toram_discord/app.py
+toram_discord/render.py
+toram_discord/views.py
+discord_bot.py
+.env.example
 tests/test_discord_bot.py
 tests/test_discord_module_boundaries.py
 ```
@@ -82,7 +81,7 @@ Do not modify `toram_search/service.py`, `toram_search/fallback.py`, or `toram_s
 
 - [ ] **Step 1: Write RED command-parser and exact-resolution tests**
 
-Create `tests/test_skill_search_service.py` with the canonical database fixture:
+Create `tests/test_skill_search_service.py`:
 
 ```python
 from __future__ import annotations
@@ -105,7 +104,10 @@ class ExplodingSemanticRuntime:
 class SkillCommandParserTests(unittest.TestCase):
     def test_token_bounded_case_insensitive_prefix(self):
         self.assertEqual(parse_skill_command("skill magic finale"), "magic finale")
-        self.assertEqual(parse_skill_command("  SKILL   attack while moving  "), "attack while moving")
+        self.assertEqual(
+            parse_skill_command("  SKILL   attack while moving  "),
+            "attack while moving",
+        )
         self.assertEqual(parse_skill_command("skill"), "")
         self.assertIsNone(parse_skill_command("skills magic finale"))
         self.assertIsNone(parse_skill_command("skillful magic finale"))
@@ -120,7 +122,10 @@ class SkillSearchServiceTests(unittest.TestCase):
         self.repo.close()
 
     def test_bare_skill_remainder_returns_help(self):
-        payload = SkillSearchService(self.repo, semantic_runtime=ExplodingSemanticRuntime()).handle("")
+        payload = SkillSearchService(
+            self.repo,
+            semantic_runtime=ExplodingSemanticRuntime(),
+        ).handle("")
         self.assertEqual(type(payload).__name__, "SkillHelpPayload")
         self.assertIn("skill magic finale", payload.text.casefold())
 
@@ -130,21 +135,22 @@ class SkillSearchServiceTests(unittest.TestCase):
             semantic_runtime=ExplodingSemanticRuntime(),
         ).handle("magic: finale")
         self.assertEqual(type(payload).__name__, "SkillDetailPayload")
-        self.assertEqual(payload.skill.id, "weapon_class_skills/magic_skills/magic-finale")
+        self.assertEqual(
+            payload.skill.id,
+            "weapon_class_skills/magic_skills/magic-finale",
+        )
         self.assertEqual(payload.tree.id, payload.skill.tree_id)
 ```
 
-Add one exact-alias case using an alias already present in the canonical DB, and one synthetic/fake-repository test where `resolve_skill_name()` returns two skills to prove multiple exact matches produce `SkillResultsPayload` rather than arbitrary detail.
+Use `SkillRepository.resolve_skill_name()` against the canonical DB to identify one existing alias and add a test proving that alias returns `SkillDetailPayload` without semantic initialization. For the multiple-exact case, define a `FakeRepository` whose `resolve_skill_name()` returns two `SkillDraft` values and whose `get_tree()` returns their trees; assert the service returns both in original repository order as `SkillResultsPayload`.
 
-- [ ] **Step 2: Run the focused tests to verify RED**
-
-Run:
+- [ ] **Step 2: Run focused tests to verify RED**
 
 ```bash
 python -m unittest tests.test_skill_search_service.SkillCommandParserTests tests.test_skill_search_service.SkillSearchServiceTests -v
 ```
 
-Expected: FAIL because `toram_skill_search` and the payload/service interfaces do not exist yet.
+Expected: FAIL because `toram_skill_search` does not exist yet.
 
 - [ ] **Step 3: Add immutable payload models**
 
@@ -187,16 +193,36 @@ class SkillUnavailablePayload:
     text: str
 
 
-SkillPayload = SkillDetailPayload | SkillResultsPayload | SkillHelpPayload | SkillUnavailablePayload
+SkillPayload = (
+    SkillDetailPayload
+    | SkillResultsPayload
+    | SkillHelpPayload
+    | SkillUnavailablePayload
+)
 ```
 
-Export these names from `toram_skill_search/__init__.py` together with the service/parser added below.
+Create `toram_skill_search/__init__.py` that re-exports these models and the parser/service names introduced below.
 
-- [ ] **Step 4: Implement deterministic prefix parsing and exact-first service behavior**
+- [ ] **Step 4: Implement deterministic parser, snippets, and exact-first service behavior**
 
-Create `toram_skill_search/service.py` with this parser contract:
+Create `toram_skill_search/service.py`:
 
 ```python
+from __future__ import annotations
+
+from toram_skill_search.models import (
+    SkillDetailPayload,
+    SkillHelpPayload,
+    SkillPayload,
+    SkillResultItem,
+    SkillResultsPayload,
+)
+from toram_skills.hybrid_search import HybridSkillSearcher
+from toram_skills.models import SkillDraft
+from toram_skills.repository import SkillRepository
+from toram_skills.retrieval_config import DEFAULT_FUSION_CONFIG
+
+
 def parse_skill_command(query: str) -> str | None:
     parts = str(query).strip().split(maxsplit=1)
     if not parts or parts[0].casefold() != "skill":
@@ -204,11 +230,8 @@ def parse_skill_command(query: str) -> str | None:
     if len(parts) == 1:
         return ""
     return " ".join(parts[1].split())
-```
 
-Add helpers that always resolve tree data canonically and create deterministic snippets:
 
-```python
 def _snippet(skill: SkillDraft) -> str:
     for text in (skill.description, skill.game_description):
         if text and text.strip():
@@ -232,11 +255,8 @@ def _result_item(repository: SkillRepository, skill: SkillDraft) -> SkillResultI
         tree=repository.get_tree(skill.tree_id),
         snippet=_snippet(skill),
     )
-```
 
-Implement `SkillSearchService.handle()` in this exact order:
 
-```python
 class SkillSearchService:
     def __init__(self, repository: SkillRepository, *, semantic_runtime=None) -> None:
         self.repository = repository
@@ -247,55 +267,73 @@ class SkillSearchService:
         if not cleaned:
             return SkillHelpPayload(
                 "Search Toram skills with `skill <words>`. Examples: "
-                "`skill magic finale`, `skill attack while moving`, `skill inflict tumble`."
+                "`skill magic finale`, `skill attack while moving`, "
+                "`skill inflict tumble`."
             )
 
         exact = self.repository.resolve_skill_name(cleaned)
         if len(exact) == 1:
             skill = exact[0]
-            return SkillDetailPayload(skill, self.repository.get_tree(skill.tree_id))
+            return SkillDetailPayload(
+                skill,
+                self.repository.get_tree(skill.tree_id),
+            )
         if len(exact) > 1:
             return SkillResultsPayload(
                 cleaned,
                 tuple(_result_item(self.repository, skill) for skill in exact),
             )
-
         return self._search_free_text(cleaned)
+
+    def _search_free_text(self, query: str) -> SkillResultsPayload:
+        hits = HybridSkillSearcher(
+            self.repository,
+            semantic_index=None,
+            fusion_config=DEFAULT_FUSION_CONFIG,
+        ).search(query, limit=20)
+        return SkillResultsPayload(
+            query,
+            tuple(
+                _result_item(
+                    self.repository,
+                    self.repository.get_skill(hit.skill_id),
+                )
+                for hit in hits
+            ),
+        )
 ```
 
-For now `_search_free_text()` should use `HybridSkillSearcher(repository, semantic_index=None, fusion_config=DEFAULT_FUSION_CONFIG)` so Task 1 has a complete lexical-only implementation before the lazy runtime is introduced in Task 2. Resolve each hit through `repository.get_skill(hit.skill_id)` and `_result_item(...)`; preserve hit order; return an empty `SkillResultsPayload` when there are no hits. Do not add any score threshold.
+Task 1 intentionally uses lexical-only `HybridSkillSearcher(..., semantic_index=None)` for non-exact queries. Task 2 replaces only `_search_free_text()` and the constructor default; exact-first behavior remains unchanged.
 
-- [ ] **Step 5: Add lexical free-text and canonical-resolution tests**
+- [ ] **Step 5: Add lexical free-text tests**
 
-Append tests using the real canonical DB:
+Append:
 
 ```python
 def test_free_text_returns_canonical_ranked_results(self):
     payload = SkillSearchService(self.repo).handle("inflict tumble")
     self.assertEqual(type(payload).__name__, "SkillResultsPayload")
     self.assertTrue(payload.results)
-    self.assertTrue(all(item.skill.tree_id == item.tree.id for item in payload.results))
+    self.assertTrue(
+        all(item.skill.tree_id == item.tree.id for item in payload.results)
+    )
     self.assertTrue(all(item.snippet for item in payload.results))
 
 
-def test_free_text_does_not_apply_structured_filter_syntax(self):
+def test_free_text_accepts_filter_like_words_as_plain_text(self):
     payload = SkillSearchService(self.repo).handle("sword tier 4")
     self.assertEqual(type(payload).__name__, "SkillResultsPayload")
 ```
 
-The second test only proves the string is accepted as retrieval text; do not assert filter semantics.
+Do not assert structured-filter behavior in the second test.
 
 - [ ] **Step 6: Run focused tests and commit**
-
-Run:
 
 ```bash
 python -m unittest tests.test_skill_search_service -v
 ```
 
 Expected: PASS.
-
-Commit:
 
 ```bash
 git add toram_skill_search tests/test_skill_search_service.py
@@ -304,7 +342,7 @@ git commit -m "feat: add skill search application core"
 
 ---
 
-### Task 2: Lazy MiniLM Semantic Runtime With Lexical Degradation
+### Task 2: Lazy MiniLM Runtime With Lexical Degradation
 
 **Files:**
 - Create: `toram_skill_search/runtime.py`
@@ -319,11 +357,18 @@ git commit -m "feat: add skill search application core"
   - `DEFAULT_SEMANTIC_RUNTIME: SemanticRuntimeCache`
   - `SkillSearchService(..., semantic_runtime=DEFAULT_SEMANTIC_RUNTIME)`
 
-- [ ] **Step 1: Write RED runtime tests**
+- [ ] **Step 1: Write RED runtime/fallback tests**
 
-Add fakes to `tests/test_skill_search_service.py`:
+Add to `tests/test_skill_search_service.py`:
 
 ```python
+from concurrent.futures import ThreadPoolExecutor
+
+from toram_skill_search.runtime import SemanticRuntimeCache
+from toram_skills.search_models import ChannelScore, SkillSearchHit
+from toram_skills.semantic_search import EmbeddingIndexError, EmbeddingUnavailable
+
+
 class FakeSemanticIndex:
     def __init__(self, hits=(), error=None):
         self.hits = tuple(hits)
@@ -345,20 +390,18 @@ class FixedRuntime:
     def get_index(self, repository):
         self.calls += 1
         return self.index
-```
 
-Add tests:
 
-```python
 def test_non_exact_query_requests_semantic_runtime(self):
     runtime = FixedRuntime(None)
-    SkillSearchService(self.repo, semantic_runtime=runtime).handle("attack while moving")
+    SkillSearchService(
+        self.repo,
+        semantic_runtime=runtime,
+    ).handle("attack while moving")
     self.assertEqual(runtime.calls, 1)
 
 
 def test_semantic_query_failure_retries_lexical_only(self):
-    from toram_skills.semantic_search import EmbeddingUnavailable
-
     semantic = FakeSemanticIndex(error=EmbeddingUnavailable("offline"))
     payload = SkillSearchService(
         self.repo,
@@ -368,19 +411,15 @@ def test_semantic_query_failure_retries_lexical_only(self):
     self.assertTrue(payload.results)
 ```
 
-Add a cache-unit test with a fake provider/index factory proving two `get_index()` calls for the same resolved database path + search-document manifest return the same in-memory index and do not rebuild it.
-
 - [ ] **Step 2: Run focused tests to verify RED**
-
-Run:
 
 ```bash
 python -m unittest tests.test_skill_search_service -v
 ```
 
-Expected: FAIL because `SemanticRuntimeCache` and semantic-aware `_search_free_text()` do not exist.
+Expected: FAIL because the runtime module and semantic-aware free-text path do not exist.
 
-- [ ] **Step 3: Implement `SemanticRuntimeCache` with lazy imports and connection-free cached state**
+- [ ] **Step 3: Implement a thread-safe connection-free semantic runtime cache**
 
 Create `toram_skill_search/runtime.py`:
 
@@ -409,12 +448,15 @@ class SemanticRuntimeCache:
         self._provider_factory = provider_factory
         self._index_factory = index_factory or SemanticSkillIndex.from_repository
         self._provider = None
-        self._indexes: dict[tuple[str, str], SemanticSkillIndex] = {}
+        self._indexes = {}
 
     def _make_provider(self):
         if self._provider_factory is not None:
             return self._provider_factory()
-        from toram_skill_embeddings.providers import EmbeddingProviderSpec, build_provider
+        from toram_skill_embeddings.providers import (
+            EmbeddingProviderSpec,
+            build_provider,
+        )
         return build_provider(
             EmbeddingProviderSpec(
                 provider=DEFAULT_EMBEDDING_PROVIDER,
@@ -437,28 +479,43 @@ class SemanticRuntimeCache:
                 if provider is None:
                     provider = self._make_provider()
                     if str(provider.config_id) != DEFAULT_EMBEDDING_CONFIG_ID:
-                        raise EmbeddingIndexError("Configured embedding runtime ID does not match retrieval config")
+                        raise EmbeddingIndexError(
+                            "Configured embedding runtime ID does not match retrieval config"
+                        )
                     self._provider = provider
                 index = self._index_factory(repository, provider)
                 self._indexes[key] = index
                 return index
         except (EmbeddingUnavailable, EmbeddingIndexError, ImportError):
             return None
-```
 
-Do not store `repository` in the cache. `SemanticSkillIndex.from_repository()` already copies the vectors into immutable Python tuples, so cached index state is connection-free.
 
-Instantiate:
-
-```python
 DEFAULT_SEMANTIC_RUNTIME = SemanticRuntimeCache()
 ```
 
-Export both names from `toram_skill_search/__init__.py`.
+The cache key includes the resolved database path and search-document manifest. The cache stores only the provider and `SemanticSkillIndex`, whose vectors/doc IDs are loaded into Python tuples; it must never store `SkillRepository` or its SQLite connection.
 
-- [ ] **Step 4: Upgrade free-text search to hybrid + retry lexical on semantic query failure**
+- [ ] **Step 4: Upgrade free-text search to hybrid and retry lexical on semantic query failure**
 
-Modify `_search_free_text()` in `toram_skill_search/service.py`:
+Modify imports and constructor in `toram_skill_search/service.py`:
+
+```python
+from toram_skill_search.runtime import DEFAULT_SEMANTIC_RUNTIME
+from toram_skills.semantic_search import EmbeddingIndexError, EmbeddingUnavailable
+
+
+class SkillSearchService:
+    def __init__(
+        self,
+        repository: SkillRepository,
+        *,
+        semantic_runtime=DEFAULT_SEMANTIC_RUNTIME,
+    ) -> None:
+        self.repository = repository
+        self.semantic_runtime = semantic_runtime
+```
+
+Replace `_search_free_text()` with:
 
 ```python
 def _search_free_text(self, query: str) -> SkillResultsPayload:
@@ -483,25 +540,25 @@ def _search_free_text(self, query: str) -> SkillResultsPayload:
     return SkillResultsPayload(
         query,
         tuple(
-            _result_item(self.repository, self.repository.get_skill(hit.skill_id))
+            _result_item(
+                self.repository,
+                self.repository.get_skill(hit.skill_id),
+            )
             for hit in hits
         ),
     )
 ```
 
-Set the constructor default to `DEFAULT_SEMANTIC_RUNTIME`, but preserve explicit `semantic_runtime=None` as a lexical-only test/integration seam.
+Explicit `semantic_runtime=None` remains the lexical-only test/smoke seam.
 
-- [ ] **Step 5: Add invalid-index retry and concurrency/cache tests**
+- [ ] **Step 5: Add cache-concurrency and stale-index retry tests**
 
-Add tests proving:
+Append:
 
 ```python
-from concurrent.futures import ThreadPoolExecutor
-
-
-def test_runtime_cache_installs_one_index_for_same_database_manifest(self):
+def test_runtime_cache_builds_one_index_for_same_database_manifest(self):
     build_calls = []
-    sentinel = object()
+    sentinel = FakeSemanticIndex()
 
     class Provider:
         provider_name = "sentence-transformers"
@@ -510,27 +567,48 @@ def test_runtime_cache_installs_one_index_for_same_database_manifest(self):
 
     runtime = SemanticRuntimeCache(
         provider_factory=lambda: Provider(),
-        index_factory=lambda repository, provider: build_calls.append(repository.database_path) or sentinel,
+        index_factory=lambda repository, provider: (
+            build_calls.append(repository.database_path) or sentinel
+        ),
     )
     with ThreadPoolExecutor(max_workers=4) as executor:
-        values = list(executor.map(lambda _: runtime.get_index(self.repo), range(4)))
+        values = list(
+            executor.map(lambda unused: runtime.get_index(self.repo), range(4))
+        )
     self.assertTrue(all(value is sentinel for value in values))
     self.assertEqual(len(build_calls), 1)
+
+
+def test_stale_index_failure_does_not_break_later_exact_lookup(self):
+    runtime = SemanticRuntimeCache(
+        provider_factory=lambda: type(
+            "Provider",
+            (),
+            {"config_id": "symmetric-encode-v1"},
+        )(),
+        index_factory=lambda repository, provider: (_ for _ in ()).throw(
+            EmbeddingIndexError("stale")
+        ),
+    )
+    free_text = SkillSearchService(
+        self.repo,
+        semantic_runtime=runtime,
+    ).handle("inflict tumble")
+    exact = SkillSearchService(
+        self.repo,
+        semantic_runtime=runtime,
+    ).handle("magic: finale")
+    self.assertEqual(type(free_text).__name__, "SkillResultsPayload")
+    self.assertEqual(type(exact).__name__, "SkillDetailPayload")
 ```
 
-Also add a test where `index_factory` raises `EmbeddingIndexError("stale")`; `get_index()` must return `None`, and a later exact lookup must still return detail.
-
-- [ ] **Step 6: Run focused tests and commit**
-
-Run:
+- [ ] **Step 6: Run focused retrieval tests and commit**
 
 ```bash
 python -m unittest tests.test_skill_search_service tests.test_skill_hybrid_search -v
 ```
 
 Expected: PASS.
-
-Commit:
 
 ```bash
 git add toram_skill_search tests/test_skill_search_service.py
@@ -550,13 +628,12 @@ git commit -m "feat: add lazy skill semantic runtime"
 - Modify: `tests/test_discord_bot.py`
 
 **Interfaces:**
-- Consumes: `SkillRepository(Path)`, `verify_schema()` behavior, `DiscordBotConfig`.
 - Produces:
   - `run_skill_search(database_path: Path, query: str, *, repository_factory=SkillRepository, semantic_runtime=DEFAULT_SEMANTIC_RUNTIME) -> SkillPayload`
   - `DiscordBotConfig.skill_database_path: Path`
   - optional environment variable `SKILL_DATABASE_PATH`
 
-- [ ] **Step 1: Write RED missing/corrupt DB and config tests**
+- [ ] **Step 1: Write RED DB/config tests**
 
 Add to `tests/test_skill_search_service.py`:
 
@@ -567,7 +644,10 @@ from toram_skill_search import SkillUnavailablePayload, run_skill_search
 
 
 def test_missing_skill_database_returns_unavailable(self):
-    payload = run_skill_search(Path("/definitely/missing/skills.sqlite"), "magic finale")
+    payload = run_skill_search(
+        Path("/definitely/missing/skills.sqlite"),
+        "magic finale",
+    )
     self.assertIsInstance(payload, SkillUnavailablePayload)
     self.assertIn("unavailable", payload.text.casefold())
 
@@ -580,7 +660,7 @@ def test_corrupt_skill_database_returns_unavailable(self):
     self.assertIsInstance(payload, SkillUnavailablePayload)
 ```
 
-Add to `tests/test_discord_bot.py`:
+Add to `DiscordConfigTests` in `tests/test_discord_bot.py`:
 
 ```python
 def test_skill_database_path_defaults_to_canonical_database(self):
@@ -590,7 +670,10 @@ def test_skill_database_path_defaults_to_canonical_database(self):
     })
     self.assertEqual(
         config.skill_database_path,
-        (discord_bot.PROJECT_ROOT / "coryn_data/database/skills.sqlite").resolve(),
+        (
+            discord_bot.PROJECT_ROOT
+            / "coryn_data/database/skills.sqlite"
+        ).resolve(),
     )
 
 
@@ -606,9 +689,9 @@ def test_skill_database_path_can_be_overridden(self):
     )
 ```
 
-- [ ] **Step 2: Run focused tests to verify RED**
+Extend `test_env_example_has_only_safe_template_values()` to assert the example contains `SKILL_DATABASE_PATH` only as a safe commented/default path and contains no local absolute path.
 
-Run:
+- [ ] **Step 2: Run focused tests to verify RED**
 
 ```bash
 python -m unittest tests.test_skill_search_service tests.test_discord_bot.DiscordConfigTests -v
@@ -616,14 +699,16 @@ python -m unittest tests.test_skill_search_service tests.test_discord_bot.Discor
 
 Expected: FAIL because `run_skill_search()` and `skill_database_path` do not exist.
 
-- [ ] **Step 3: Implement DB-owning application entrypoint**
+- [ ] **Step 3: Implement the DB-owning application entrypoint**
 
-In `toram_skill_search/service.py`, add:
+In `toram_skill_search/service.py` add:
 
 ```python
 import sqlite3
 from pathlib import Path
 
+from toram_skill_search.models import SkillUnavailablePayload
+from toram_skill_search.runtime import DEFAULT_SEMANTIC_RUNTIME
 from toram_skills.schema import SchemaError
 
 
@@ -636,28 +721,34 @@ def run_skill_search(
 ) -> SkillPayload:
     repository = None
     try:
-        repository = repository_factory(Path(database_path).expanduser().resolve())
+        repository = repository_factory(
+            Path(database_path).expanduser().resolve()
+        )
         return SkillSearchService(
             repository,
             semantic_runtime=semantic_runtime,
         ).handle(query)
     except (FileNotFoundError, OSError, sqlite3.DatabaseError, SchemaError):
         return SkillUnavailablePayload(
-            "Skill search is currently unavailable. Item and stat search are still available."
+            "Skill search is currently unavailable. "
+            "Item and stat search are still available."
         )
     finally:
         if repository is not None:
             repository.close()
 ```
 
-Do not catch arbitrary `Exception` here; unexpected application bugs must still be visible to tests/logging. Export `run_skill_search` from `toram_skill_search/__init__.py`.
+Do not catch arbitrary `Exception`; unexpected application bugs must still reach tests/logging. Export `run_skill_search` from `toram_skill_search/__init__.py`.
 
-- [ ] **Step 4: Add independent skill DB config**
+- [ ] **Step 4: Add independent skill DB configuration**
 
 Modify `toram_discord/config.py`:
 
 ```python
-DEFAULT_SKILL_DATABASE = (PROJECT_ROOT / "coryn_data/database/skills.sqlite").resolve()
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_SKILL_DATABASE = (
+    PROJECT_ROOT / "coryn_data/database/skills.sqlite"
+).resolve()
 
 
 @dataclass(frozen=True)
@@ -668,7 +759,7 @@ class DiscordBotConfig:
     skill_database_path: Path = DEFAULT_SKILL_DATABASE
 ```
 
-In `load_config()` resolve an optional `SKILL_DATABASE_PATH` relative to `PROJECT_ROOT` when it is not absolute:
+Inside `load_config()` after guild validation:
 
 ```python
 skill_path_text = environ.get("SKILL_DATABASE_PATH", "").strip()
@@ -681,28 +772,28 @@ if skill_path_text:
     )
 else:
     skill_database_path = DEFAULT_SKILL_DATABASE
+
+return DiscordBotConfig(
+    token=token,
+    guild_ids=guild_ids,
+    skill_database_path=skill_database_path,
+)
 ```
 
-Return it in `DiscordBotConfig(...)`.
-
-Update `.env.example` with:
+Update `.env.example`:
 
 ```text
-# Optional path to the generated skill database; relative paths are resolved from the project root.
+# Optional generated skill database path; relative paths use the project root.
 # SKILL_DATABASE_PATH=coryn_data/database/skills.sqlite
 ```
 
-- [ ] **Step 5: Verify config and DB-isolation tests pass**
-
-Run:
+- [ ] **Step 5: Run DB/config tests and commit**
 
 ```bash
 python -m unittest tests.test_skill_search_service tests.test_discord_bot.DiscordConfigTests -v
 ```
 
 Expected: PASS.
-
-- [ ] **Step 6: Commit**
 
 ```bash
 git add toram_skill_search toram_discord/config.py .env.example tests/test_skill_search_service.py tests/test_discord_bot.py
@@ -720,7 +811,7 @@ git commit -m "feat: configure skill search database"
 - Create: `tests/test_discord_skill_search.py`
 
 **Interfaces:**
-- Consumes: `parse_skill_command`, `run_skill_search`, skill payload models, `truncate_discord_text`, `_safe_field`, `PAGE_SIZE`.
+- Consumes: `parse_skill_command`, `run_skill_search`, skill payload models, `PAGE_SIZE`, `truncate_discord_text`, `_safe_field`.
 - Produces:
   - `run_skill_query_sync(database_path: Path, query: str, *, skill_runner=run_skill_search) -> SkillPayload`
   - `build_skill_help_embed(payload: SkillHelpPayload, *, bot_example_prefix: str) -> discord.Embed`
@@ -728,73 +819,157 @@ git commit -m "feat: configure skill search database"
   - `build_skill_detail_embed(payload: SkillDetailPayload) -> discord.Embed`
   - `build_skill_payload_message(...) -> tuple[discord.Embed, discord.ui.View | None]`
 
-- [ ] **Step 1: Write RED routing tests proving non-skill isolation**
+- [ ] **Step 1: Write RED explicit-routing tests with an executable fake Discord message**
 
-Create `tests/test_discord_skill_search.py` with light fakes for message/reply and patching at the application boundary. Include these tests:
+Create `tests/test_discord_skill_search.py`:
 
 ```python
+from __future__ import annotations
+
+from pathlib import Path
+from types import SimpleNamespace
+import unittest
+from unittest.mock import patch
+
+from toram_discord.app import process_tagged_query
+from toram_discord.config import DiscordBotConfig
+from toram_discord.sessions import DiscordSessionManager
+from toram_search.service import ServiceOutcome
+from toram_skill_search.models import SkillHelpPayload
+
+
+class FakeMessage:
+    def __init__(self, content: str) -> None:
+        self.content = content
+        self.guild = SimpleNamespace(id=10, get_member=lambda user_id: None)
+        self.channel = SimpleNamespace(id=30)
+        self.author = SimpleNamespace(id=20, bot=False)
+        self.mentions = [SimpleNamespace(id=99)]
+        self.webhook_id = None
+        self.replies = []
+
+    async def reply(self, **kwargs) -> None:
+        self.replies.append(kwargs)
+
+
 class DiscordSkillRoutingTests(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self.bot_user = SimpleNamespace(
+            id=99,
+            display_name="Toram Search",
+            name="Toram Search",
+        )
+        self.config = DiscordBotConfig(
+            token="x",
+            guild_ids=frozenset({10}),
+            database_path=Path("items.sqlite"),
+            skill_database_path=Path("skills.sqlite"),
+        )
+        self.sessions = DiscordSessionManager()
+
     async def test_explicit_skill_prefix_uses_skill_path_not_item_path(self):
-        # Build a fake tagged Discord message with content "<@99> skill magic finale".
-        # Patch toram_discord.app.run_skill_query_sync to return SkillHelpPayload("skill help").
-        # Patch toram_discord.app.run_query_sync to raise AssertionError if called.
-        # Call process_tagged_query(...).
-        # Assert run_skill_query_sync receives config.skill_database_path and "magic finale".
-        ...
+        message = FakeMessage("<@99> skill magic finale")
+        calls = []
+
+        def fake_skill_runner(database_path, query):
+            calls.append((database_path, query))
+            return SkillHelpPayload("skill help")
+
+        with patch(
+            "toram_discord.app.run_skill_query_sync",
+            side_effect=fake_skill_runner,
+        ), patch(
+            "toram_discord.app.run_query_sync",
+            side_effect=AssertionError("item path must not run"),
+        ):
+            await process_tagged_query(
+                message,
+                bot_user=self.bot_user,
+                config=self.config,
+                sessions=self.sessions,
+            )
+
+        self.assertEqual(calls, [(Path("skills.sqlite"), "magic finale")])
+        self.assertEqual(len(message.replies), 1)
 
     async def test_non_skill_query_never_calls_skill_path(self):
-        # Build content "<@99> hp armor".
-        # Patch run_skill_query_sync to raise AssertionError if called.
-        # Patch run_query_sync to return ServiceOutcome("help", text="item help").
-        # Assert the item path is used.
-        ...
+        message = FakeMessage("<@99> hp armor")
+        with patch(
+            "toram_discord.app.run_skill_query_sync",
+            side_effect=AssertionError("skill path must not run"),
+        ), patch(
+            "toram_discord.app.run_query_sync",
+            return_value=ServiceOutcome("help", text="item help"),
+        ) as item_runner:
+            await process_tagged_query(
+                message,
+                bot_user=self.bot_user,
+                config=self.config,
+                sessions=self.sessions,
+            )
+
+        item_runner.assert_called_once()
+        self.assertEqual(len(message.replies), 1)
+
+    async def test_non_token_prefixes_remain_item_queries(self):
+        for query in ("skills magic finale", "skillful magic finale"):
+            with self.subTest(query=query):
+                message = FakeMessage(f"<@99> {query}")
+                with patch(
+                    "toram_discord.app.run_skill_query_sync",
+                    side_effect=AssertionError("skill path must not run"),
+                ), patch(
+                    "toram_discord.app.run_query_sync",
+                    return_value=ServiceOutcome("help", text="item help"),
+                ) as item_runner:
+                    await process_tagged_query(
+                        message,
+                        bot_user=self.bot_user,
+                        config=self.config,
+                        sessions=DiscordSessionManager(),
+                    )
+                item_runner.assert_called_once()
 ```
-
-Implement the fake message concretely with `SimpleNamespace` plus an async `reply(**kwargs)` recorder; use a real `DiscordSessionManager` and `DiscordBotConfig(token="x", guild_ids=frozenset({10}), ...)`. Do not call Discord network APIs.
-
-Add parser-boundary cases for `skills ...` and `skillful ...` to the non-skill test matrix.
 
 - [ ] **Step 2: Write RED rendering tests**
 
-Construct payloads from canonical `SkillDraft`/`SkillTreeDraft` fixtures or fetch them from the real skill DB. Assert:
+Add a helper that loads `magic: finale` from the canonical DB and constructs `SkillDetailPayload` and `SkillResultsPayload`. Then add:
 
 ```python
-def test_skill_detail_omits_empty_fields_and_internal_ids(self):
-    embed = build_skill_detail_embed(payload)
+def test_skill_detail_omits_internal_ids_and_none_text(self):
+    embed = build_skill_detail_embed(self.detail_payload)
     visible = "\n".join([
         embed.title or "",
         embed.description or "",
         *(field.name + "\n" + field.value for field in embed.fields),
     ])
-    self.assertIn(payload.skill.name, visible)
-    self.assertIn(payload.tree.name, visible)
-    self.assertNotIn(payload.skill.id, visible)
+    self.assertIn(self.detail_payload.skill.name, visible)
+    self.assertIn(self.detail_payload.tree.name, visible)
+    self.assertNotIn(self.detail_payload.skill.id, visible)
     self.assertNotIn("None", visible)
 
 
-def test_skill_results_hide_scores_and_show_ranked_names(self):
-    embed = build_skill_results_embed(payload, page=0)
-    visible = (embed.description or "")
-    self.assertIn(payload.results[0].skill.name, visible)
+def test_skill_results_hide_retrieval_diagnostics(self):
+    embed = build_skill_results_embed(self.results_payload, page=0)
+    visible = embed.description or ""
+    self.assertIn(self.results_payload.results[0].skill.name, visible)
     self.assertNotIn("semantic", visible.casefold())
     self.assertNotIn("rrf", visible.casefold())
 ```
 
-Also test an empty `SkillResultsPayload` renders a deterministic no-results embed with skill examples and no Qwen language.
+Construct `SkillResultsPayload("nope", ())` and assert title `No skill results`, deterministic skill examples, and no Qwen/fallback wording.
 
-- [ ] **Step 3: Run RED tests**
-
-Run:
+- [ ] **Step 3: Run routing/render tests to verify RED**
 
 ```bash
 python -m unittest tests.test_discord_skill_search -v
 ```
 
-Expected: FAIL because skill routing/render helpers do not exist.
+Expected: FAIL because the skill Discord bridge/renderers do not exist.
 
-- [ ] **Step 4: Add the synchronous skill bridge and renderers**
+- [ ] **Step 4: Add the synchronous skill bridge and skill renderers**
 
-In `toram_discord/views.py`:
+In `toram_discord/views.py` add imports for the skill models/application and:
 
 ```python
 def run_skill_query_sync(
@@ -806,10 +981,14 @@ def run_skill_query_sync(
     return skill_runner(database_path.resolve(), query)
 ```
 
-In `toram_discord/render.py`, implement:
+In `toram_discord/render.py` add skill model imports and:
 
 ```python
-def build_skill_help_embed(payload: SkillHelpPayload, *, bot_example_prefix: str) -> discord.Embed:
+def build_skill_help_embed(
+    payload: SkillHelpPayload,
+    *,
+    bot_example_prefix: str,
+) -> discord.Embed:
     return discord.Embed(
         title="Toram Skill Search",
         description=(
@@ -822,22 +1001,67 @@ def build_skill_help_embed(payload: SkillHelpPayload, *, bot_example_prefix: str
     )
 ```
 
-`build_skill_results_embed()` must use `PAGE_SIZE`, title `Skill search: <query>`, show `Showing X–Y of N`, and for each row render `**<name>** — <tree name>` plus the canonical snippet truncated so the total embed description remains <=4096 characters. When `results` is empty, return title `No skill results` and deterministic examples.
+Implement `build_skill_results_embed(payload, page)` with the same page math as `build_search_results_embed`: `PAGE_SIZE=5`, clamped page, `Showing X–Y of N`, and each row formatted as `**<skill name>** — <tree name>` followed by a truncated canonical snippet. Clamp the final description with `truncate_discord_text(..., 4096)`. When there are no results, return title `No skill results` and deterministic examples.
 
-`build_skill_detail_embed()` must:
+Implement `build_skill_detail_embed(payload)` with this field policy:
 
-1. title with canonical skill name;
-2. description with canonical tree name;
-3. add an `Overview` field only for values that exist (`Tier`, `Required level`, `Skill type`, `MP cost`, `Damage type`, `Element`);
-4. add `Range / Timing` only for present cast/hit range/time/count values;
-5. add `Ailments`, `Weapon requirements`, and `Weapon restrictions` only when non-empty;
-6. add `Description` and `Game description` only when non-empty;
-7. add each canonical skill section as its own safe field, using the existing `_safe_field()` 1024-character truncation behavior;
-8. never display internal IDs, raw embedding scores, or `raw_text`.
+```python
+def build_skill_detail_embed(payload: SkillDetailPayload) -> discord.Embed:
+    skill = payload.skill
+    embed = discord.Embed(
+        title=truncate_discord_text(skill.name, 256),
+        description=truncate_discord_text(payload.tree.name, 4096),
+    )
+    overview = []
+    for label, value in (
+        ("Tier", skill.tier),
+        ("Required level", skill.required_level),
+        ("Skill type", skill.skill_type),
+        ("MP cost", skill.mp_cost_text),
+        ("Damage type", skill.damage_type),
+        ("Element", skill.element),
+    ):
+        if value is not None and str(value).strip():
+            overview.append(f"{label}: {value}")
+    if overview:
+        _safe_field(embed, "Overview", "\n".join(overview))
+```
 
-- [ ] **Step 5: Route only explicit skill commands in `process_tagged_query()`**
+Continue the function with a `Range / Timing` field only for present cast/hit range/time/count values; optional `Ailments`, `Weapon requirements`, `Weapon restrictions`, `Description`, and `Game description` fields; then one `_safe_field(embed, section.label, section.body)` per non-empty canonical section. Never display `skill.id`, `tree.id`, `raw_text`, embedding scores, or channels.
 
-Modify `toram_discord/app.py` after mention extraction and after `sessions.start_query(...)`:
+- [ ] **Step 5: Add a skill payload message dispatcher without interactions yet**
+
+In `toram_discord/views.py`:
+
+```python
+def build_skill_payload_message(
+    payload: SkillPayload,
+    *,
+    bot_example_prefix: str,
+    sessions: DiscordSessionManager,
+    key: SessionKey,
+    generation: int,
+) -> tuple[discord.Embed, discord.ui.View | None]:
+    if isinstance(payload, SkillHelpPayload):
+        return build_skill_help_embed(
+            payload,
+            bot_example_prefix=bot_example_prefix,
+        ), None
+    if isinstance(payload, SkillUnavailablePayload):
+        return _build_text_embed("Skill search unavailable", payload.text), None
+    if isinstance(payload, SkillDetailPayload):
+        return build_skill_detail_embed(payload), None
+    return build_skill_results_embed(
+        payload,
+        sessions.get(key).page if sessions.get(key) is not None else 0,
+    ), None
+```
+
+Task 5 upgrades the non-empty result branch to return `SkillResultsView`.
+
+- [ ] **Step 6: Route only explicit skill commands in `process_tagged_query()`**
+
+Add imports in `toram_discord/app.py` for `parse_skill_command`, `build_skill_payload_message`, and `run_skill_query_sync`. After mention extraction and `sessions.start_query(...)`, insert:
 
 ```python
 skill_query = parse_skill_command(query)
@@ -868,21 +1092,15 @@ if skill_query is not None:
     return
 ```
 
-The existing item path below this branch must remain byte-for-byte behaviorally equivalent. In particular, do not call `session.failed_context.clear()` anywhere in the skill branch.
+Leave the existing item path below this branch behaviorally unchanged. Do not call `session.failed_context.clear()` in the skill branch.
 
-At this task, `build_skill_payload_message()` may return `None` for the view until Task 5 adds interactions. It must map `SkillHelpPayload`, `SkillUnavailablePayload`, `SkillDetailPayload`, and `SkillResultsPayload` to their skill-specific embeds.
-
-- [ ] **Step 6: Run focused Discord tests and commit**
-
-Run:
+- [ ] **Step 7: Run focused Discord tests and commit**
 
 ```bash
 python -m unittest tests.test_discord_skill_search tests.test_discord_bot -v
 ```
 
 Expected: PASS.
-
-Commit:
 
 ```bash
 git add toram_discord/app.py toram_discord/render.py toram_discord/views.py tests/test_discord_skill_search.py
@@ -899,14 +1117,11 @@ git commit -m "feat: route and render skill searches"
 
 **Interfaces:**
 - Consumes: `SessionBoundView`, `ActionButton`, `ActionSelect`, `PAGE_SIZE`, `SkillResultsPayload`, `SkillDetailPayload`, renderers from Task 4.
-- Produces:
-  - `SkillResultsView`
-  - `SkillDetailView`
-  - `build_skill_payload_message()` returns the appropriate skill view for non-empty results.
+- Produces: `SkillResultsView`, `SkillDetailView`, interactive `build_skill_payload_message()` for non-empty result payloads.
 
-- [ ] **Step 1: Write RED view construction tests**
+- [ ] **Step 1: Write RED result-view tests**
 
-Add tests modeled after existing `SearchResultsView` tests:
+Build a six-result payload by taking six canonical skills from `SkillRepository` and wrapping them in `SkillResultItem`. Add:
 
 ```python
 def test_skill_result_dropdown_uses_indexes_not_skill_ids(self):
@@ -917,41 +1132,59 @@ def test_skill_result_dropdown_uses_indexes_not_skill_ids(self):
         sessions=sessions,
         key=key,
         generation=session.generation,
-        payload=payload_with_six_results,
+        payload=self.six_result_payload,
     )
     self.assertEqual(
         [option.value for option in view.skill_select.options],
         ["0", "1", "2", "3", "4"],
     )
-    self.assertNotIn(payload_with_six_results.results[0].skill.id, [
-        option.value for option in view.skill_select.options
-    ])
+    skill_ids = {item.skill.id for item in self.six_result_payload.results}
+    self.assertTrue(
+        skill_ids.isdisjoint(
+            {option.value for option in view.skill_select.options}
+        )
+    )
+
+
+def test_six_skill_results_have_pagination_controls(self):
+    sessions = DiscordSessionManager()
+    key = (10, 30, 20)
+    session = sessions.start_query(key, "skill query")
+    view = SkillResultsView(
+        sessions=sessions,
+        key=key,
+        generation=session.generation,
+        payload=self.six_result_payload,
+    )
+    labels = [child.label for child in view.children if hasattr(child, "label")]
+    self.assertIn("Previous", labels)
+    self.assertIn("Next", labels)
 ```
 
-Add tests proving:
-
-- six results create Next/Previous pagination controls;
-- selecting an index yields a detail embed for the corresponding canonical `SkillResultItem.skill`;
-- `SkillDetailView` contains a `Back to Results` button when opened from results;
-- owner/generation protection is inherited from `SessionBoundView` rather than reimplemented.
+Also instantiate `SkillDetailView` with a result payload and assert it contains `Back to Results`. Reuse `SessionBoundView.interaction_check` tests already present for owner/generation protection; do not duplicate that logic in skill views.
 
 - [ ] **Step 2: Run view tests to verify RED**
-
-Run:
 
 ```bash
 python -m unittest tests.test_discord_skill_search -v
 ```
 
-Expected: FAIL because skill views do not exist.
+Expected: FAIL because the skill views do not exist.
 
 - [ ] **Step 3: Implement `SkillResultsView` with existing session page state**
 
-In `toram_discord/views.py`, follow the existing `SearchResultsView` pagination pattern but keep the payload type specific:
+Add to `toram_discord/views.py`:
 
 ```python
 class SkillResultsView(SessionBoundView):
-    def __init__(self, *, sessions, key, generation, payload: SkillResultsPayload):
+    def __init__(
+        self,
+        *,
+        sessions: DiscordSessionManager,
+        key: SessionKey,
+        generation: int,
+        payload: SkillResultsPayload,
+    ) -> None:
         super().__init__(
             sessions=sessions,
             key=key,
@@ -971,9 +1204,15 @@ class SkillResultsView(SessionBoundView):
 
         options = [
             discord.SelectOption(
-                label=truncate_discord_text(payload.results[index].skill.name, 100),
+                label=truncate_discord_text(
+                    payload.results[index].skill.name,
+                    100,
+                ),
                 value=str(index),
-                description=truncate_discord_text(payload.results[index].tree.name, 100),
+                description=truncate_discord_text(
+                    payload.results[index].tree.name,
+                    100,
+                ),
             )
             for index in range(start, end)
         ]
@@ -990,20 +1229,30 @@ class SkillResultsView(SessionBoundView):
             self.add_item(self.skill_select)
 ```
 
-Implement Previous/Next exactly like item pagination, rebuilding `SkillResultsView` and `build_skill_results_embed()` using `session.page`.
+Add Previous/Next buttons when `total > PAGE_SIZE`, copying only the page-clamping mechanics from `SearchResultsView`. `_previous()` and `_next()` must rebuild `SkillResultsView` and call `build_skill_results_embed(self.payload, session.page)`.
 
-- [ ] **Step 4: Implement selection/detail/back without reopening the database**
+- [ ] **Step 4: Implement selection and detail/back navigation without reopening SQLite**
 
-The result payload already contains canonical `SkillDraft` and `SkillTreeDraft`, so selection does not need a second SQLite query:
+Use the canonical records already present in `SkillResultItem`:
 
 ```python
-async def _select_skill(self, interaction, values: Sequence[str]) -> None:
+async def _select_skill(
+    self,
+    interaction: discord.Interaction,
+    values: Sequence[str],
+) -> None:
     if not values or not values[0].isdigit():
-        await interaction.response.send_message("Invalid skill selection.", ephemeral=True)
+        await interaction.response.send_message(
+            "Invalid skill selection.",
+            ephemeral=True,
+        )
         return
     index = int(values[0])
     if not (0 <= index < len(self.payload.results)):
-        await interaction.response.send_message("Invalid skill selection.", ephemeral=True)
+        await interaction.response.send_message(
+            "Invalid skill selection.",
+            ephemeral=True,
+        )
         return
     result = self.payload.results[index]
     detail = SkillDetailPayload(result.skill, result.tree)
@@ -1021,31 +1270,81 @@ async def _select_skill(self, interaction, values: Sequence[str]) -> None:
     )
 ```
 
-Implement `SkillDetailView` with one `Back to Results` button. `_back()` rebuilds `SkillResultsView` from `results_payload` and renders the current `session.page`. This view stores only immutable payload data and never a repository connection.
+Add:
 
-- [ ] **Step 5: Wire views into `build_skill_payload_message()`**
+```python
+class SkillDetailView(SessionBoundView):
+    def __init__(
+        self,
+        *,
+        sessions: DiscordSessionManager,
+        key: SessionKey,
+        generation: int,
+        results_payload: SkillResultsPayload,
+    ) -> None:
+        super().__init__(
+            sessions=sessions,
+            key=key,
+            generation=generation,
+            owner_id=key[2],
+        )
+        self.results_payload = results_payload
+        self.add_item(
+            ActionButton(
+                label="Back to Results",
+                style=discord.ButtonStyle.primary,
+                handler=self._back,
+            )
+        )
 
-For `SkillResultsPayload`:
+    async def _back(self, interaction: discord.Interaction) -> None:
+        session = self.sessions.get(self.key)
+        if session is None:
+            return
+        session.selected_index = None
+        await interaction.response.edit_message(
+            embed=build_skill_results_embed(
+                self.results_payload,
+                session.page,
+            ),
+            view=SkillResultsView(
+                sessions=self.sessions,
+                key=self.key,
+                generation=self.generation,
+                payload=self.results_payload,
+            ),
+        )
+```
 
-- empty results -> no view;
-- non-empty results -> `SkillResultsView`;
-- exact `SkillDetailPayload` -> no back button because there is no prior result list;
-- help/unavailable -> no view.
+These views retain only immutable payload data and session identifiers, never a `SkillRepository` or SQLite connection.
 
-- [ ] **Step 6: Run interaction and existing follow-up regression tests**
+- [ ] **Step 5: Wire non-empty results into `build_skill_payload_message()`**
 
-Run:
+Replace only the `SkillResultsPayload` branch:
+
+```python
+if isinstance(payload, SkillResultsPayload):
+    page = sessions.get(key).page if sessions.get(key) is not None else 0
+    view = None
+    if payload.results:
+        view = SkillResultsView(
+            sessions=sessions,
+            key=key,
+            generation=generation,
+            payload=payload,
+        )
+    return build_skill_results_embed(payload, page), view
+```
+
+Exact `SkillDetailPayload` remains a detail embed with no Back button because there is no prior results list.
+
+- [ ] **Step 6: Run interaction regressions and commit**
 
 ```bash
-python -m unittest \
-  tests.test_discord_skill_search \
-  tests.test_discord_followup_regressions \
-  tests.test_discord_bot -v
+python -m unittest tests.test_discord_skill_search tests.test_discord_followup_regressions tests.test_discord_bot -v
 ```
 
 Expected: PASS.
-
-- [ ] **Step 7: Commit**
 
 ```bash
 git add toram_discord/views.py tests/test_discord_skill_search.py
@@ -1054,69 +1353,124 @@ git commit -m "feat: add interactive skill results"
 
 ---
 
-### Task 6: Compatibility Exports, Module Boundaries, and Full Acceptance
+### Task 6: Compatibility Exports, Isolation Assertions, and Full Acceptance
 
 **Files:**
 - Modify: `discord_bot.py`
 - Modify: `tests/test_discord_module_boundaries.py`
 - Modify: `tests/test_discord_skill_search.py`
-- Modify: `tests/test_discord_bot.py`
 
 **Interfaces:**
 - Consumes: all public Discord helpers introduced in Tasks 3-5.
 - Produces: compatibility facade re-exports and final acceptance evidence.
 
-- [ ] **Step 1: Write RED compatibility and isolation assertions**
+- [ ] **Step 1: Write RED compatibility/module-boundary assertions**
 
-Extend `tests/test_discord_module_boundaries.py` to assert canonical ownership for the new helpers:
-
-```python
-from toram_discord.render import (
-    build_skill_detail_embed,
-    build_skill_help_embed,
-    build_skill_results_embed,
-)
-from toram_discord.views import (
-    SkillDetailView,
-    SkillResultsView,
-    build_skill_payload_message,
-    run_skill_query_sync,
-)
-
-self.assertIs(discord_bot.build_skill_detail_embed, build_skill_detail_embed)
-self.assertIs(discord_bot.build_skill_help_embed, build_skill_help_embed)
-self.assertIs(discord_bot.build_skill_results_embed, build_skill_results_embed)
-self.assertIs(discord_bot.SkillDetailView, SkillDetailView)
-self.assertIs(discord_bot.SkillResultsView, SkillResultsView)
-self.assertIs(discord_bot.build_skill_payload_message, build_skill_payload_message)
-self.assertIs(discord_bot.run_skill_query_sync, run_skill_query_sync)
-```
-
-Add an AST boundary test:
+Extend `tests/test_discord_module_boundaries.py`:
 
 ```python
+def test_skill_render_symbols_have_canonical_package_owner(self):
+    from toram_discord.render import (
+        build_skill_detail_embed,
+        build_skill_help_embed,
+        build_skill_results_embed,
+    )
+
+    self.assertIs(discord_bot.build_skill_detail_embed, build_skill_detail_embed)
+    self.assertIs(discord_bot.build_skill_help_embed, build_skill_help_embed)
+    self.assertIs(discord_bot.build_skill_results_embed, build_skill_results_embed)
+
+
+def test_skill_view_symbols_have_canonical_package_owner(self):
+    from toram_discord.views import (
+        SkillDetailView,
+        SkillResultsView,
+        build_skill_payload_message,
+        run_skill_query_sync,
+    )
+
+    self.assertIs(discord_bot.SkillDetailView, SkillDetailView)
+    self.assertIs(discord_bot.SkillResultsView, SkillResultsView)
+    self.assertIs(discord_bot.build_skill_payload_message, build_skill_payload_message)
+    self.assertIs(discord_bot.run_skill_query_sync, run_skill_query_sync)
+
+
 def test_skill_application_layer_does_not_import_discord(self):
     for path in sorted((ROOT / "toram_skill_search").glob("*.py")):
         modules = imported_modules(path)
-        forbidden = {m for m in modules if m == "discord" or m.startswith("toram_discord")}
+        forbidden = {
+            module
+            for module in modules
+            if module == "discord" or module.startswith("toram_discord")
+        }
         self.assertFalse(forbidden, f"{path} imports {sorted(forbidden)}")
 ```
 
-Add a request-isolation regression test in `tests/test_discord_skill_search.py` that patches `toram_discord.app.run_skill_query_sync` to raise if called, sends a normal item query, and verifies the item outcome still renders. Add a `FailedQueryContext` regression that seeds one failed item attempt, executes a skill request through the Discord route, and asserts the same attempt remains afterward with no new skill attempt and no clearing.
+- [ ] **Step 2: Add RED request/failure-context isolation tests**
 
-- [ ] **Step 2: Run boundary tests to verify RED**
+Append to `tests/test_discord_skill_search.py`:
 
-Run:
+```python
+async def test_skill_query_preserves_existing_failed_item_context(self):
+    sessions = DiscordSessionManager()
+    key = (10, 30, 20)
+    previous = sessions.start_query(key, "bad item query")
+    previous.failed_context.record_failure("bad item query")
+    message = FakeMessage("<@99> skill magic finale")
+
+    with patch(
+        "toram_discord.app.run_skill_query_sync",
+        return_value=SkillHelpPayload("skill help"),
+    ), patch(
+        "toram_discord.app.run_query_sync",
+        side_effect=AssertionError("item path must not run"),
+    ):
+        await process_tagged_query(
+            message,
+            bot_user=self.bot_user,
+            config=self.config,
+            sessions=sessions,
+        )
+
+    current = sessions.get(key)
+    attempts = current.failed_context.snapshot()
+    self.assertEqual(
+        [attempt.original_query for attempt in attempts],
+        ["bad item query"],
+    )
+
+
+async def test_item_query_executes_without_opening_skill_path(self):
+    message = FakeMessage("<@99> cr bow")
+    with patch(
+        "toram_discord.app.run_skill_query_sync",
+        side_effect=AssertionError("skill path must not run"),
+    ), patch(
+        "toram_discord.app.run_query_sync",
+        return_value=ServiceOutcome("help", text="item path"),
+    ) as item_runner:
+        await process_tagged_query(
+            message,
+            bot_user=self.bot_user,
+            config=self.config,
+            sessions=DiscordSessionManager(),
+        )
+    item_runner.assert_called_once()
+```
+
+These tests prove request execution never reaches the skill runner for normal item queries; combined with Task 2's lazy provider import, normal requests cannot initialize Sentence Transformers.
+
+- [ ] **Step 3: Run boundary/isolation tests to verify RED**
 
 ```bash
 python -m unittest tests.test_discord_module_boundaries tests.test_discord_skill_search -v
 ```
 
-Expected: FAIL until the compatibility facade exports the new symbols and any missing isolation assertions are satisfied.
+Expected: FAIL until the compatibility facade exports the new symbols.
 
-- [ ] **Step 3: Re-export new Discord symbols from the compatibility facade**
+- [ ] **Step 4: Re-export new Discord symbols from `discord_bot.py`**
 
-Modify `discord_bot.py` only by extending its existing imports; do not define functions/classes there. Re-export:
+Extend only the existing import lists:
 
 ```python
 from toram_discord.render import (
@@ -1132,11 +1486,9 @@ from toram_discord.views import (
 )
 ```
 
-Preserve the facade invariant: import-only plus `if __name__ == "__main__": main()`.
+Keep `discord_bot.py` import-only plus its existing `if __name__ == "__main__": main()` launcher. Do not define new functions/classes in the facade.
 
-- [ ] **Step 4: Run all focused skill integration tests**
-
-Run:
+- [ ] **Step 5: Run all focused skill integration tests**
 
 ```bash
 python -m unittest \
@@ -1150,29 +1502,23 @@ python -m unittest \
 
 Expected: PASS.
 
-- [ ] **Step 5: Verify the core module-boundary suite**
-
-Run:
+- [ ] **Step 6: Verify core/frontend module boundaries**
 
 ```bash
 python -m unittest tests.test_core_module_boundaries tests.test_discord_module_boundaries -v
 ```
 
-Expected: PASS, proving `toram_skills` remains frontend-free and the new `toram_skill_search` layer is Discord-free.
+Expected: PASS.
 
-- [ ] **Step 6: Run the complete repository test suite**
-
-Run:
+- [ ] **Step 7: Run the complete repository test suite**
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-Expected: PASS with no regressions in item/stat/help/database/Qwen behavior.
+Expected: PASS with no item/stat/help/database/Qwen regressions.
 
-- [ ] **Step 7: Perform a deterministic manual smoke check without Discord network access**
-
-Run:
+- [ ] **Step 8: Run a deterministic local smoke check without Discord networking or model downloads**
 
 ```bash
 python - <<'PY'
@@ -1193,15 +1539,15 @@ PY
 Expected:
 
 - empty query -> `SkillHelpPayload`;
-- `magic: finale` -> `SkillDetailPayload` without semantic runtime;
-- free-text queries -> `SkillResultsPayload` using lexical mode in this smoke check.
+- `magic: finale` -> `SkillDetailPayload` without semantic initialization;
+- free-text queries -> `SkillResultsPayload` in lexical-only smoke mode.
 
-This smoke check intentionally passes `semantic_runtime=None`; real MiniLM behavior is already covered by the semantic runtime/unit tests and the existing benchmarked retrieval suite, avoiding an unnecessary model download during every acceptance run.
+The existing benchmark/retrieval tests and Task 2 runtime tests cover semantic behavior without forcing a model download on every final acceptance run.
 
-- [ ] **Step 8: Commit final compatibility/acceptance changes**
+- [ ] **Step 9: Commit final compatibility/isolation tests**
 
 ```bash
-git add discord_bot.py tests/test_discord_module_boundaries.py tests/test_discord_skill_search.py tests/test_discord_bot.py
+git add discord_bot.py tests/test_discord_module_boundaries.py tests/test_discord_skill_search.py
 git commit -m "test: finalize skill bot integration"
 ```
 
@@ -1209,7 +1555,7 @@ git commit -m "test: finalize skill bot integration"
 
 ## Acceptance Checklist
 
-Before declaring the branch complete, verify all of these against fresh test output:
+Before declaring the branch complete, verify all items against fresh test output:
 
 - `skill` returns deterministic help.
 - `skill <exact canonical or alias>` returns canonical detail before semantic initialization.
@@ -1221,6 +1567,6 @@ Before declaring the branch complete, verify all of these against fresh test out
 - skill result pagination and selection open canonical detail and support Back to Results.
 - skill searches do not invoke Qwen and do not mutate/clear `FailedQueryContext`.
 - non-skill messages never execute the skill search path or open `skills.sqlite`.
-- normal item/stat behavior remains unchanged.
+- normal item/stat/help/database/Qwen behavior remains unchanged.
 - `toram_skill_search` imports no Discord frontend code.
 - full `python -m unittest discover -s tests -v` passes.
