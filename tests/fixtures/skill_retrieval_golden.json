@@ -18,7 +18,7 @@
 
     {"id":"lexical-tumble","kind":"lexical","query":"Tumble","expected_skill_ids":["weapon_class_skills/magic_skills/magic-impact"],"top_k":20},
     {"id":"lexical-remaining-mp","kind":"lexical","query":"remaining MP","expected_skill_ids":["sub_weapon_skills/assassin_skills/arcane-strike"],"top_k":10},
-    {"id":"lexical-ampr-evasion","kind":"lexical","query":"Attack MP Recovery Evasion","expected_skill_ids":["assist_skills/minstrel_skills/fairy-song","assist_skills/support_skills/fairy-song"],"top_k":10},
+    {"id":"lexical-ampr-evasion","kind":"lexical","query":"Attack MP Recovery Evasion","expected_skill_ids":["assist_skills/minstrel_skills/fairy-song"],"top_k":10},
     {"id":"lexical-invincibility","kind":"lexical","query":"invincible after taking damage","expected_skill_ids":["assist_skills/dancer_skills/elegant-poise"],"top_k":10},
     {"id":"lexical-damage-reduction","kind":"lexical","query":"damage reduction","expected_skill_ids":["assist_skills/dancer_skills/elegant-poise","assist_skills/battle_skills/desperate-resist"],"top_k":20},
     {"id":"lexical-critical","kind":"lexical","query":"Critical Rate Critical Damage","expected_skill_ids":["assist_skills/battle_skills/critical-up"],"top_k":10},
@@ -33,7 +33,7 @@
     {"id":"lexical-tumble-resistance","kind":"lexical","query":"Tumble Resistance","expected_skill_ids":["assist_skills/dancer_skills/nature-s-wonder"],"top_k":10},
 
     {"id":"semantic-evasion","kind":"semantic","query":"skills that help me evade or avoid attacks","expected_skill_ids":["sub_weapon_skills/assassin_skills/shadow-walk","sub_weapon_skills/assassin_skills/evasion","sub_weapon_skills/assassin_skills/assault-chase"],"top_k":5},
-    {"id":"semantic-mp-after-evasion","kind":"semantic","query":"restore mana after successfully evading or guarding","expected_skill_ids":["assist_skills/minstrel_skills/fairy-song","assist_skills/support_skills/fairy-song"],"top_k":5},
+    {"id":"semantic-mp-after-evasion","kind":"semantic","query":"restore mana after successfully evading or guarding","expected_skill_ids":["assist_skills/minstrel_skills/fairy-song"],"top_k":5},
     {"id":"semantic-poison","kind":"semantic","query":"skills related to poison stacking","expected_skill_ids":["sub_weapon_skills/assassin_skills/corrosive-poison","sub_weapon_skills/assassin_skills/venom-injection","sub_weapon_skills/assassin_skills/death-reception"],"top_k":5},
     {"id":"semantic-all-mp","kind":"semantic","query":"an attack that consumes all of my remaining mana","expected_skill_ids":["sub_weapon_skills/assassin_skills/arcane-strike"],"top_k":5},
     {"id":"semantic-invincible-hit","kind":"semantic","query":"become invincible after taking damage","expected_skill_ids":["assist_skills/dancer_skills/elegant-poise"],"top_k":5},
@@ -51,7 +51,7 @@
     {"id":"semantic-party-shield","kind":"semantic","query":"shield aura that reduces party damage and gives attack mp recovery","expected_skill_ids":["sub_weapon_skills/shield_skills/guardian"],"top_k":5},
     {"id":"semantic-golem-mp","kind":"semantic","query":"summon whose normal attacks restore mana for me","expected_skill_ids":["assist_skills/golem_skills/golem-call"],"top_k":5},
     {"id":"semantic-restore-evasion","kind":"semantic","query":"restore evasion charges and make evasion consume less","expected_skill_ids":["sub_weapon_skills/assassin_skills/assault-chase"],"top_k":5},
-    {"id":"semantic-song-invincible","kind":"semantic","query":"song follow-up that gives one second of invincibility at level ten","expected_skill_ids":["assist_skills/minstrel_skills/ad-lib","assist_skills/support_skills/ad-lib"],"top_k":5},
+    {"id":"semantic-song-invincible","kind":"semantic","query":"song follow-up that gives one second of invincibility at level ten","expected_skill_ids":["assist_skills/minstrel_skills/ad-lib"],"top_k":5},
 
     {"id":"combined-magic-tumble","kind":"combined","query":"Tumble","expected_skill_ids":["weapon_class_skills/magic_skills/magic-impact"],"top_k":5,"filters":{"tree_ids":["weapon_class_skills/magic_skills"]}},
     {"id":"combined-battle-critical","kind":"combined","query":"Critical Rate Critical Damage","expected_skill_ids":["assist_skills/battle_skills/critical-up"],"top_k":5,"filters":{"tree_ids":["assist_skills/battle_skills"]}},
