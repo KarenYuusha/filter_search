@@ -14,8 +14,8 @@ SKILL: FOREFIST PUNCH
 ==================================================
 
 Category: Crusher Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: Level 50
 
 Source Details:
 Limitation: MAIN Knuckle only & no SUB Knuckle
@@ -41,8 +41,8 @@ SKILL: GOLIATH PUNCH
 ==================================================
 
 Category: Crusher Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 90
 
 Source Details:
 Limitation: MAIN Knuckle only & no SUB Knuckle
@@ -80,8 +80,8 @@ SKILL: GOD HAND
 ==================================================
 
 Category: Crusher Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 170
 
 Source Details:
 Limitation: MAIN Knuckle only & no SUB Knuckle
@@ -111,8 +111,8 @@ SKILL: BREATHWORK
 ==================================================
 
 Category: Crusher Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: Level 50
 
 Source Details:
 Limitation: Knuckle and knuckle-sub only
@@ -136,8 +136,8 @@ SKILL: FLOATING KICK
 ==================================================
 
 Category: Crusher Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 90
 
 Source Details:
 Limitation: Knuckle only
@@ -162,8 +162,8 @@ SKILL: COMBINATION
 ==================================================
 
 Category: Crusher Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 90
 
 Source Details:
 Limitation: MAIN Knuckle only & no SUB Knuckle
@@ -184,37 +184,51 @@ Joji Fact:
 - and yet, you can use this skill in combo midway
 - Deal 3 consecutive hits, the first two hits are 1/4 damage and the third is 1/2 damage.
 
-Annihilator
-Limitation: Knuckle only
-MP cost: 100
-Skill type: Active and Passive
-Cast Range: Infinite
-Passive Effect:
-
-
 ==================================================
-SKILL: ANNIHILATOR CAN ENHANCE BREATHWORK FURTHERMORE BY ENHANCE ITS HP RECOVERY. ALSO, MAKE BREATHWORK GAIN BUFF HALVES NEXT MP OF SKILL IF THIS SKILL LEVEL IS 10. FOR MORE DETAILS, CHECK BREATHWORK INFO.
+SKILL: ANNIHILATOR
 ==================================================
 
 Category: Crusher Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 170
 
 Source Details:
+Limitation: Knuckle only
+MP Cost: 100
+Skill Type: Active and Passive
+Cast Range: Infinite
+
+Passive Effect:
+
+* Annihilator further enhances Breathwork's HP Recovery.
+* If Annihilator is Level 10, Breathwork also gains a buff that halves the MP Cost of the next skill.
+* For the detailed healing values and interaction, refer to Breathwork.
+
 Active Effect:
-If you have this skill buff, then you cannot gain Eburst stack/Eburst Buff (even they're removed as soon as you have this skill buff).
-Increase Shell Break's Armor Break chance by 25% [MAIN Knuckle Bonus Only]
-When using this skill, this skill buff will give base Weapon ATK%. Also, there are Stability Penalty and Ailment Chance Penalty. Buff duration is 10 minutes. This effect for Main Knuckle Only
-Gives Base Weapon ATK% by +(5 * Skill Lvl) Base Weapon ATK%
-Here calculation should be:
-(Base Weapon ATK * (100 + 5 * Skill Lvl)% * (Total Watk%) + Total Flat Watk)
-Penalty:
-• Stability = -10% regardless level.
-• You cannot Flinch, Tumble, Stun, Knockback during this buff
-Game Description: The essence of destruction. Learn this skill to get a passive effect that raises Breathwork's HP recovery amount. Reduce MP cost of the next skill used when its lvl 10. Use knuckle as main weapon to get additional effect.
-Joji Fact:
-This skill cannot be used in combo.
-This annihilator used to be any ailment reduction, but now changes to FTS unavailable and increase Shell Break's Armor Break chance
+
+* While the Annihilator buff is active, the user cannot gain Enchant Burst stacks or Enchant Burst buff. Existing stacks/buff are removed when Annihilator becomes active.
+* Main Knuckle only: Shell Break's Armor Break chance +25%.
+* Main Knuckle only: Grants a Base Weapon ATK% buff.
+* Buff Duration: 10 minutes.
+
+Base Weapon ATK:
++(5 * Skill Level)%
+
+Weapon ATK Calculation:
+Base Weapon ATK * (100 + 5 * Skill Level)% * Total Weapon ATK% + Total Flat Weapon ATK
+
+Penalties:
+
+* Stability -10% regardless of Skill Level.
+* The user cannot inflict Flinch, Tumble, Stun, or Knockback during the buff.
+
+Notes:
+
+* This skill cannot be used in a combo.
+* The source states that Annihilator previously provided general ailment reduction, but this was changed so that Flinch/Tumble/Stun are unavailable and Shell Break's Armor Break chance is increased.
+
+Game Description:
+"The essence of destruction. Learn this skill to get a passive effect that raises Breathwork's HP recovery amount. Reduce MP cost of the next skill used when its lvl 10. Use knuckle as main weapon to get additional effect."
 
 
 ==================================================
