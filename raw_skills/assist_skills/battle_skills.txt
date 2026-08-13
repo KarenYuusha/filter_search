@@ -31,7 +31,7 @@ MATK Increase =
 PlayerLvl * (2.5 * SkillLvl) / 100
 
 Game Description:
-Not provided in source.
+Increase MATK a little. The amount depends on the player's level.
 
 
 ==================================================
@@ -62,7 +62,7 @@ Notes:
 - The damage increase is applied additively to the skill's Long Range modifier.
 
 Game Description:
-Not provided in source.
+Extremely low chance to increase the last magic damage dealt.
 
 
 ==================================================
@@ -87,7 +87,7 @@ ATK Increase =
 PlayerLvl * (2.5 * SkillLvl) / 100
 
 Game Description:
-Not provided in source.
+Increase ATK a little. The amount depends on the player's level.
 
 
 ==================================================
@@ -118,7 +118,7 @@ Notes:
 - The damage increase is applied additively to the skill's Long Range, Sword Techniques, and Martial Mastery modifiers.
 
 Game Description:
-Not provided in source.
+Extremely low chance to increase the last physical damage dealt.
 
 
 ==================================================
@@ -143,7 +143,7 @@ DEF and MDEF Increase =
 PlayerLvl * (2.5 * SkillLvl) / 100
 
 Game Description:
-Not provided in source.
+Increase DEF and MDEF a little. The amount depends on the player's level.
 
 
 ==================================================
@@ -166,7 +166,7 @@ FLEE Increase =
 SkillLvl
 
 Game Description:
-Not provided in source.
+Increase Dodge Rate a little.
 
 
 ==================================================
@@ -196,7 +196,7 @@ The character is considered Action Locked for a set duration when any of the fol
 - Sleep
 
 Game Description:
-Not provided in source.
+Reduce the damage taken while you are immobilized by the status ailments such as Stun and Tumble.
 
 
 ==================================================
@@ -223,7 +223,7 @@ Critical Damage Increase:
 SkillLvl / 2 %
 
 Game Description:
-Not provided in source.
+Increase Critical Rate and damage dealt a little.
 
 
 ==================================================
@@ -246,7 +246,7 @@ HIT Increase =
 SkillLvl
 
 Game Description:
-Not provided in source.
+Increase Accuracy Rate a little.
 
 
 ==================================================
@@ -271,7 +271,7 @@ MATK Increase =
 PlayerLvl * (2.5 * SkillLvl) / 100
 
 Game Description:
-Not provided in source.
+Increase MATK a little. The amount depends on the player's level.
 
 
 ==================================================
@@ -296,7 +296,7 @@ ATK Increase =
 PlayerLvl * (2.5 * SkillLvl) / 100
 
 Game Description:
-Not provided in source.
+Increase ATK a litlle. The amount depends on the player's level.
 
 
 ==================================================
@@ -321,7 +321,7 @@ DEF and MDEF Increase =
 PlayerLvl * (2.5 * SkillLvl) / 100
 
 Game Description:
-Not provided in source.
+Increase DEF & MDEF a little. The amount depends on the player's level.
 
 
 ==================================================
@@ -351,7 +351,7 @@ Related Information:
 See the Critical Formula section for more details about magic critical hits.
 
 Game Description:
-Not provided in source.
+Critical ability slightly affects magic attack.
 
 
 ==================================================
@@ -376,7 +376,7 @@ Additional Melee/Magic Activation Chance Increase =
 SkillLvl * 2.5%
 
 Game Description:
-Not provided in source.
+Increases the activation rate of additional melee and additional magic. Additional equipment required for this effect to apply.
 
 
 ==================================================
@@ -401,4 +401,4 @@ Knockback Distance Reduction =
 SkillLvl * 7.5%
 
 Game Description:
-Not provided in source.
+Shortens the knockback distance when defeated.
