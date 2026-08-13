@@ -255,7 +255,7 @@ Category: Dagger Skills
 Tier: IV
 Required Level: Level 110
 
-T5; [Active] Dagger Only
+T4; [Active] Dagger Only
 MP Cost: 200 MP
 Damage Type: Physical
 Maximum Cast Range: 16m
@@ -288,7 +288,7 @@ Category: Dagger Skills
 Tier: IV
 Required Level: Level 110
 
-T5; [Active] Dagger Only
+T4; [Active] Dagger Only
 MP Cost: 400 MP
 Damage Type: Physical
 Maximum Cast Range: 14m
