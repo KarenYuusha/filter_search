@@ -12,11 +12,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 98f14a00e4db67cb28f700480161bc37721e37f5
+          ref: main
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Verify exact feature commit
+      - name: Verify merged main commit
         run: test "$(git rev-parse HEAD)" = "98f14a00e4db67cb28f700480161bc37721e37f5"
       - name: Install focused dependencies
         run: python -m pip install --upgrade pip discord.py rapidfuzz numpy ollama httpx python-dotenv
