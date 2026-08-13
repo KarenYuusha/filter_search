@@ -15,8 +15,8 @@ SKILL: ASSAULT ATTACK
 ==================================================
 
 Category: Knight Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: Level 15
 
 Rush towards an enemy to inflict damage, chance to inflict SLOW and KNOCKBACK
 Active skill (Physical) [Single Target]
@@ -35,8 +35,8 @@ SKILL: PARRY
 ==================================================
 
 Category: Knight Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 35
 
 Use your weapon to parry incoming physical attacks.
 Passive skill
@@ -54,8 +54,8 @@ SKILL: P. DEFENSE
 ==================================================
 
 Category: Knight Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 125
 
 Activate Perfect Defense to reduce the damage taken to 0 and heal yourself.
 Support Skill (Buff)
@@ -83,8 +83,8 @@ SKILL: PROVOKE
 ==================================================
 
 Category: Knight Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: Level 15
 
 Provoke the enemy on you to generate aggro on them.
 Active Skill (Invisible Damage)
@@ -106,8 +106,8 @@ SKILL: FARETH
 ==================================================
 
 Category: Knight Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 205
 
 Staying still increases the effect (5 levels). Enhances Attack Speed, Physical Pierce, Normal Attack Power, Fractional Damage Reduction. VIT affects Attack Speed and Physical Pierce.
 Self buffer skill (Active)
@@ -127,8 +127,8 @@ SKILL: RAGE SWORD
 ==================================================
 
 Category: Knight Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 35
 
 Swing the sword furiously and generate additional aggro on the enemy.
 Active Skill (Physical) [Single Target]
@@ -150,8 +150,8 @@ SKILL: BINDING STRIKE
 ==================================================
 
 Category: Knight Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 125
 
 Swing the sword furiously to damage enemies in an aoe and chance to inflict STOP.
 Active Skill (Physical) [Area of effect = circle with center on player]
@@ -179,8 +179,8 @@ SKILL: KNIGHT WILL
 ==================================================
 
 Category: Knight Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 205
 
 Shows effect if target turns hostile towards you. Aggro will increase more easily and the effect of Lv 10 Knight Skills up to Skill Tree Lv 3 will be enhanced further.
 Type: passive skill (Active)
@@ -203,8 +203,8 @@ SKILL: KNIGHT'S STANCE
 ==================================================
 
 Category: Knight Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: Level 15
 
 Signifies the vow of a knight. Increases Vit and the amount of aggro raised for 6 minutes. Fractional damage from monster is slightly reduced if you are pulling aggro toward each other while the effect is active.
 Self buffer skill (Active)
@@ -226,8 +226,8 @@ SKILL: SONIC THRUST
 ==================================================
 
 Category: Knight Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 35
 
 Attack with sword aura causing enemy to lose his balance. Chance to inflict [Tumble] on the target.
 Active Skill (Physical) [Single Target]
@@ -250,8 +250,8 @@ SKILL: REVENIR
 ==================================================
 
 Category: Knight Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 125
 
 A hit that overwhelms a powerful enemy in the way. Hit count increases (max 3 hits) if conditions are met. However, the effect that adds hit count won’t be active if a status ailment is inflicted. This attack does not cause proration.
 Active Skill (Physical) [Single Target]
@@ -282,8 +282,8 @@ SKILL: KNIGHT'S REMEDY
 ==================================================
 
 Category: Knight Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 205
 
 A portion of damage received while Knight’s Stance is active will be accumulated and restored as HP. When Knight’s Stance is activated again, the total accumulation will be used to restore HP.
 Passive skill
@@ -303,8 +303,8 @@ SKILL: AFTERSHIELD
 ==================================================
 
 Category: Knight Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: V
+Required Level: Level 285
 
 [Passive] OHS Only
 Passive Effect:
@@ -321,8 +321,8 @@ SKILL: BLINK SWORD
 ==================================================
 
 Category: Knight Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: V
+Required Level: Level 285
 
 [Active] OHS Only
 MP Cost: 200
@@ -353,8 +353,8 @@ SKILL: KNIGHT PLEDGE
 ==================================================
 
 Category: Knight Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: V
+Required Level: Level 285
 
 [Active] OHS Only
 MP Cost: 500
