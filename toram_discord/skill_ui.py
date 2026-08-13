@@ -5,7 +5,7 @@ from typing import Sequence
 
 import discord
 
-from toram_discord.render import PAGE_SIZE, _safe_field, truncate_discord_text
+from toram_discord.render import PAGE_SIZE, truncate_discord_text
 from toram_discord.sessions import DiscordSessionManager, SessionKey
 from toram_discord.views import ActionButton, ActionSelect, SessionBoundView
 from toram_skill_search import run_skill_search
@@ -16,6 +16,44 @@ from toram_skill_search.models import (
     SkillResultsPayload,
     SkillUnavailablePayload,
 )
+
+
+_DISCORD_EMBED_TOTAL_LIMIT = 6000
+
+
+def _embed_char_count(embed: discord.Embed) -> int:
+    total = len(embed.title or "") + len(embed.description or "")
+    total += sum(len(field.name) + len(field.value) for field in embed.fields)
+    footer_text = getattr(embed.footer, "text", None)
+    author_name = getattr(embed.author, "name", None)
+    if footer_text:
+        total += len(footer_text)
+    if author_name:
+        total += len(author_name)
+    return total
+
+
+def _add_skill_field(
+    embed: discord.Embed,
+    name: str,
+    value: str,
+    *,
+    inline: bool = False,
+) -> bool:
+    if len(embed.fields) >= 25:
+        return False
+    cleaned = str(value).strip()
+    if not cleaned:
+        return False
+    safe_name = truncate_discord_text(str(name).strip() or "Info", 256)
+    remaining = _DISCORD_EMBED_TOTAL_LIMIT - _embed_char_count(embed) - len(safe_name)
+    if remaining <= 0:
+        return False
+    safe_value = truncate_discord_text(cleaned, min(1024, remaining))
+    if not safe_value:
+        return False
+    embed.add_field(name=safe_name, value=safe_value, inline=inline)
+    return True
 
 
 def run_skill_query_sync(
@@ -97,7 +135,7 @@ def build_skill_detail_embed(payload: SkillDetailPayload) -> discord.Embed:
         if value is not None and str(value).strip():
             overview.append(f"{label}: {value}")
     if overview:
-        _safe_field(embed, "Overview", "\n".join(overview))
+        _add_skill_field(embed, "Overview", "\n".join(overview))
 
     timing = []
     for label, value in (
@@ -109,7 +147,7 @@ def build_skill_detail_embed(payload: SkillDetailPayload) -> discord.Embed:
         if value is not None and str(value).strip():
             timing.append(f"{label}: {value}")
     if timing:
-        _safe_field(embed, "Range / Timing", "\n".join(timing))
+        _add_skill_field(embed, "Range / Timing", "\n".join(timing))
 
     for label, values in (
         ("Ailments", skill.ailments),
@@ -117,16 +155,16 @@ def build_skill_detail_embed(payload: SkillDetailPayload) -> discord.Embed:
         ("Weapon restrictions", skill.weapon_restrictions),
     ):
         if values:
-            _safe_field(embed, label, ", ".join(values))
+            _add_skill_field(embed, label, ", ".join(values))
 
     if skill.description and skill.description.strip():
-        _safe_field(embed, "Description", skill.description)
+        _add_skill_field(embed, "Description", skill.description)
     if skill.game_description and skill.game_description.strip():
-        _safe_field(embed, "Game description", skill.game_description)
+        _add_skill_field(embed, "Game description", skill.game_description)
 
     for section in skill.sections:
-        if section.body.strip() and len(embed.fields) < 25:
-            _safe_field(embed, section.label, section.body)
+        if section.body.strip() and not _add_skill_field(embed, section.label, section.body):
+            break
 
     return embed
 
