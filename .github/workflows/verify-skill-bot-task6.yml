@@ -1,0 +1,49 @@
+name: Verify Skill Bot Task 6
+
+on:
+  push:
+    branches:
+      - feat/skill-bot-integration
+    paths:
+      - '.github/workflows/verify-skill-bot-task6.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install rapidfuzz numpy ollama httpx discord.py python-dotenv
+      - name: Run focused skill integration acceptance
+        run: |
+          python -m unittest \
+            tests.test_skill_search_service \
+            tests.test_skill_hybrid_search \
+            tests.test_discord_skill_search \
+            tests.test_discord_bot \
+            tests.test_discord_followup_regressions \
+            tests.test_discord_module_boundaries -v
+      - name: Verify core and frontend boundaries
+        run: python -m unittest tests.test_core_module_boundaries tests.test_discord_module_boundaries -v
+      - name: Run deterministic skill smoke check
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from toram_skill_search import run_skill_search
+
+          path = Path('coryn_data/database/skills.sqlite')
+          expected = {
+              '': 'SkillHelpPayload',
+              'magic: finale': 'SkillDetailPayload',
+              'attack while moving': 'SkillResultsPayload',
+              'inflict tumble': 'SkillResultsPayload',
+          }
+          for query, expected_type in expected.items():
+              payload = run_skill_search(path, query, semantic_runtime=None)
+              actual = type(payload).__name__
+              print(query or '<help>', actual)
+              if actual != expected_type:
+                  raise SystemExit(f'{query!r}: expected {expected_type}, got {actual}')
+          PY
