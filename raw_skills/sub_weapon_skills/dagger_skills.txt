@@ -15,7 +15,7 @@ SKILL: THROWING KNIFE
 
 Category: Dagger Skills
 Tier: I
-Required Level 5
+Required Level: Level 5
 
 Limitation: Dagger only
 Active Skill (Single Target)
@@ -150,7 +150,7 @@ SKILL: INTENSIVE KNIFE
 
 Category: Dagger Skills
 Tier: II
-Required Level: Level Level 20
+Required Level: Level 20
 
 Limitation: Dagger only
 Passive Skill
