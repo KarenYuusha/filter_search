@@ -27,13 +27,16 @@ Category: Barehand Skills
 Tier: I
 Required Level: None
 
+Source Details:
 (passive)
-Description: Only usable when no Main or Sub-Weapon is equipped. The essence of unarmed combat. Gain Weapon ATK based on character's level. Also increase Qi limit.
 Effect:
 - Weapon atk gain = player's level * skill level/10
 - Accumulated Qi limit = 10 + skill level * 10
 This formula above is for lv 1 to lv 9 only
 If this skill at lv 10, then it is = 100 + player's level
+
+Game Description:
+Only usable when no Main or Sub-Weapon is equipped. The essence of unarmed combat. Gain Weapon ATK based on character's level. Also increase Qi limit.
 
 
 ==================================================
@@ -44,17 +47,20 @@ Category: Barehand Skills
 Tier: I
 Required Level: None
 
+Source Details:
 (Active - self buffer)
 Can be placed in combo
 Cast time = 1 sec (affected by CSPD)
 MP cost: [Floor(CurrentMP/100)]100
-Description: Only usable when no Main or Sub-Weapon is equipped. Use up MP to accumulate Qi. ATK increases for 180 second based on Qi accumulated and Stability increases regardless of qi amount.
 Effect:
 - Flat Atk increase = Accumulated Qi * skill level^3 / 100. So at lv 10 = 1 Acc Qi = 10 Atk. Duration = 180 seconds
 - Gain Qi based on this skill MP cost = MPBar + Floor(MPBar/3). So when u have 2k maxmp = you will gain 26 qi
 [this skill MP cost is before combo tags such as after-save, cons and reflect. So, you can use it at ease with a combination of after-save, cons and reflect tags. But this skill MP cost is after Impact or any skill that can halves next skill MP cost. For example, when you have 2k maxmp and have impact buff, and you use this skill, then you will gain 13 qi and leave your MP like 1k left because you use Qi charge 1k mp cost. Well, that's kinda bad.]
 - Stability Increase = 5% * skill level
 Note: If you put this skill in save tags, it is always 0MP Cost and 0 qi gain regardless how much MP you have. So, don't put it with save tags at all.
+
+Game Description:
+Only usable when no Main or Sub-Weapon is equipped. Use up MP to accumulate Qi. ATK increases for 180 second based on Qi accumulated and Stability increases regardless of qi amount.
 
 
 ==================================================
@@ -65,11 +71,11 @@ Category: Barehand Skills
 Tier: I
 Required Level: None
 
+Source Details:
 (Active - self buffer)
 Can be placed in combo
 Cast time = 1 sec (affected by CSPD)
 MP cost : 100
-Description: Only usable if no Main or Sub-Weapon is equipped. Boost Normal Attack, Critical Rate with Qi for 30 second at cost of greatly lowered ASPD. Using another Qi based skill will end the effect.
 Effect:
 - Using this skill will consume Qi to gain stack. Every 1 Qi Cost = 1 stack. Max at 10 Qi Cost or stack
 - Critical rate increase = skill level * stack
@@ -80,6 +86,9 @@ Effect:
 Here formula additional qi stack from lion rage
 = 29 - floor(Lion_Rage_remaining_time){seconds is shown in below your hp bar}
 
+Game Description:
+Only usable if no Main or Sub-Weapon is equipped. Boost Normal Attack, Critical Rate with Qi for 30 second at cost of greatly lowered ASPD. Using another Qi based skill will end the effect.
+
 
 ==================================================
 SKILL: RAVING STORM
@@ -89,11 +98,11 @@ Category: Barehand Skills
 Tier: I
 Required Level: None
 
+Source Details:
 (Active - self buffer)
 Can be placed in combo
 Cast time = 1 sec (affected by CSPD)
 MP cost: 100
-Description: Only usable when no Main or Sub-Weapon is equipped. Boost Accuracy , ASPD, AMPR and movement speed with Qi for 30 second. Using another Qi based skill end the effect.
 Effect:
 - Using this skill will consume Qi to gain stack. Every 1 Qi Cost = 1 stack. Max at 10 Qi Cost or stack
 - Aspd increase = 100 * skill level * stack
@@ -104,6 +113,9 @@ Effect:
 Here formula additional qi stack from lion rage
 = 29 - floor(Raving_Storm_remaining_time){seconds is shown in below your hp bar}
 
+Game Description:
+Only usable when no Main or Sub-Weapon is equipped. Boost Accuracy , ASPD, AMPR and movement speed with Qi for 30 second. Using another Qi based skill end the effect.
+
 
 ==================================================
 SKILL: INTERNAL ELIXIR
@@ -113,11 +125,11 @@ Category: Barehand Skills
 Tier: I
 Required Level: None
 
+Source Details:
 (Active - self buffer)
 Can be placed in combo
 Cast time = 1 sec (affected by CSPD)
 Mp cost: 100
-Description: Only usable when no Main or Sub-Weapon is equipped. Use Qi to recover hp for a certain period of time and reduce damage received. Attack power goes down and damage from poison increases while it is in effect. Using another Qi based skill end the effect.
 Effect:
 - Using this skill will consume Qi to gain stack. Every 1 Qi Cost = 1 stack. Max at 10 Qi Cost or stack
 - Buff Effect time = (10 * stack) seconds
@@ -131,6 +143,9 @@ Here formula additional qi stack from Internal Elixir.
 = floor(9.9 - Internal_Elixir_remaining_time / 10) {that remaining time seconds is shown in below your hp bar}
 floor = round down
 
+Game Description:
+Only usable when no Main or Sub-Weapon is equipped. Use Qi to recover hp for a certain period of time and reduce damage received. Attack power goes down and damage from poison increases while it is in effect. Using another Qi based skill end the effect.
+
 
 ==================================================
 SKILL: ULTIMA LION RAGE
@@ -140,13 +155,16 @@ Category: Barehand Skills
 Tier: II
 Required Level: Level 100
 
+Source Details:
 (passive)
-Description: Raises Lion Rage effect to boost Normal Attack. If a critical hit is inflicted while Lion Rage is active, the effect that enhances attack skills will be accumulated. But if Internal Elixir is activated, the power will vanish
 Effect:
 - During Lion Rage buffs, Normal attack multiplier increase = (skill level * 20)%
 - During Lion Rage buffs, Give 1 stack every time you land critical attacks. Note: if you hit 2 times in one attack, then give 2 stack instead 1 stack. So, multiple hits is best to gain this stack.
 - When you use attack skill, then consume stacks to enhance dmg of that attack skill. Damage Bonus% Formula = (Skill Lvl * stack consumption)%. Maximum stack you can use/consume is up to 5 stacks. Damage Bonus% applied multiplicatively(confirmed, not additively with brave aura, smite, etc.) at the end of damage calculation(?). You can keep stacks up to 30. This stack can be activated anytime even outside Lion Rage buffs.
 - Using Internal Elixir will result, remove Ultima Lion Rage stacks completely
+
+Game Description:
+Raises Lion Rage effect to boost Normal Attack. If a critical hit is inflicted while Lion Rage is active, the effect that enhances attack skills will be accumulated. But if Internal Elixir is activated, the power will vanish
 
 
 ==================================================
@@ -157,12 +175,15 @@ Category: Barehand Skills
 Tier: II
 Required Level: Level 100
 
+Source Details:
 (Passive)
-Description: When Raving Storm activates, Physical Pierce and chance to trigger Additional Melee are raised. The effect ends when a non-Bare Hand skill is used, but the MP Cost will be halved. The effect is also lost when Internal Elixir activates.
 Effect:
 - During Raving Storm buffs, increase Physical Pierce = maybe around 25% at lv10(might be 2.5% * SLvl)
 - During Raving Storm buffs, increase Chance to trigger Additional Melee = 2.5% * skill level. So, it is 25% at lv 10- Upon use Raving Storm, it will give stack that can Halves MP Cost of non-Bare Hand Skill
 - Stack effect will end as soon as you use non-Bare Hand Skill or Internal Elixir.
+
+Game Description:
+When Raving Storm activates, Physical Pierce and chance to trigger Additional Melee are raised. The effect ends when a non-Bare Hand skill is used, but the MP Cost will be halved. The effect is also lost when Internal Elixir activates.
 
 
 ==================================================
@@ -173,12 +194,15 @@ Category: Barehand Skills
 Tier: II
 Required Level: Level 100
 
+Source Details:
 (Passive)
-Description: Only usable if no Main or Sub-Weapon is equipped. If you and a target are pulling aggro towards each other, the damage taken from the target will be reduced. Chance to prevent qi consumption if you receive damage while Internal Elixir is active
 Effect:
 - When you target and have target's aggro, Damage reduction will apply(This one similar to Knight's Will but just single target)
 - Damage reduction% = (skill level)%
 - Chance to prevent Qi lost upon receive damage during Internal Elixir = 2.5% * skill level [this is estimated chance, since it is rng]
+
+Game Description:
+Only usable if no Main or Sub-Weapon is equipped. If you and a target are pulling aggro towards each other, the damage taken from the target will be reduced. Chance to prevent qi consumption if you receive damage while Internal Elixir is active
 
 
 ==================================================
@@ -189,11 +213,14 @@ Category: Barehand Skills
 Tier: II
 Required Level: Level 100
 
+Source Details:
 (Passive)
-Description: Mitigates Qi consumption when using skills other than Bare Hand Skills and slightly increases Attack MP Recovery
 Effect:
 - Qi cost Formula = Floor(Accumulated Qi * (20 - skill level)%) qi lost when use non-barehand skill [Min 1 qi cost]
 - Ampr increase = Floor(skill level / 2)
+
+Game Description:
+Mitigates Qi consumption when using skills other than Bare Hand Skills and slightly increases Attack MP Recovery
 
 
 ==================================================
@@ -204,6 +231,7 @@ Category: Barehand Skills
 Tier: III
 Required Level: Level 250
 
+Source Details:
 (Active Skill, Yellow Aura)
 T3; Main Barehand Only
 Mp Cost: 100
@@ -225,9 +253,11 @@ Stability% bonus = (Skill Level)%
 Physical Pierce% bonus = (Skill Level * 2 + MAX[Skill Level - 5 ; 0])%
 Physical/Magic barrier = (Earthshaker OFF stack * 2 * Skill Level + Player Lvl * Skill Level).
 Note: This is same as Physical/Magic barrier from any sources such as equipment, food, etc. So it still block once every 30 seconds(without Barrier cooldown%) unless spam this skill(switch mode spam like unequip & equip phys/magic barrier) to reset this barrier block cd(this trick require you to have zero phys/magic barrier from gear/ava/etc. though)
-Game Description: “Only usable when no Main or Sub-Weapon is equipped.
-Get a barrier according to the qi accumulated by this skill. Increases all elemental advantages, physical pierce, and stability. The effect ends when Internal Elixir is used.”
 Activating this skill(ON mode) will make your surrounding yellow aura if there is no aura in present e.g Raving Storm, Lion Rage; however if there is, then it will follow/strengthen their aura colour accordingly.
+
+Game Description:
+“Only usable when no Main or Sub-Weapon is equipped.
+Get a barrier according to the qi accumulated by this skill. Increases all elemental advantages, physical pierce, and stability. The effect ends when Internal Elixir is used.”
 
 
 ==================================================
@@ -238,12 +268,15 @@ Category: Barehand Skills
 Tier: III
 Required Level: Level 250
 
+Source Details:
 T3; Main Barehand Only
 Passive Effect:
 If you're not in Internal Elixir and have more than 1 qi stack, then as soon as getting knocked down, there is a (Internal Elixir's level * 10)% chance for you to revive with (Skill Level^2)% of your MaxHP. Once this revive is activated, you cannot activate this revive again until you die or leave the map.
 Miracle Comeback trigger will activate Internal Elixir and its Elixir effect is tied to Internal Elixir's Level (tested Miracle lv1 & Elixir lv10 and given Elixir 10 effect).
 Regretless death by regretless buff timer end, bypasses this survive effect
-Game Description: “When Internal Elixir is not activated and you get knocked out, it may auto-activate and restore your HP. Once activated, it won't reactivate for some time.”
+
+Game Description:
+“When Internal Elixir is not activated and you get knocked out, it may auto-activate and restore your HP. Once activated, it won't reactivate for some time.”
 
 
 ==================================================
@@ -254,6 +287,7 @@ Category: Barehand Skills
 Tier: III
 Required Level: Level 250
 
+Source Details:
 T3; Main Barehand Only
 Passive Effect:
 This skill allows you to equip 3 xtal via EX Skill Menu, and you can get 2 corresponding crysta depending on what are your aura/mode(Lion Rage; Raving Storm; Internal Elixir). So it is like this:
@@ -273,4 +307,6 @@ Increase Evasion count by +(2 + Skill Level * 0.4). [Note: decimal still exist e
 Increase Base Evasion Recharge by (0.1 * Skill Level). [New term to update later… At skill lv 10, then BH only Base Evasion Recharge (10s) is same as MD only Base Evasion Recharge (10s) btw]
 Furthermore reduce Qi cost when use non-bh skills by Floor(0.5 * Skill Level)% qi cost.
 So at level 10, this skill gives -5% Qi cost… so…. combine it with Ultima Qi Charge max lvl, then like this (20% Base - 10% Ultima - 5% H.Talent = 5% Qi Cost when use non-bh skills)
-Game Description: “If there are no slots, just hold them. Equips 3 crystas and get the ability of the 2 corresponding crystas when Lion Rage/Raving Storm/Internal Elixir activates.“
+
+Game Description:
+“If there are no slots, just hold them. Equips 3 crystas and get the ability of the 2 corresponding crystas when Lion Rage/Raving Storm/Internal Elixir activates.“
