@@ -1,0 +1,94 @@
+name: verify-skill-data-refresh
+
+on:
+  push:
+    branches:
+      - verify/skill-data-refresh-20260813
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install verification dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install rapidfuzz numpy discord.py ollama httpx python-dotenv pillow sentence-transformers 'transformers<5'
+
+      - name: Rebuild canonical skill database
+        run: python build_skills.py --json-report /tmp/skill-import-report.json
+
+      - name: Rebuild skill embeddings
+        run: python build_skill_embeddings.py --provider-model st:sentence-transformers/all-MiniLM-L6-v2 --device cpu
+
+      - name: Representative skill smoke check
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from toram_skills.repository import SkillRepository
+          from toram_skill_search.service import SkillSearchService
+
+          names = [
+              'SHIELD BASH',
+              'MINI HEAL',
+              'BRAVE AURA',
+              'METAL COMPASSION',
+              'MAGIC: BURST',
+          ]
+          db = Path('coryn_data/database/skills.sqlite')
+          with SkillRepository(db) as repo:
+              service = SkillSearchService(repo, semantic_runtime=None)
+              for name in names:
+                  matches = repo.resolve_skill_name(name)
+                  assert len(matches) == 1, (name, len(matches))
+                  skill = matches[0]
+                  assert skill.tier is not None, name
+                  if name not in {'METAL COMPASSION'}:
+                      assert skill.required_level is not None, name
+                  payload = service.handle(name)
+                  print(
+                      name,
+                      'tier=', skill.tier,
+                      'required=', skill.required_level,
+                      'mp=', skill.mp_cost_text,
+                      'type=', skill.skill_type,
+                      'damage=', skill.damage_type,
+                      'description=', repr(skill.description),
+                      'game_description=', repr(skill.game_description),
+                      'payload=', type(payload).__name__,
+                  )
+          PY
+
+      - name: Run focused Discord skill tests
+        run: |
+          python -m unittest tests.test_discord_skill_search -v
+          python -m unittest tests.test_discord_skill_detail_pages -v
+          python -m unittest tests.test_discord_skill_review_regressions -v
+
+      - name: Run full repository test suite
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
+
+      - name: Show generated changes
+        run: git status --short
+
+      - name: Commit rebuilt skill database on verifier branch
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add coryn_data/database/skills.sqlite
+          if git diff --cached --quiet; then
+            echo 'No generated database changes.'
+          else
+            git commit -m 'chore: rebuild skill database and embeddings'
+            git push
+          fi
