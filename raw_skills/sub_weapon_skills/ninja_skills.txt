@@ -13,8 +13,8 @@ SKILL: NINJUTSU
 ==================================================
 
 Category: Ninja Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: None
 
 Have Passive and Active Skill
 Passive Effect: Allow you to use Scroll Skills and Craft Scroll with Ex Skill. Leveling up this skill will make Scroll Skills get more damage and other effect only(does not affect craft scroll)
@@ -73,8 +73,8 @@ SKILL: NINJA SPIRIT
 ==================================================
 
 Category: Ninja Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: None
 
 Game Description: “Learns the rules of shinobi (ninja). Slightly boosts Dodge and reduces Aggro a little. If this skill is Lv10, the skill “Two-Handed” will be applicable even if a Ninjutsu Scroll is equipped”
 Gives Dodge+ by +(Lvl) and -aggro% = at level 10, still less than -5%(weird)
@@ -86,8 +86,8 @@ SKILL: NINJA DRILL I
 ==================================================
 
 Category: Ninja Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 100
 
 Game Description: “Enhances the skills activated with Ninjutsu”
 Add Drill Lvl by +(Skill Level)
@@ -99,8 +99,8 @@ SKILL: NINJA DRILL II
 ==================================================
 
 Category: Ninja Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 200
 
 Game Description: “Enhances the skills activated with Ninjutsu. It doesn’t matter whether you learn Ninjutsu Drill I or II first because the enhancement value will be the same.”
 Add Drill Lvl by +(Skill Level)
