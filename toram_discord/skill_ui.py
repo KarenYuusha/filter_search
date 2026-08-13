@@ -1,9 +1,45 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import discord
 
 from toram_discord.render import PAGE_SIZE, _safe_field, truncate_discord_text
-from toram_skill_search.models import SkillDetailPayload, SkillResultsPayload
+from toram_discord.sessions import DiscordSessionManager, SessionKey
+from toram_skill_search import run_skill_search
+from toram_skill_search.models import (
+    SkillDetailPayload,
+    SkillHelpPayload,
+    SkillPayload,
+    SkillResultsPayload,
+    SkillUnavailablePayload,
+)
+
+
+def run_skill_query_sync(
+    database_path: Path,
+    query: str,
+    *,
+    skill_runner=run_skill_search,
+) -> SkillPayload:
+    return skill_runner(database_path.resolve(), query)
+
+
+def build_skill_help_embed(
+    payload: SkillHelpPayload,
+    *,
+    bot_example_prefix: str,
+) -> discord.Embed:
+    return discord.Embed(
+        title="Toram Skill Search",
+        description=(
+            f"Search skills with `{bot_example_prefix} skill <words>`.\n\n"
+            "Examples:\n"
+            f"• `{bot_example_prefix} skill magic finale`\n"
+            f"• `{bot_example_prefix} skill attack while moving`\n"
+            f"• `{bot_example_prefix} skill inflict tumble`"
+        ),
+    )
 
 
 def build_skill_results_embed(
@@ -93,4 +129,42 @@ def build_skill_detail_embed(payload: SkillDetailPayload) -> discord.Embed:
     return embed
 
 
-__all__ = ["build_skill_detail_embed", "build_skill_results_embed"]
+def build_skill_payload_message(
+    payload: SkillPayload,
+    *,
+    bot_example_prefix: str,
+    sessions: DiscordSessionManager,
+    key: SessionKey,
+    generation: int,
+) -> tuple[discord.Embed, discord.ui.View | None]:
+    if isinstance(payload, SkillHelpPayload):
+        return (
+            build_skill_help_embed(
+                payload,
+                bot_example_prefix=bot_example_prefix,
+            ),
+            None,
+        )
+    if isinstance(payload, SkillUnavailablePayload):
+        return (
+            discord.Embed(
+                title="Skill search unavailable",
+                description=truncate_discord_text(payload.text, 4096),
+            ),
+            None,
+        )
+    if isinstance(payload, SkillDetailPayload):
+        return build_skill_detail_embed(payload), None
+
+    session = sessions.get(key)
+    page = session.page if session is not None else 0
+    return build_skill_results_embed(payload, page), None
+
+
+__all__ = [
+    "build_skill_detail_embed",
+    "build_skill_help_embed",
+    "build_skill_payload_message",
+    "build_skill_results_embed",
+    "run_skill_query_sync",
+]
