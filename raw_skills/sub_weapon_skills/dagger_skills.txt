@@ -14,8 +14,8 @@ SKILL: THROWING KNIFE
 ==================================================
 
 Category: Dagger Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level 5
 
 Limitation: Dagger only
 Active Skill (Single Target)
@@ -33,8 +33,8 @@ SKILL: SPIKE DART
 ==================================================
 
 Category: Dagger Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 20
 
 Limitation: Dagger only
 Active Skill (Single Target)
@@ -57,8 +57,8 @@ SKILL: GATTLING KNIFE
 ==================================================
 
 Category: Dagger Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 50
 
 Limitation: Dagger only
 Active Skill (Single Target)
@@ -79,8 +79,8 @@ SKILL: AMAZING THROW
 ==================================================
 
 Category: Dagger Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 110
 
 Limitation: Dagger only
 Passive Skill
@@ -93,8 +93,8 @@ SKILL: POISON DAGGER
 ==================================================
 
 Category: Dagger Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 20
 
 Limitation: Dagger only
 Active Skill (Single Target)
@@ -114,8 +114,8 @@ SKILL: DOUBLE STAB
 ==================================================
 
 Category: Dagger Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 50
 
 Limitation: Dagger only
 Passive Skill
@@ -126,12 +126,31 @@ NOTES:
 
 
 ==================================================
-SKILL: HIDDEN ARM & INTENSIVE KNIFE
+SKILL: HIDDEN ARM
 ==================================================
 
 Category: Dagger Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: Level 5
+
+Limitation: Dagger only
+Passive Skill
+Effect: Get a chance to deal additional damage on an auto attack.
+Activation Rate: 5 * (HiddenArmLvl) + 5 * (IntensiveKnifeLvl) %
+SkillRate: 0.25 for Hidden arm only (+0.25 bonus if both skills taken)
+
+NOTES:
+--This extra damage cannot crit.
+--This extra damage calculation is based on BaseDamage, EnemyDEF and PlayerStability. The DaggerWeaponATK is added at the end after these parameters are applied, just like Throwing Knife = DaggerWeaponATK ignoring all boss defenses except guard.
+--The additional damage takes Normal Auto Attack proration multiplier but does not affect proration change itself.
+
+==================================================
+SKILL: INTENSIVE KNIFE
+==================================================
+
+Category: Dagger Skills
+Tier: II
+Required Level: Level Level 20
 
 Limitation: Dagger only
 Passive Skill
@@ -150,8 +169,8 @@ SKILL: MAIL BREAKER
 ==================================================
 
 Category: Dagger Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 110
 
 Limitation: Dagger only
 Passive skill
@@ -233,8 +252,8 @@ SKILL: MAD DAGGER
 ==================================================
 
 Category: Dagger Skills
-Tier: V
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 110
 
 T5; [Active] Dagger Only
 MP Cost: 200 MP
@@ -266,8 +285,8 @@ SKILL: ROLLING BITE
 ==================================================
 
 Category: Dagger Skills
-Tier: V
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 110
 
 T5; [Active] Dagger Only
 MP Cost: 400 MP

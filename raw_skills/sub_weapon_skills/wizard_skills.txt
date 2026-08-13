@@ -32,8 +32,8 @@ SKILL: FAMILIA
 ==================================================
 
 Category: Wizard Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: Level 15
 
 Limitation: Staff, MD, MD sub weapon only
 Self buffer (Active)
@@ -53,8 +53,8 @@ SKILL: MANA CRYSTAL
 ==================================================
 
 Category: Wizard Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: Level 15
 
 Limitation: Staff, MD, MD sub weapon only
 Support skill (Active)
@@ -75,8 +75,8 @@ SKILL: LIGHTNING
 ==================================================
 
 Category: Wizard Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 35
 
 Limitation: Staff, MD, MD sub weapon only
 Magic skill (active)
@@ -99,8 +99,8 @@ SKILL: BLIZZARD
 ==================================================
 
 Category: Wizard Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 35
 
 Limitation: Staff, MD, MD sub weapon only
 Magic skill (active)
@@ -124,8 +124,8 @@ SKILL: METEOR STRIKE
 ==================================================
 
 Category: Wizard Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 125
 
 Limitation: Staff, MD, MD sub weapon only
 Magic skill (active)
@@ -154,8 +154,8 @@ SKILL: STONE BARRIER
 ==================================================
 
 Category: Wizard Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 125
 
 Limitation: Staff, MD, MD sub weapon only
 Buff skill(active)
@@ -179,8 +179,8 @@ SKILL: IMPERIAL RAY
 ==================================================
 
 Category: Wizard Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 205
 
 Limitation: Staff, MD, MD sub weapon only
 Magic skill(active)
@@ -220,8 +220,8 @@ SKILL: ADVANCED FAMILIA
 ==================================================
 
 Category: Wizard Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 205
 
 Limitation: Staff, MD, MD sub weapon only
 Magical skill (Active & Passive)
@@ -246,8 +246,8 @@ SKILL: CRYSTAL LASER
 ==================================================
 
 Category: Wizard Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 35
 
 Lv 2 Skill; Staff / Main Magic Device Only
 MP Cost: 200
@@ -269,8 +269,8 @@ SKILL: OVERLIMIT
 ==================================================
 
 Category: Wizard Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 125
 
 Lv 3 Skill; Staff / Main Magic Device Only
 MP Cost: 100
@@ -292,8 +292,8 @@ SKILL: SORCERY GUIDE
 ==================================================
 
 Category: Wizard Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 205
 
 Lv 4 Skill; Staff / Main Magic Device Only
 Passive Effect:
@@ -307,8 +307,8 @@ SKILL: CAST MASTERY
 ==================================================
 
 Category: Wizard Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: Level 15
 
 Lv 1 Skill; Staff / Main Magic Device only
 Passive Effect:
@@ -325,8 +325,8 @@ SKILL: MAGIC RESEARCH
 ==================================================
 
 Category: Wizard Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: V
+Required Level: Level 285
 
 [Passive] Staff/Magic Device/Sub Magic Device Only
 Passive Effect:
@@ -341,8 +341,8 @@ SKILL: KITTY'S TREASURE
 ==================================================
 
 Category: Wizard Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: V
+Required Level: Level 285
 
 [Passive] Staff/Main Magic Device Only
 Passive Effect:
@@ -355,8 +355,8 @@ SKILL: SHIFT
 ==================================================
 
 Category: Wizard Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: V
+Required Level: Level 285
 
 [Active] Staff/Main Magic Device Only
 MP Cost: 200[if not in Shift Mode] OR 0MP[when in Shift Mode]

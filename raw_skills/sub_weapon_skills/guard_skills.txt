@@ -13,8 +13,8 @@ SKILL: HEAVY ARMOR MASTERY
 ==================================================
 
 Category: Guard Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: Level 30
 
 Increase guard rate for heavy armors
 Passive Skill
@@ -27,8 +27,8 @@ SKILL: ADVANCED GUARD
 ==================================================
 
 Category: Guard Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 120
 
 Increase guard rate and power for heavy armors
 Passive Skill
@@ -42,8 +42,8 @@ SKILL: PHYSICAL GUARD
 ==================================================
 
 Category: Guard Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 180
 
 Increase Ailment Resistance from Guard when running low on HP. Higher skill level enables the skill to be activated with more HP remaining
 Passive Skill
@@ -57,8 +57,8 @@ SKILL: LIGHT ARMOR MASTERY
 ==================================================
 
 Category: Guard Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: Level 30
 
 Increase evasion rate for light armors
 Passive Skill
@@ -71,8 +71,8 @@ SKILL: ADVANCED EVASION
 ==================================================
 
 Category: Guard Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 120
 
 Increase evasion rate for light armors
 Passive Skill
@@ -85,8 +85,8 @@ SKILL: MIRAGE EVASION
 ==================================================
 
 Category: Guard Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 180
 
 Evasion becomes usable while charging or casting. The effect of this skill is lost for a few seconds if used. The duration depends on the skill level.
 Passive Skill

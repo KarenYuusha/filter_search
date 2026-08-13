@@ -14,8 +14,8 @@ SKILL: BLOODY BITE
 ==================================================
 
 Category: Dark Energy Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: None
 
 Active Skill (Physical) [Single Target]
 MP Cost: 100MP
@@ -37,8 +37,8 @@ SKILL: DARK STINGER
 ==================================================
 
 Category: Dark Energy Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 60
 
 Active Skill (Physical) [AOE straight ahead]
 MP Cost: 200MP
@@ -65,8 +65,8 @@ SKILL: RED TEAR
 ==================================================
 
 Category: Dark Energy Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 120
 
 Active Skill (Physical) [AOE circular around the enemy] {Placed}
 MP Cost: 300MP
@@ -99,8 +99,8 @@ SKILL: SACRIFICE
 ==================================================
 
 Category: Dark Energy Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: None
 
 Active Skill (Special) [Single Target]
 MP Cost: 100MP
@@ -121,8 +121,8 @@ SKILL: DEMON CLAW
 ==================================================
 
 Category: Dark Energy Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 60
 
 Active Skill (Physical) [AOE Circular around the user]
 MP Cost: 400MP
@@ -145,8 +145,8 @@ SKILL: REGRETLESS
 ==================================================
 
 Category: Dark Energy Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 120
 
 Support Skill [Self Buffer]
 MP Cost: 200MP
@@ -178,8 +178,8 @@ SKILL: SOUL HUNTER
 ==================================================
 
 Category: Dark Energy Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 180
 
 Active Skill (Single Target No Damage)
 Mp Cost: 400mp
@@ -234,8 +234,8 @@ SKILL: ETERNAL NIGHTMARE
 ==================================================
 
 Category: Dark Energy Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 180
 
 Support Skill [Self Buffer]
 Lvl 4 Skill; No limit

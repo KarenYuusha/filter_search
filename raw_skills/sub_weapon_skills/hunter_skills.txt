@@ -15,8 +15,8 @@ SKILL: KICK
 ==================================================
 
 Category: Hunter Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: Level 15
 
 Kick the target to knockback it farther. Chance to inflict KNOCKBACK.
 Active Skill (Physical) [Single Target]
@@ -45,8 +45,8 @@ SKILL: SUNRISE ARROW
 ==================================================
 
 Category: Hunter Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 35
 
 Shoot an arrow in a linear aoe and deal more damage to targets inflicted by SLEEP.
 Active Skill (Physical) [AOE = Linear]
@@ -67,8 +67,8 @@ SKILL: MAGIC ARROW
 ==================================================
 
 Category: Hunter Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 125
 
 Increase AMPR of regular attacks and add MATK value to their base power.
 Support Skill (Self Buffer only)
@@ -91,8 +91,8 @@ SKILL: SATELLITE ARROW
 ==================================================
 
 Category: Hunter Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 205
 
 Fires arrow towards sky and it falls down after 4sec with 1sec interval between each arrow depending on skill level. Ignores certain amount of enemy's DEF depending on skill level.
 Active Skill (Physical) {PLACED} [AOE circular with foe on center when fired]
@@ -117,8 +117,8 @@ SKILL: SLEEP TRAP
 ==================================================
 
 Category: Hunter Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: Level 15
 
 Place a trap on the ground that inflicts SLEEP when triggered by an enemy.
 Active Skill (Magical) {PLACED} [AOE circular with center at placement]
@@ -142,8 +142,8 @@ SKILL: BEAR TRAP
 ==================================================
 
 Category: Hunter Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 35
 
 Place a trap on the ground that inflicts STOP on the enemy when triggered.
 Active Skill (Magical) {PLACED} [AOE circular with center at placement]
@@ -166,8 +166,8 @@ SKILL: LAND MINE
 ==================================================
 
 Category: Hunter Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 125
 
 Place a land mine on the ground that explodes when triggered causing IGNITE to the enemies
 Active Skill (Magical) {PLACED} [AOE circular with center at placement]
@@ -190,8 +190,8 @@ SKILL: DARK TRAP
 ==================================================
 
 Category: Hunter Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 205
 
 Place a dark trap in ground that inflicts LETHARGY on the enemy when triggered
 Active Skill (Magical) {PLACED} [AOE circular with center at placement]
@@ -330,105 +330,236 @@ Category: Hunter Skills
 Tier: IV
 Required Level: Level 205
 
+Source Details:
 T4; Bowgun only
 MP Cost: 200
-Game Description: “Hunting techniques using Sub-Weapon. When activated using a weapon other than Dagger, Magic Device, or Shield, it deals damage to the target and there is a high chance to inflict [Armor Break] with higher Physical Pierce.”
-This skill has different skills depending on what sub-weapons you equipped.
 
-Sharp Sniper(Anything sub-weapon beside MD/Shield/Dagger) = Arrow/Knuckle/No Sub
-Base Skill Multiplier: 7 + 0.3 * Skill Level + BaseDex/200
-Base Skill Constant: 200
-Hit Count: 1 hit
-Maximum Cast Range: 16m
-Base Cast Time: 1.5 seconds if your target has aggro on you(Unaffected by CSPD); or 0 seconds if not
-Ailment: Armor Break
-Base Ailment Chance: (2 * Total Physical Pierce)%
-Ailment Duration: 5 seconds
-Ailment Resistance: None
+Skill Mechanic:
+This skill changes into a different attack depending on the equipped sub-weapon.
+
+Variants:
+- Sharp Sniper: Arrow/Knuckle/No Sub, or any sub-weapon other than Magic Device/Shield/Dagger
+- Sniper Volley: Magic Device
+- Tri Ace Shooter: Shield
+- Wolf Sniper: Dagger
+
+
+--------------------------------------------------
+VARIANT: SHARP SNIPER
+--------------------------------------------------
+
+Sub-Weapon:
+Arrow/Knuckle/No Sub, or any sub-weapon other than Magic Device/Shield/Dagger
+
+Base Skill Multiplier:
+7 + 0.3 * Skill Level + Base DEX/200
+
+Base Skill Constant:
+200
+
+Hit Count:
+1 hit
+
+Maximum Cast Range:
+16m
+
+Base Cast Time:
+- 1.5 seconds if the target has aggro on the user; unaffected by CSPD
+- 0 seconds if the target does not have aggro on the user
+
+Ailment:
+Armor Break
+
+Base Ailment Chance:
+(2 * Total Physical Pierce)%
+
+Ailment Duration:
+5 seconds
+
+Ailment Resistance:
+None
+
 Skill Effect:
-Cast time of this skill will become 0 seconds only if you're not being targeted by the target.
-This skill has flat critical rate penalty = -(35 - Skill Level) flat cr
+- Cast Time becomes 0 seconds only if the user is not being targeted by the target.
+- This skill has a Flat Critical Rate penalty of:
+
+-(35 - Skill Level)
+
+Game Description:
+"Hunting techniques using Sub-Weapon. When activated using a weapon other than Dagger, Magic Device, or Shield, it deals damage to the target and there is a high chance to inflict [Armor Break] with higher Physical Pierce."
 
 
-==================================================
-SKILL: SNIPER VOLLEY(EQUIPPED WITH MAGIC DEVICE)
-==================================================
+--------------------------------------------------
+VARIANT: SNIPER VOLLEY
+--------------------------------------------------
 
-Category: Hunter Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Sub-Weapon:
+Magic Device
 
-Uses magic to bind and shoot the target. Deals magic damage to target. Chance to inflict [Stop] and then releases an AoE (physical damage). Guarantees critical to the target inflicted with [Stop].
-Base Skill Multiplier(Magic): 0.75 x Skill Level
-Base Skill Constant(Magic): 200
-Hit Count: 1 hit
-Magic Hits Ailment: Stop
-Base Ailment Chance: [5 * Skill Level + totalDEX/10]%
-Ailment Duration: 10 seconds
-Ailment Resistance: 50 seconds
-Base Skill Multiplier(Physical): 5 + 0.25 x Skill Level
-Base Skill Constant(Physical): 200
-Hit Count: 1 hit
-Hit Range: length of 12m and radius of 2m from caster’s position
-Maximum Cast Range: 12m
+Variant Description:
+Uses magic to bind and shoot the target. Deals Magic Damage to the target with a chance to inflict Stop, then releases an AoE Physical attack. The Physical attack becomes an Absolute Critical Hit against a target inflicted with Stop.
+
+Magic Hit:
+
+Damage Type:
+Magic
+
+Base Skill Multiplier:
+0.75 * Skill Level
+
+Base Skill Constant:
+200
+
+Hit Count:
+1 hit
+
+Ailment:
+Stop
+
+Base Ailment Chance:
+(5 * Skill Level + Total DEX/10)%
+
+Ailment Duration:
+10 seconds
+
+Ailment Resistance:
+50 seconds
+
+Physical Hit:
+
+Damage Type:
+Physical
+
+Base Skill Multiplier:
+5 + 0.25 * Skill Level
+
+Base Skill Constant:
+200
+
+Hit Count:
+1 hit
+
+Maximum Cast Range:
+12m
+
+Hit Range:
+Length of 12m and radius of 2m from the caster's position
+
 Skill Effect:
-Physical damage of this skill will become an absolute critical hit if your target has Stop ailment.
-This skill releases 1 hit of Magic Damage that binds the target first, then releases AOE Physical Damage like Chariot toward the target.
-Magic damage of this skill purely follows entire Magic mechanics(such as dmg based on MATK, Magic Stability, Magic Critical, Magic dte, etc.). Meanwhile for AOE Physical damage, it follows purely Physical mechanics.
-This skill inflicts Magic Proration once regardless of which part hits first. For damage calculation, the Magic hit uses Magic Proration, while AoE Physical damage uses Physical Proration.
-You cannot use this skill if you get Silence Ailment, but still can use it when you get Bleed Ailment.
+- The Physical hit becomes an Absolute Critical Hit if the target has the Stop ailment.
+- The skill first releases 1 Magic hit that binds the target, then releases an AoE Physical attack toward the target similar to Chariot.
+- The Magic hit follows Magic mechanics such as MATK, Magic Stability, Magic Critical, Magic DTE, etc.
+- The AoE Physical hit follows Physical mechanics.
+- This skill inflicts Magic Proration once regardless of which part hits first.
+- For damage calculation, the Magic hit uses Magic Proration.
+- For damage calculation, the AoE Physical hit uses Physical Proration.
+- This skill cannot be used while the user has the Silence ailment.
+- This skill can still be used while the user has the Bleed ailment.
 
 
-==================================================
-SKILL: TRI ACE SHOOTER(EQUIPPED WITH SHIELD)
-==================================================
+--------------------------------------------------
+VARIANT: TRI ACE SHOOTER
+--------------------------------------------------
 
-Category: Hunter Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Sub-Weapon:
+Shield
 
-Shoots while holding the shield up in front. Power increases according to VIT. Reduces damage received while the skill is in effect. Upon use, An HP recovery effect is added to skill damage for 10 seconds and physical/magic resistance based on the refinement value of your shield increases.
-Base Skill Multiplier: 7.5 + 0.25 * Skill Level + TotalVit/100; total multiplier of all hits
-Base Skill Constant: 200
-Hit Count: 3 hits; damage calculation is done once then spread evenly between the hits
-Maximum Cast Range: 12m
+Variant Description:
+Shoots while holding the shield up in front. Power increases according to VIT. Reduces damage received while the skill is in effect. Upon use, an HP recovery effect is added to skill damage for 10 seconds and Physical/Magic Resistance based on the refinement value of the shield increases.
+
+Base Skill Multiplier:
+7.5 + 0.25 * Skill Level + Total VIT/100; total multiplier of all hits
+
+Base Skill Constant:
+200
+
+Hit Count:
+3 hits; damage calculation is done once then spread evenly between the hits
+
+Maximum Cast Range:
+12m
+
 Skill Effect:
-Reduce your Physical/Magic damage taken/received by 10%(level 1); 12%(level 2); 17%(level 3); 23%(level 4); 28%(level 5); 36%(level 6); 45%(level 7); 57%(level 8); 72%(level 9); 90%(level 10)
-Using this skill will grant 10 seconds buff below.
+Reduces Physical/Magic damage taken during the skill according to Skill Level:
+
+- Level 1: 10%
+- Level 2: 12%
+- Level 3: 17%
+- Level 4: 23%
+- Level 5: 28%
+- Level 6: 36%
+- Level 7: 45%
+- Level 8: 57%
+- Level 9: 72%
+- Level 10: 90%
+
+Using this skill grants the following buff.
+
+Buff Duration:
+10 seconds
+
+Physical/Magic Resistance:
++(Shield Refine)%
+
+HP Recovery:
+Each time one of the user's skills lands a hit during the buff, recover:
+
+(0.1 * Skill Level)% of Max HP
+
+HP Recovery Notes:
+- Multi-hit skills such as Magic: Storm, Arrow Rain, Satellite Arrow, etc. can trigger the recovery multiple times.
+- Multi-hit skills whose damage is calculated once and then spread evenly between the hits, such as Tri Ace Shooter, trigger the recovery only once.
+
+
+--------------------------------------------------
+VARIANT: WOLF SNIPER
+--------------------------------------------------
+
+Sub-Weapon:
+Dagger
+
+Variant Description:
+Executes a surprise attack with a dagger followed by an attack with a bowgun. Power increases according to AGI. Halves the MP Cost of the skill used next and slightly increases the power of close-range attacks.
+
+Base Skill Multiplier:
+5 + 0.5 * Skill Level + Total AGI/100; total multiplier of all hits
+
+Base Skill Constant:
+200
+
+Hit Count:
+2 hits; damage calculation is done once then spread evenly between the hits
+
+Maximum Cast Range:
+12m
+
+Skill Effect:
+Using this skill teleports the user to 0m in front of the target.
+
 Buff Effect:
-Buff Duration: 10 seconds
-Gives Physical/Magic Resistance buff by (Shield Refine)%
-Everytime your skill land hit during this buff, will recover your HP by (0.1 * Skill Level)% of your MaxHP. Note: multi hit like magic: storm/arrow rain/satellite arrow/etc., will trigger this multiple times. However multi hit that dmg calc first then spread evenly such as Tri Ace Shooter/etc., will trigger once.
 
+Buff Duration:
+Until any skill is used
 
-==================================================
-SKILL: WOLF SNIPER(EQUIPPED WITH DAGGER)
-==================================================
+Next Skill MP Cost:
+The MP Cost of the next skill is divided by 2 and rounded up to the nearest multiple of 100.
 
-Category: Hunter Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Examples:
+- 300/2 = 150 -> 200 MP
+- 600/2 = 300 -> 300 MP
 
-Executes a surprise attack with a dagger followed by an attack with a bowgun. Power increases according to AGI. Halves the MP Cost of the skill used next and slightly increases the power of close range attacks.
-Base Skill Multiplier: 5 + 0.5 * Skill Level + TotalAgi/100; total multiplier of all hits
-Base Skill Constant: 200
-Hit Count: 2 hits; damage calculation is done once then spread evenly between the hits
-Maximum Cast Range: 12m
-Skill Effect:
-Using this skill will make you teleport to the 0m in front of the target.
-Buff Effect:
-Buff Duration: until you use any skill
-The next skill after this skill, has its MP Cost divided by half and rounded up to the nearest multiple of 100 (e.g. 300/2 = 150 -> 200 MP; 600/2 = 300 -> 300 MP)
-Increase your srd% by +10% regardless of skill level
+Short Range Damage:
++10%
 
+This Short Range Damage bonus is independent of Skill Level.
 
 ==================================================
 SKILL: FOCUS
 ==================================================
 
 Category: Hunter Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: V
+Required Level: Level 285
 
 [Active] Bow/Bowgun Only
 MP Cost: 600
@@ -451,8 +582,8 @@ SKILL: CAMOUFLAGE
 ==================================================
 
 Category: Hunter Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: V
+Required Level: Level 285
 
 [Active] All weapons
 MP Cost: 400
@@ -472,8 +603,8 @@ SKILL: HUNTER KNOWLEDGE
 ==================================================
 
 Category: Hunter Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: V
+Required Level: Level 285
 
 [Passive] Bowgun Only
 Passive Effect:

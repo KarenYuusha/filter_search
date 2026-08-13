@@ -15,8 +15,8 @@ SKILL: MAGIC WARRIOR MASTERY
 ==================================================
 
 Category: Magic Warrior Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: None
 
 Passive Skill
 Limitation: MD sub weapon only
@@ -36,8 +36,8 @@ SKILL: CONVERSION
 ==================================================
 
 Category: Magic Warrior Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 60
 
 Passive Skill
 Limitation: OHS/THS/BG/Knuckle only
@@ -91,8 +91,8 @@ SKILL: RESONANCE
 ==================================================
 
 Category: Magic Warrior Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 120
 
 Support skill (Self Buffer)
 Limitation: MD sub weapon only
@@ -121,8 +121,8 @@ SKILL: ETHER FLARE
 ==================================================
 
 Category: Magic Warrior Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: None
 
 Active skill (single target) {Magic}
 Limitation: MD sub weapon only
@@ -148,8 +148,8 @@ SKILL: ELEMENT SLASH
 ==================================================
 
 Category: Magic Warrior Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 60
 
 Active skill (single target) {Magic}
 Limitation: MD sub weapon only
@@ -170,8 +170,8 @@ SKILL: ENCHANT SWORD
 ==================================================
 
 Category: Magic Warrior Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 120
 
 Active Skill (Single Target) {Physical}
 Limitation: OHS/THS/BG/Knuckle only
@@ -200,8 +200,8 @@ SKILL: ENCHANTED SPELL
 ==================================================
 
 Category: Magic Warrior Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 180
 
 Passive Skill
 Limitation: MD sub weapon only
@@ -237,8 +237,8 @@ SKILL: ENCHANTED BURST
 ==================================================
 
 Category: Magic Warrior Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 180
 
 Active Skill (Single Target) {Magic}
 Limitation: Sub MD/THS only
