@@ -1,0 +1,34 @@
+name: Skill Bot Integration CI
+
+on:
+  push:
+    branches:
+      - feat/skill-bot-integration
+  workflow_dispatch:
+
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install focused dependencies
+        run: python -m pip install --upgrade pip rapidfuzz numpy ollama httpx discord.py python-dotenv
+      - name: Show canonical aliases
+        run: |
+          python - <<'PY'
+          import sqlite3
+          con = sqlite3.connect('coryn_data/database/skills.sqlite')
+          for row in con.execute('SELECT alias, skill_id FROM skill_aliases ORDER BY skill_id, position LIMIT 20'):
+              print(row[0], '=>', row[1])
+          PY
+      - name: Run focused skill bot tests
+        run: |
+          if [ -f tests/test_skill_search_service.py ]; then
+            python -m unittest tests.test_skill_search_service -v
+          fi
+          if [ -f tests/test_discord_skill_search.py ]; then
+            python -m unittest tests.test_discord_skill_search -v
+          fi
