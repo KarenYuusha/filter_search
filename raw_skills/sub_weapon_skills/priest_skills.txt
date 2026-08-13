@@ -11,12 +11,44 @@ Tier Requirements:
 
 
 ==================================================
-SKILL: BLESS & ADVANCED BLESS
+SKILL: BLESS
 ==================================================
 
 Category: Priest Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: Level 15
+
+Cast a spell to heal HP of the party members at fixed durations
+Support Skill (Party Buffer)
+MP Cost = 100MP
+Limitation: No Limit
+Bless Level = BLv
+Advanced Bless Level = ALv
+Healing formula:
+-- FlatAmountBless (Available if BLvl = 1+) = 10 + BLvl * 5
+-- FlatAmountAdvanced (Available if Alvl = 1+) = 10 + Alvl * 2 (+30 if BLvl = 10)
+-- MATKMultiplierBless (Available if BLvl = 2+) = 1 + (BLvl - 2)/4 (Staff Bonus = +1)
+-- MATKMultiplierAdvanced (Available if ALvl = 2+) = 1 + (ALvl - 2)/4 (Staff Bonus = +1 ONLY if BLvl = 10)
+-- INTMultiplier (Available with Staff equipped and BLvl = 1+) = 5 [+5 Bonus if BLvl = 10 and ALvl > 1]
+-- Total Heal Amount per Tick = FlatAmountBless + FlatAmountAdvanced + (MATKMultiplierBless + MatkMultiplierAdvanced) * MATKstat/100 + INTMultiplier * INTstat/100
+Number of heal counts:
+-- BlessCount (Available if BLvl = 1+) = 1+ Floor((2+BLvl)/3)
+-- AdvancedCount (Available if ALvl = 1+) = Floor(ALvl - 1)/2 (+1 Bonus if BLvl = 10)
+Total Number of heal counts = BlessCount + AdvancedCount
+Total Duration = (BlessCount + AdvancedCount - 1) * 5 seconds
+--> As such this skill will heal 1 tick when casted and 1 tick every 5 seconds after the first one until duration ends.
+--> Simplified formula for both Bless and Advanced Bless at Lvl10 with staff = 120 + INT * (10/100) + MATK * (8/100) with a duration of 45seconds with 1 tick every 5 seconds + 1 tick when casted = total of 10 ticks
+NOTE:
+--For every Party Buffer Support skill, skillLvl takes priority when multiple casts at a time instance.
+
+
+==================================================
+SKILL: Enhanced BLESS
+==================================================
+
+Category: Priest Skills
+Tier: III
+Required Level: Level 125
 
 Cast a spell to heal HP of the party members at fixed durations
 Support Skill (Party Buffer)
@@ -47,8 +79,8 @@ SKILL: GLORIA
 ==================================================
 
 Category: Priest Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 35
 
 Cast a spell to boost the DEF and MDEF of the party.
 Support Skill (Party buffer)
@@ -68,8 +100,8 @@ SKILL: HOLY FIST
 ==================================================
 
 Category: Priest Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level: Level 15
 
 Smite the enemy with the power of light in your fist!
 Active Skill (Physical proration) (Part Magical + Part Physical)
@@ -95,8 +127,8 @@ SKILL: HOLY LIGHT
 ==================================================
 
 Category: Priest Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 35
 
 Cast a holy light on the enemy to deal damage.
 Active Skill (Magical)
@@ -119,8 +151,8 @@ SKILL: ETHER BARRIER
 ==================================================
 
 Category: Priest Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 125
 
 Casts a barrier over the party to prevent flinching.
 Support Skill (Party Buffer)
@@ -141,8 +173,8 @@ SKILL: ROYAL HEAL
 ==================================================
 
 Category: Priest Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 205
 
 Restores your HP and that of the allies around. Unlike Heal from Support Skill, there is no effect to reduce revival time.
 Party/Self healer.
@@ -158,8 +190,8 @@ SKILL: PRAYER
 ==================================================
 
 Category: Priest Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 205
 
 Offers a prayer to increase Mana. Raises MATK for some time. Chance to remove [Weaken] when activated.
 Support Skill (Party Buffer)
@@ -177,8 +209,8 @@ SKILL: STAFF THRUST
 ==================================================
 
 Category: Priest Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: I
+Required Level:Level 15
 
 A powerful hit with a staff. Ignore the target's defense as STR gets higher. Chance to inflict [Flinch] on the target.
 Active Skill (Physical) [Single Target]
@@ -197,8 +229,8 @@ SKILL: EXORCISM
 ==================================================
 
 Category: Priest Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: II
+Required Level: Level 35
 
 Performs light element magic attacks around you. Can halves MP Cost of the next skill used. More damage and has a chance to inflict either Dizzy/Dazzled/Fear against dark targets.
 Active Skill (Magic) [Circle Aoe with center on caster]
@@ -221,8 +253,8 @@ SKILL: HOLY BOOK
 ==================================================
 
 Category: Priest Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: III
+Required Level: Level 125
 
 Gives little Dark Resistance buff for 10 mins. Also, has a chance to activate Holy Light when dealing magic damage to non-light ele.
 Support Skill (Self Buffer)
@@ -245,8 +277,8 @@ SKILL: NEMESIS
 ==================================================
 
 Category: Priest Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: IV
+Required Level: Level 205
 
 Deals single target physical damage on the target, and makes a link between you and target. The effect will stack and when activating this skill again, a magic AoE will be added according to the number of stacks after dealing physical.
 Active Skill (Single target Physical & Magic Wall Aoe on target) with Self Buffer
@@ -288,8 +320,8 @@ SKILL: SACRED TEACHINGS
 ==================================================
 
 Category: Priest Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: V
+Required Level: Level 285
 
 [Passive] All weapons
 Passive Effect:
@@ -317,8 +349,8 @@ SKILL: ASPIS SOUL
 ==================================================
 
 Category: Priest Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: V
+Required Level: Level 285
 
 [Passive] All weapons
 Passive Effect:
@@ -336,8 +368,8 @@ SKILL: HOLY GRACE
 ==================================================
 
 Category: Priest Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
+Tier: V
+Required Level: Level 285
 
 [Active] All weapons
 MP Cost: 500
