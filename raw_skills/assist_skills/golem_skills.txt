@@ -3,7 +3,7 @@ Category: Golem Skills
 GENERAL INFORMATION
 
 Tier Requirements:
-- Tier I: No level requirement
+- Tier I: None
 - Tier II: Level 200
 - Tier III: Level 250
 

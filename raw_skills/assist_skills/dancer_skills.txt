@@ -21,7 +21,7 @@ Dancer skills are limited to the following weapons:
 - Magic Device
 
 Tier Requirements:
-- Tier I: No level requirement
+- Tier I: None
 - Tier II: Level 60
 - Tier III: Level 120
 
