@@ -302,7 +302,8 @@ def parse_standard_skill_file(source: SkillSource) -> ParsedSkillFile:
     seen_names: set[str] = set()
 
     for source_order, match in enumerate(matches):
-        name = match.group("name").strip()
+        source_name = match.group("name").strip()
+        name = source_name.title() if source.relative_path == _MINSTREL_PATH else source_name
         normalized_name = normalize_skill_name(name)
         if normalized_name in seen_names:
             issues.append(
