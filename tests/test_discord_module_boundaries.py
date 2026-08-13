@@ -126,6 +126,25 @@ class DiscordModuleBoundaryTests(unittest.TestCase):
         self.assertIs(discord_bot.build_service_outcome_message, build_service_outcome_message)
         self.assertIs(discord_bot.edit_service_outcome, edit_service_outcome)
 
+    def test_skill_ui_symbols_have_canonical_package_owner(self):
+        from toram_discord.skill_ui import (
+            SkillDetailView,
+            SkillResultsView,
+            build_skill_detail_embed,
+            build_skill_help_embed,
+            build_skill_payload_message,
+            build_skill_results_embed,
+            run_skill_query_sync,
+        )
+
+        self.assertIs(discord_bot.SkillDetailView, SkillDetailView)
+        self.assertIs(discord_bot.SkillResultsView, SkillResultsView)
+        self.assertIs(discord_bot.build_skill_detail_embed, build_skill_detail_embed)
+        self.assertIs(discord_bot.build_skill_help_embed, build_skill_help_embed)
+        self.assertIs(discord_bot.build_skill_payload_message, build_skill_payload_message)
+        self.assertIs(discord_bot.build_skill_results_embed, build_skill_results_embed)
+        self.assertIs(discord_bot.run_skill_query_sync, run_skill_query_sync)
+
     def test_app_symbols_have_canonical_package_owner(self):
         from toram_discord.app import create_client, main, process_tagged_query
 
@@ -139,6 +158,7 @@ class DiscordModuleBoundaryTests(unittest.TestCase):
             "toram_discord.sessions",
             "toram_discord.render",
             "toram_discord.views",
+            "toram_discord.skill_ui",
             "toram_discord.app",
         ):
             with self.subTest(module=module_name):
@@ -154,6 +174,16 @@ class DiscordModuleBoundaryTests(unittest.TestCase):
                     if module == "discord_bot" or module.startswith("toram_discord")
                 }
                 self.assertFalse(forbidden, f"{path} imports {sorted(forbidden)}")
+
+    def test_skill_application_layer_does_not_import_discord(self):
+        for path in sorted((ROOT / "toram_skill_search").glob("*.py")):
+            modules = imported_modules(path)
+            forbidden = {
+                module
+                for module in modules
+                if module == "discord" or module.startswith("toram_discord")
+            }
+            self.assertFalse(forbidden, f"{path} imports {sorted(forbidden)}")
 
     def test_discord_package_does_not_import_compatibility_facade(self):
         for path in sorted((ROOT / "toram_discord").glob("*.py")):
