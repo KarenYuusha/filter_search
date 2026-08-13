@@ -15,7 +15,9 @@ SKILL: MAGIC UP
 
 Category: Battle Skills
 Tier: I
-Required Level: 20
+Required Level: Level 20
+
+Source Details:
 Type: Passive
 
 Description:
@@ -28,6 +30,9 @@ Formula:
 MATK Increase =
 PlayerLvl * (2.5 * SkillLvl) / 100
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: CONCENTRATE
@@ -35,7 +40,9 @@ SKILL: CONCENTRATE
 
 Category: Battle Skills
 Tier: I
-Required Level: 20
+Required Level: Level 20
+
+Source Details:
 Type: Passive
 
 Description:
@@ -54,6 +61,9 @@ Notes:
 - The skill does not activate for placed skills.
 - The damage increase is applied additively to the skill's Long Range modifier.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: ATTACK UP
@@ -61,7 +71,9 @@ SKILL: ATTACK UP
 
 Category: Battle Skills
 Tier: I
-Required Level: 20
+Required Level: Level 20
+
+Source Details:
 Type: Passive
 
 Description:
@@ -74,6 +86,9 @@ Formula:
 ATK Increase =
 PlayerLvl * (2.5 * SkillLvl) / 100
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: WHACK
@@ -81,7 +96,9 @@ SKILL: WHACK
 
 Category: Battle Skills
 Tier: I
-Required Level: 20
+Required Level: Level 20
+
+Source Details:
 Type: Passive
 
 Description:
@@ -100,6 +117,9 @@ Notes:
 - The skill does not activate for placed skills.
 - The damage increase is applied additively to the skill's Long Range, Sword Techniques, and Martial Mastery modifiers.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: DEFENSE UP
@@ -107,7 +127,9 @@ SKILL: DEFENSE UP
 
 Category: Battle Skills
 Tier: I
-Required Level: 20
+Required Level: Level 20
+
+Source Details:
 Type: Passive
 
 Description:
@@ -120,6 +142,9 @@ Formula:
 DEF and MDEF Increase =
 PlayerLvl * (2.5 * SkillLvl) / 100
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: DODGE UP
@@ -127,8 +152,9 @@ SKILL: DODGE UP
 
 Category: Battle Skills
 Tier: I
-Required Level: 20
+Required Level: Level 20
 
+Source Details:
 Description:
 Slightly increases dodge.
 
@@ -139,6 +165,9 @@ Formula:
 FLEE Increase =
 SkillLvl
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: DESPERATE RESIST
@@ -146,8 +175,9 @@ SKILL: DESPERATE RESIST
 
 Category: Battle Skills
 Tier: II
-Required Level: 60
+Required Level: Level 60
 
+Source Details:
 Description:
 Reduces damage taken while the player is locked down by ailments such as Tumble and Stun.
 
@@ -165,6 +195,9 @@ The character is considered Action Locked for a set duration when any of the fol
 - Knockback
 - Sleep
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: CRITICAL UP
@@ -172,7 +205,9 @@ SKILL: CRITICAL UP
 
 Category: Battle Skills
 Tier: II
-Required Level: 60
+Required Level: Level 60
+
+Source Details:
 Type: Passive
 
 Description:
@@ -187,6 +222,9 @@ SkillLvl / 2
 Critical Damage Increase:
 SkillLvl / 2 %
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: ACCURACY UP
@@ -194,8 +232,9 @@ SKILL: ACCURACY UP
 
 Category: Battle Skills
 Tier: II
-Required Level: 60
+Required Level: Level 60
 
+Source Details:
 Description:
 Slightly increases accuracy.
 
@@ -206,6 +245,9 @@ Formula:
 HIT Increase =
 SkillLvl
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: INCREASED ENERGY
@@ -213,7 +255,9 @@ SKILL: INCREASED ENERGY
 
 Category: Battle Skills
 Tier: III
-Required Level: 120
+Required Level: Level 120
+
+Source Details:
 Type: Passive
 
 Description:
@@ -226,6 +270,9 @@ Formula:
 MATK Increase =
 PlayerLvl * (2.5 * SkillLvl) / 100
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: INTIMIDATING POWER
@@ -233,7 +280,9 @@ SKILL: INTIMIDATING POWER
 
 Category: Battle Skills
 Tier: III
-Required Level: 120
+Required Level: Level 120
+
+Source Details:
 Type: Passive
 
 Description:
@@ -246,6 +295,9 @@ Formula:
 ATK Increase =
 PlayerLvl * (2.5 * SkillLvl) / 100
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: DEFENSE MASTERY
@@ -253,7 +305,9 @@ SKILL: DEFENSE MASTERY
 
 Category: Battle Skills
 Tier: III
-Required Level: 120
+Required Level: Level 120
+
+Source Details:
 Type: Passive
 
 Description:
@@ -266,6 +320,9 @@ Formula:
 DEF and MDEF Increase =
 PlayerLvl * (2.5 * SkillLvl) / 100
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: SPELL BURST
@@ -273,7 +330,9 @@ SKILL: SPELL BURST
 
 Category: Battle Skills
 Tier: IV
-Required Level: 180
+Required Level: Level 180
+
+Source Details:
 Type: Passive
 
 Description:
@@ -291,6 +350,9 @@ Magic Critical Damage Conversion:
 Related Information:
 See the Critical Formula section for more details about magic critical hits.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: SECRET CHASE ATTACK
@@ -298,7 +360,9 @@ SKILL: SECRET CHASE ATTACK
 
 Category: Battle Skills
 Tier: IV
-Required Level: 180
+Required Level: Level 180
+
+Source Details:
 Type: Passive
 
 Description:
@@ -311,6 +375,9 @@ Formula:
 Additional Melee/Magic Activation Chance Increase =
 SkillLvl * 2.5%
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: SUPER GRIP
@@ -318,7 +385,9 @@ SKILL: SUPER GRIP
 
 Category: Battle Skills
 Tier: IV
-Required Level: 180
+Required Level: Level 180
+
+Source Details:
 Type: Passive
 
 Description:
@@ -330,3 +399,6 @@ Reduces the knockback distance when the player is defeated.
 Formula:
 Knockback Distance Reduction =
 SkillLvl * 7.5%
+
+Game Description:
+Not provided in source.

@@ -13,7 +13,9 @@ SKILL: PLAY DEAD
 
 Category: Survival Skills
 Tier: I
-Required Level: 1
+Required Level: Level 1
+
+Source Details:
 Type: Passive
 
 Description:
@@ -28,6 +30,9 @@ Revive Time Reduction:
 Notes:
 The base revive time is 300 seconds.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: EXP GAIN UP
@@ -35,7 +40,9 @@ SKILL: EXP GAIN UP
 
 Category: Survival Skills
 Tier: I
-Required Level: 1
+Required Level: Level 1
+
+Source Details:
 Type: Passive
 
 Description:
@@ -47,6 +54,9 @@ SkillLvl %
 Notes:
 - EXP Gain% from this skill stacks additively with EXP Gain% from emblems and other sources.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: DROP GAIN UP
@@ -54,7 +64,9 @@ SKILL: DROP GAIN UP
 
 Category: Survival Skills
 Tier: I
-Required Level: 1
+Required Level: Level 1
+
+Source Details:
 Type: Passive
 
 Description:
@@ -67,6 +79,9 @@ Notes:
 - Drop Rate% from this skill stacks additively with Drop Rate% from events and other sources.
 - The tier list in the source refers to this skill as "Drop Rate Up".
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: SAFE REST
@@ -74,7 +89,9 @@ SKILL: SAFE REST
 
 Category: Survival Skills
 Tier: I
-Required Level: 1
+Required Level: Level 1
+
+Source Details:
 Type: Passive
 
 Description:
@@ -101,6 +118,9 @@ Notes:
 - Natural HP Regen from equipment and avatars is included in the base NHPR value.
 - Natural HP Regen from skills is applied after base NHPR is calculated.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: SHORT REST
@@ -108,7 +128,9 @@ SKILL: SHORT REST
 
 Category: Survival Skills
 Tier: I
-Required Level: 1
+Required Level: Level 1
+
+Source Details:
 Type: Passive
 
 Description:
@@ -132,6 +154,9 @@ Notes:
 - Natural MP Regen from equipment and avatars is included in the base NMPR value.
 - Natural MP Regen from skills is applied after base NMPR is calculated.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: HP BOOST
@@ -139,7 +164,9 @@ SKILL: HP BOOST
 
 Category: Survival Skills
 Tier: II
-Required Level: 20
+Required Level: Level 20
+
+Source Details:
 Type: Passive
 
 Description:
@@ -151,6 +178,9 @@ Flat Max HP Increase:
 Max HP% Increase:
 2 * SkillLvl %
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: FIGHTER'S HIGH
@@ -158,7 +188,9 @@ SKILL: FIGHTER'S HIGH
 
 Category: Survival Skills
 Tier: II
-Required Level: 20
+Required Level: Level 20
+
+Source Details:
 Type: Passive
 
 Description:
@@ -174,6 +206,9 @@ Base Natural HP Regen:
 BaseNHPR =
 INT(INT(MaxHP / 25) * (1 + TotalNHPR% / 100)) + 10 + TotalFlatNHPR
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: MP BOOST
@@ -181,7 +216,9 @@ SKILL: MP BOOST
 
 Category: Survival Skills
 Tier: II
-Required Level: 20
+Required Level: Level 20
+
+Source Details:
 Type: Passive
 
 Description:
@@ -190,6 +227,9 @@ Increases the character's maximum MP.
 Flat Max MP Increase:
 30 * SkillLvl
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: SOBER ANALYSIS
@@ -197,7 +237,9 @@ SKILL: SOBER ANALYSIS
 
 Category: Survival Skills
 Tier: II
-Required Level: 20
+Required Level: Level 20
+
+Source Details:
 Type: Passive
 
 Description:
@@ -216,3 +258,6 @@ INT(INT(MaxMP / 100) * (1 + TotalNMPR% / 100)) + 1 + TotalFlatNMPR
 Notes:
 - Total NMPR% excludes Sunbath Registlet.
 - Total NMPR% excludes Emotion NMPR boosts.
+
+Game Description:
+Not provided in source.

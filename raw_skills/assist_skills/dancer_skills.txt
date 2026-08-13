@@ -33,6 +33,8 @@ SKILL: FAIRY DANCE
 Category: Dancer Skills
 Tier: I
 Required Level: None
+
+Source Details:
 Type: Support (Active)
 Mechanic: Timer and Charge
 
@@ -56,6 +58,9 @@ Charge Rules:
 - Reusing it too early decreases charge by 1.
 - Other active Timer and Charge Dancer skills can reduce the maximum charge.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: FRENZY DANCE
@@ -64,6 +69,8 @@ SKILL: FRENZY DANCE
 Category: Dancer Skills
 Tier: I
 Required Level: None
+
+Source Details:
 Type: Support (Active)
 Mechanic: Timer and Charge
 
@@ -94,6 +101,9 @@ Charge Rules:
 - Reusing it too early decreases charge by 1.
 - Other active Timer and Charge Dancer skills can reduce the maximum charge.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: SPIRITED DANCE
@@ -102,6 +112,8 @@ SKILL: SPIRITED DANCE
 Category: Dancer Skills
 Tier: I
 Required Level: None
+
+Source Details:
 Type: Support (Active)
 Mechanic: Timer and Charge
 
@@ -155,6 +167,9 @@ Charge Rules:
 - Reusing it too early decreases charge by 1.
 - Other active Timer and Charge Dancer skills can reduce the maximum charge.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: ASTUTE DANCE
@@ -162,7 +177,9 @@ SKILL: ASTUTE DANCE
 
 Category: Dancer Skills
 Tier: II
-Required Level: 60
+Required Level: Level 60
+
+Source Details:
 Type: Support (Active)
 Mechanic: Timer and Charge
 
@@ -186,6 +203,9 @@ Charge Rules:
 - Reusing it too early decreases charge by 1.
 - Other active Timer and Charge Dancer skills can reduce the maximum charge.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: ELEGANT POISE
@@ -193,7 +213,9 @@ SKILL: ELEGANT POISE
 
 Category: Dancer Skills
 Tier: II
-Required Level: 60
+Required Level: Level 60
+
+Source Details:
 Type: Support / Parry
 Mechanic: Defensive Buff
 
@@ -246,6 +268,9 @@ Buff 2 Duration:
 Restriction:
 The skill cannot be used while the player is already affected by a status ailment.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: CHARMING DANCE
@@ -253,7 +278,9 @@ SKILL: CHARMING DANCE
 
 Category: Dancer Skills
 Tier: III
-Required Level: 120
+Required Level: Level 120
+
+Source Details:
 Type: Support (Active)
 Mechanic: Timer and Charge
 
@@ -277,6 +304,9 @@ Charge Rules:
 - Reusing it too early decreases charge by 1.
 - Other active Timer and Charge Dancer skills can reduce the maximum charge.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: NATURE'S WONDER
@@ -284,7 +314,9 @@ SKILL: NATURE'S WONDER
 
 Category: Dancer Skills
 Tier: III
-Required Level: 120
+Required Level: Level 120
+
+Source Details:
 Type: Physical / Support
 Mechanic: Attack and Healing
 
@@ -336,3 +368,6 @@ Heal Amount =
 Notes:
 - Healing is divided among all players receiving the healing effect.
 - Mercenaries and pets can also receive the healing effect.
+
+Game Description:
+Not provided in source.

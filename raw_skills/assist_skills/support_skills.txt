@@ -63,6 +63,8 @@ SKILL: HEALING SONG
 Category: Minstrel Skills
 Tier: I
 Required Level: None
+
+Source Details:
 Type: Support
 Proration: None
 Mechanic: Song / Acoustic Buff
@@ -120,6 +122,9 @@ Notes:
 - Natural MP Regen from equipment and avatars is added into the base NMPR calculation.
 - Natural MP Regen from skills is applied after base NMPR is calculated.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: FAIRY SONG
@@ -128,6 +133,8 @@ SKILL: FAIRY SONG
 Category: Minstrel Skills
 Tier: I
 Required Level: None
+
+Source Details:
 Type: Support
 Proration: None
 Mechanic: Song / Acoustic Buff
@@ -176,6 +183,9 @@ Notes:
 - Certain Fairy Song effects on the caster are reduced.
 - The reduction is mitigated as the number of party members, excluding NPCs, increases.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: LIFE SONG
@@ -184,6 +194,8 @@ SKILL: LIFE SONG
 Category: Minstrel Skills
 Tier: I
 Required Level: None
+
+Source Details:
 Type: Support
 Proration: None
 Mechanic: Song / Stack / Acoustic Buff
@@ -218,6 +230,9 @@ Notes:
 - Life Song stacks reset to 0 whenever the player takes Fractional Damage.
 - Life Song stacks also reset to 0 whenever the player's HP reaches 0.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: FANTASY SONG
@@ -225,7 +240,9 @@ SKILL: FANTASY SONG
 
 Category: Minstrel Skills
 Tier: II
-Required Level: 60
+Required Level: Level 60
+
+Source Details:
 Type: Support
 Proration: None
 Mechanic: Song / Stack / Acoustic Buff
@@ -256,6 +273,9 @@ Stack Consumption:
 Restriction:
 Does not activate during a combo.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: AD-LIB
@@ -263,7 +283,9 @@ SKILL: AD-LIB
 
 Category: Minstrel Skills
 Tier: II
-Required Level: 60
+Required Level: Level 60
+
+Source Details:
 Type: Support
 Proration: None
 Mechanic: Song Resume / Defensive
@@ -292,6 +314,9 @@ Interrupted Song Resume Conditions:
 2. Ad-Lib must be used within those 10 seconds.
 3. If Ad-Lib is not used within the countdown, the interrupted song disappears completely.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: BEAT BLAST
@@ -299,7 +324,9 @@ SKILL: BEAT BLAST
 
 Category: Minstrel Skills
 Tier: II
-Required Level: 60
+Required Level: Level 60
+
+Source Details:
 Type: Active
 Mechanic: Song / Stack Attack
 
@@ -354,6 +381,9 @@ Proration:
 Requirement:
 Can only be used while a song skill is active.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: PASSION SONG
@@ -361,7 +391,9 @@ SKILL: PASSION SONG
 
 Category: Minstrel Skills
 Tier: III
-Required Level: 120
+Required Level: Level 120
+
+Source Details:
 Type: Support
 Proration: None
 Mechanic: Song / Acoustic Buff
@@ -383,6 +415,9 @@ Conditions:
 Aggro Effect:
 Increases Aggro for the current aggro holder by 30%.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: WISDOM SONG
@@ -390,7 +425,9 @@ SKILL: WISDOM SONG
 
 Category: Minstrel Skills
 Tier: III
-Required Level: 120
+Required Level: Level 120
+
+Source Details:
 Type: Support
 Proration: None
 Mechanic: Song / Acoustic Buff
@@ -410,6 +447,9 @@ Knockback Reduction:
 Notes:
 For party members who are not the song caster, ignore the PartyMemberNumber / 4 part of the Knockback Reduction formula.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: SOUND VEIL
@@ -417,7 +457,9 @@ SKILL: SOUND VEIL
 
 Category: Minstrel Skills
 Tier: III
-Required Level: 120
+Required Level: Level 120
+
+Source Details:
 Type: Passive
 Mechanic: Song / Acoustic Buff Scaling
 
@@ -438,6 +480,9 @@ Restrictions:
 Note:
 The source notes that a bug may occur where the damage reduction buff fails to activate.
 
+Game Description:
+Not provided in source.
+
 
 ==================================================
 SKILL: BATTLE ANTHEM
@@ -445,7 +490,9 @@ SKILL: BATTLE ANTHEM
 
 Category: Minstrel Skills
 Tier: III
-Required Level: 120
+Required Level: Level 120
+
+Source Details:
 Type: Passive
 Mechanic: Song / Automatic Basic Attack
 
@@ -465,3 +512,6 @@ No basic attack modifier changes.
 
 Notes:
 Activation interval depends on ASPD and Skill Level.
+
+Game Description:
+Not provided in source.
