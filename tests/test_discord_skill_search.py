@@ -119,6 +119,52 @@ class DiscordSkillRoutingTests(unittest.IsolatedAsyncioTestCase):
                     )
                 item_runner.assert_called_once()
 
+    async def test_skill_query_preserves_existing_failed_item_context(self):
+        sessions = DiscordSessionManager()
+        key = (10, 30, 20)
+        previous = sessions.start_query(key, "bad item query")
+        previous.failed_context.record_failure("bad item query")
+        message = FakeMessage("<@99> skill magic finale")
+
+        with patch(
+            "toram_discord.app.run_skill_query_sync",
+            return_value=SkillHelpPayload("skill help"),
+        ), patch(
+            "toram_discord.app.run_query_sync",
+            side_effect=AssertionError("item path must not run"),
+        ):
+            await process_tagged_query(
+                message,
+                bot_user=self.bot_user,
+                config=self.config,
+                sessions=sessions,
+            )
+
+        current = sessions.get(key)
+        self.assertIsNotNone(current)
+        attempts = current.failed_context.snapshot()
+        self.assertEqual(
+            [attempt.original_query for attempt in attempts],
+            ["bad item query"],
+        )
+
+    async def test_item_query_executes_without_opening_skill_path(self):
+        message = FakeMessage("<@99> cr bow")
+        with patch(
+            "toram_discord.app.run_skill_query_sync",
+            side_effect=AssertionError("skill path must not run"),
+        ), patch(
+            "toram_discord.app.run_query_sync",
+            return_value=ServiceOutcome("help", text="item path"),
+        ) as item_runner:
+            await process_tagged_query(
+                message,
+                bot_user=self.bot_user,
+                config=self.config,
+                sessions=DiscordSessionManager(),
+            )
+        item_runner.assert_called_once()
+
 
 class DiscordSkillRenderingTests(unittest.TestCase):
     @classmethod
