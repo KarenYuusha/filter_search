@@ -19,4 +19,4 @@ jobs:
       - name: Run skill display tests
         run: |
           python -m unittest tests.test_discord_skill_detail_pages -v
-          python -m unittest tests.test_discord_skill_search.DiscordSkillRenderingTests -v
+          python -m unittest tests.test_discord_skill_search -v
