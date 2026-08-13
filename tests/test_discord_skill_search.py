@@ -8,7 +8,12 @@ from unittest.mock import patch
 from toram_discord.app import process_tagged_query
 from toram_discord.config import DiscordBotConfig
 from toram_discord.sessions import DiscordSessionManager
-from toram_discord.skill_ui import build_skill_detail_embed, build_skill_results_embed
+from toram_discord.skill_ui import (
+    SkillDetailView,
+    SkillResultsView,
+    build_skill_detail_embed,
+    build_skill_results_embed,
+)
 from toram_search.service import ServiceOutcome
 from toram_skill_search.models import (
     SkillDetailPayload,
@@ -152,6 +157,78 @@ class DiscordSkillRenderingTests(unittest.TestCase):
         self.assertEqual(embed.title, "No skill results")
         self.assertIn("skill magic finale", visible)
         self.assertNotIn("qwen", visible)
+
+
+class DiscordSkillInteractionTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        results = []
+        with SkillRepository(SKILL_DATABASE) as repo:
+            rows = tuple(
+                repo.connection.execute(
+                    "SELECT id FROM skills ORDER BY tree_id, source_order, id LIMIT 6"
+                )
+            )
+            for row in rows:
+                skill = repo.get_skill(str(row["id"]))
+                tree = repo.get_tree(skill.tree_id)
+                results.append(
+                    SkillResultItem(
+                        skill,
+                        tree,
+                        skill.description or skill.game_description or skill.name,
+                    )
+                )
+        cls.six_result_payload = SkillResultsPayload("skill query", tuple(results))
+
+    def test_skill_result_dropdown_uses_indexes_not_skill_ids(self):
+        sessions = DiscordSessionManager()
+        key = (10, 30, 20)
+        session = sessions.start_query(key, "skill query")
+        view = SkillResultsView(
+            sessions=sessions,
+            key=key,
+            generation=session.generation,
+            payload=self.six_result_payload,
+        )
+        self.assertIsNotNone(view.skill_select)
+        self.assertEqual(
+            [option.value for option in view.skill_select.options],
+            ["0", "1", "2", "3", "4"],
+        )
+        skill_ids = {item.skill.id for item in self.six_result_payload.results}
+        self.assertTrue(
+            skill_ids.isdisjoint(
+                {option.value for option in view.skill_select.options}
+            )
+        )
+
+    def test_six_skill_results_have_pagination_controls(self):
+        sessions = DiscordSessionManager()
+        key = (10, 30, 20)
+        session = sessions.start_query(key, "skill query")
+        view = SkillResultsView(
+            sessions=sessions,
+            key=key,
+            generation=session.generation,
+            payload=self.six_result_payload,
+        )
+        labels = [child.label for child in view.children if hasattr(child, "label")]
+        self.assertIn("Previous", labels)
+        self.assertIn("Next", labels)
+
+    def test_skill_detail_view_has_back_to_results(self):
+        sessions = DiscordSessionManager()
+        key = (10, 30, 20)
+        session = sessions.start_query(key, "skill query")
+        view = SkillDetailView(
+            sessions=sessions,
+            key=key,
+            generation=session.generation,
+            results_payload=self.six_result_payload,
+        )
+        labels = [child.label for child in view.children if hasattr(child, "label")]
+        self.assertIn("Back to Results", labels)
 
 
 if __name__ == "__main__":
