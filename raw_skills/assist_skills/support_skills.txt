@@ -62,7 +62,7 @@ Heal a small amount of the target character's HP. Reduce the revive time if they
 Type: Party/Self healer
 MP Cost: 100 MP
 Action Range: 48m (For healing party only)
-Cast Time: 1 second (Affected by CSPD)
+Base Cast Time: 1 second (Affected by CSPD)
 
 Heal Amount:
 30 * Lvl + 1 * Lvl% of target's MaxHP
@@ -177,7 +177,7 @@ Heal a large amount of the target character's HP. Reduce the revive time if they
 Type: Party/Self healer
 MP Cost: 300 MP
 Action Range: 24m (For healing party only)
-Cast Time: 1 second (Affected by CSPD)
+Base Cast Time: 1 second (Affected by CSPD)
 
 Heal Amount:
 300 * Lvl + (10 + 1 * Lvl)% of target's MaxHP
@@ -255,7 +255,7 @@ Cast an aura to increase the party's attack power.
 Type: Aura based party/self buffer
 MP Cost: 400 MP
 Aura Radius: 5 + Lvl / 2 m (From caster as centre)
-Cast Time: 1 second (Affected by CSPD)
+Base Cast Time: 1 second (Affected by CSPD)
 
 Effect:
 Generate an aura which gives a buff to party member's damage dealt and WeaponATK.
@@ -302,7 +302,7 @@ Cast an aura to shorten cast time.
 Type: Aura based party/self buffer
 MP Cost: 500 MP
 Aura Radius: 5 + Lvl / 2 m (From caster as centre)
-Cast Time: 2 seconds (Affected by CSPD)
+Base Cast Time: 2 seconds (Affected by CSPD)
 
 Effect:
 Generate an aura which gives a buff to party member's CSPD and CSPD%.
@@ -349,7 +349,7 @@ Cast an aura to enhance attack speed.
 Type: Aura based party/self buffer
 MP Cost: 600 MP
 Aura Radius: 5 + Lvl / 2 m (From caster as centre)
-Cast Time: 3 seconds (Affected by CSPD)
+Base Cast Time: 3 seconds (Affected by CSPD)
 
 Effect:
 Generate an aura which gives a buff to party member's ASPD and ASPD%.
@@ -439,7 +439,7 @@ Cast an aura to increase the party's defenses.
 Type: Aura based party/self buffer
 MP Cost: 400 MP
 Aura Radius: 5 + Lvl / 2 m (From caster as centre)
-Cast Time: 1 second (Affected by CSPD)
+Base Cast Time: 1 second (Affected by CSPD)
 
 Effect:
 Generate an aura which reduces the party member's damage taken and increases DEF/MDEF.
@@ -486,7 +486,7 @@ Cast an aura to increase the party's resistance to ailments.
 Type: Aura based party/self buffer
 MP Cost: 500 MP
 Aura Radius: 5 + Lvl / 2 m (From caster as centre)
-Cast Time: 2 seconds (Affected by CSPD)
+Base Cast Time: 2 seconds (Affected by CSPD)
 
 Effect:
 Generate an aura which gives Ailment Resistance to the party.
@@ -530,7 +530,7 @@ Cast an aura to enhances Guard and Evasion.
 Type: Aura based party/self buffer
 MP Cost: 600 MP
 Aura Radius: 5 + Lvl / 2 m (From caster as centre)
-Cast Time: 3 seconds (Affected by CSPD)
+Base Cast Time: 3 seconds (Affected by CSPD)
 
 Effect:
 Generate an aura which gives a buff to party member's Guard and Evasion rate.
