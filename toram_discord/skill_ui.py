@@ -13,6 +13,7 @@ from toram_skill_search.models import (
     SkillDetailPayload,
     SkillHelpPayload,
     SkillPayload,
+    SkillResultItem,
     SkillResultsPayload,
     SkillUnavailablePayload,
 )
@@ -82,6 +83,33 @@ def build_skill_help_embed(
     )
 
 
+def _compact_skill_metadata(result: SkillResultItem) -> str:
+    skill = result.skill
+    parts = [result.tree.name]
+    if skill.tier is not None:
+        parts.append(f"Tier {skill.tier}")
+    if skill.mp_cost_value is not None:
+        parts.append(f"MP {skill.mp_cost_value}")
+    elif skill.mp_cost_text and skill.mp_cost_text.strip():
+        raw = skill.mp_cost_text.strip()
+        folded = raw.casefold()
+        if folded.startswith("mp "):
+            parts.append(raw)
+        elif folded.endswith("mp") and raw[:-2].strip():
+            parts.append(f"MP {raw[:-2].strip()}")
+        else:
+            parts.append(f"MP {raw}")
+    display_type = skill.damage_type or skill.skill_type
+    if display_type and display_type.strip():
+        parts.append(display_type.strip())
+    return " • ".join(parts)
+
+
+def _compact_skill_preview(text: str, limit: int = 160) -> str:
+    normalized = " ".join(str(text).split())
+    return truncate_discord_text(normalized, limit) if normalized else ""
+
+
 def build_skill_results_embed(
     payload: SkillResultsPayload,
     page: int,
@@ -106,9 +134,13 @@ def build_skill_results_embed(
     lines = ["Closest matches first", f"Showing {start + 1}–{end} of {total}", ""]
     for index in range(start, end):
         result = payload.results[index]
-        lines.append(f"{index + 1}. **{result.skill.name}** — {result.tree.name}")
-        if result.snippet.strip():
-            lines.append(f"   {truncate_discord_text(result.snippet, 300)}")
+        lines.append(f"{index + 1}. **{result.skill.name}**")
+        metadata = _compact_skill_metadata(result)
+        if metadata:
+            lines.append(f"   {metadata}")
+        preview = _compact_skill_preview(result.snippet)
+        if preview:
+            lines.append(f"   {preview}")
         lines.append("")
     return discord.Embed(
         title=truncate_discord_text(f"Skill search: {payload.query}", 256),
