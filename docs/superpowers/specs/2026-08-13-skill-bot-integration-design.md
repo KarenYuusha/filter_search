@@ -60,6 +60,8 @@ The hybrid searcher remains authoritative for ranking. Search scores and channel
 
 If retrieval yields no skill hits, return a deterministic no-match response plus a few example queries. Do not send the query to Qwen.
 
+This milestone does not invent a semantic confidence threshold. When the semantic channel is available, nearest-neighbor results are shown as ranked matches even for weak queries. The no-match response is used only when the active retrieval channels actually return no hits, such as lexical-only fallback with no lexical match.
+
 ## Architecture
 
 Use a separate frontend-neutral skill-search integration layer rather than extending the existing item `SearchService`.
@@ -289,7 +291,7 @@ Add focused tests before implementation changes, following the repository's exis
 - multiple exact matches return a result list, never an arbitrary detail;
 - exact resolution does not initialize the embedding provider;
 - free-text query returns canonical ranked results;
-- no-hit query returns deterministic no-match behavior;
+- no-hit query returns deterministic no-match behavior when all active channels are empty;
 - search hits are resolved back to canonical records.
 
 ### Semantic degradation
