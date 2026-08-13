@@ -7,10 +7,12 @@ from toram_skill_search.models import (
     SkillResultItem,
     SkillResultsPayload,
 )
+from toram_skill_search.runtime import DEFAULT_SEMANTIC_RUNTIME
 from toram_skills.hybrid_search import HybridSkillSearcher
 from toram_skills.models import SkillDraft
 from toram_skills.repository import SkillRepository
 from toram_skills.retrieval_config import DEFAULT_FUSION_CONFIG
+from toram_skills.semantic_search import EmbeddingIndexError, EmbeddingUnavailable
 
 
 def parse_skill_command(query: str) -> str | None:
@@ -48,7 +50,12 @@ def _result_item(repository: SkillRepository, skill: SkillDraft) -> SkillResultI
 
 
 class SkillSearchService:
-    def __init__(self, repository: SkillRepository, *, semantic_runtime=None) -> None:
+    def __init__(
+        self,
+        repository: SkillRepository,
+        *,
+        semantic_runtime=DEFAULT_SEMANTIC_RUNTIME,
+    ) -> None:
         self.repository = repository
         self.semantic_runtime = semantic_runtime
 
@@ -76,11 +83,24 @@ class SkillSearchService:
         return self._search_free_text(cleaned)
 
     def _search_free_text(self, query: str) -> SkillResultsPayload:
-        hits = HybridSkillSearcher(
+        semantic_index = (
+            None
+            if self.semantic_runtime is None
+            else self.semantic_runtime.get_index(self.repository)
+        )
+        searcher = HybridSkillSearcher(
             self.repository,
-            semantic_index=None,
+            semantic_index=semantic_index,
             fusion_config=DEFAULT_FUSION_CONFIG,
-        ).search(query, limit=20)
+        )
+        try:
+            hits = searcher.search(query, limit=20)
+        except (EmbeddingUnavailable, EmbeddingIndexError):
+            hits = HybridSkillSearcher(
+                self.repository,
+                semantic_index=None,
+                fusion_config=DEFAULT_FUSION_CONFIG,
+            ).search(query, limit=20)
         return SkillResultsPayload(
             query,
             tuple(
