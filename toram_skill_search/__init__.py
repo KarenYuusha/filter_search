@@ -7,7 +7,7 @@ from .models import (
     SkillUnavailablePayload,
 )
 from .runtime import DEFAULT_SEMANTIC_RUNTIME, SemanticRuntimeCache
-from .service import SkillSearchService, parse_skill_command
+from .service import SkillSearchService, parse_skill_command, run_skill_search
 
 __all__ = [
     "DEFAULT_SEMANTIC_RUNTIME",
@@ -20,4 +20,5 @@ __all__ = [
     "SkillSearchService",
     "SkillUnavailablePayload",
     "parse_skill_command",
+    "run_skill_search",
 ]
