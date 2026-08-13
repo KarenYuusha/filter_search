@@ -279,7 +279,15 @@ Magic Device bonus: Hit Range +2m
 Staff bonus takes precedence over Magic Device bonus
 Triple Thrust's Skill Constant buff is divided by the Hit Count
 
-Magic: Burst
+==================================================
+SKILL: MAGIC: BURST
+==================================================
+
+Category: Magic Skills
+Tier: IV
+Required Level: Level 150
+
+Source Details:
 Lv 4 Skill; No Limit
 MP Cost: 500
 Damage Type: Magic
@@ -289,6 +297,7 @@ Hit Count: 1 hit
 Maximum Cast Range: 8m
 Hit Range: Fan of 8m (levels 1 to 5)/ 9m (level 6)/ 10m (level 7)/ 11m (level 8)/ 12m (level 9)/ 13m (level 10) of radius and an angle of (40 + 2 * Skill Level)°
 Base Cast Time: 8 seconds; affected by Cast Speed
+
 Magic: Burst range:
 Red: position of main caster
 Blue: possible position of main target (the position doesn't really matter)
@@ -296,16 +305,6 @@ Green: area of Magic: Burst
 Purple: angle of Magic: Burst
 Black: the area of a circle skill if it had the same radius as Magic: Burst; this is mainly to describe the radius and the arc of Magic: Burst
 
-
-==================================================
-SKILL: MAGIC: BURST
-==================================================
-
-Category: Magic Skills
-Tier: Not explicitly specified in source
-Required Level: Not explicitly specified in source
-
-Source Details:
 Buff Effect:
 For every other attacking skill from the Magic Skill Tree cast, the buff gains a counter; this skill can have a maximum of 8 counters
 This skill's Total Cast Time is decreased by 1 second for each counter; this is applied after Cast Speed and Chain Cast calculations; only a maximum of 8 seconds can be reduced this way
@@ -317,13 +316,15 @@ Knockback Distance: 15m - 2 * mob's size in in-game meters
 Ailment Resistance: Mob Knockback Distance in seconds
 Now, Total Cast Time Reduction will affect this stack max counter limit.
 Visual Stack Max Count 0/8 if have 0 cspd, 0/4 if have 1k cspd, 0/3 if have 3250 cspd, 0/2 if have 5500 cspd, 0/1 if have 7750 cspd, lastly 0/0 if have 10k cspd. Tldr; basically it is just a visual stacks counter which helps you to show how many stacks you need to get insta cast burst. [Note: last time it works like this, but now bugged won't change visual Stack Max Count :/]
-Game Description: "Enhance magic power and shoot out. Chance to Knock Back the target aiming at you. Cast Time is very long, however, it is shortened by using Magic Skills before casting."
+
 Staff bonus: Skill Multiplier +(BaseINT/100)
 Magic Device bonus: Skill Multiplier +(BaseINT/200)
 Magic Device bonus: Fan radius +1m (levels 1 to 3)/ +2m (levels 4 to 6)/ +3m (levels 7 to 10)
 Magic Device bonus: Fan angle +5° (levels 1 to 3)/ +10° (levels 4 to 6)/ +15° (levels 7 to 10)
 Staff bonus takes precedence over Magic Device bonus
 
+Game Description:
+"Enhance magic power and shoot out. Chance to Knock Back the target aiming at you. Cast Time is very long, however, it is shortened by using Magic Skills before casting."
 
 ==================================================
 SKILL: MAGIC MASTERY
