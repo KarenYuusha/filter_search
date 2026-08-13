@@ -3,21 +3,46 @@ from __future__ import annotations
 from pathlib import Path
 import sqlite3
 
+from rapidfuzz import fuzz
+
 from toram_skill_search.models import (
     SkillDetailPayload,
     SkillHelpPayload,
     SkillPayload,
     SkillResultItem,
     SkillResultsPayload,
+    SkillTreeChoicesPayload,
+    SkillTreeConfirmationPayload,
+    SkillTreeHelpPayload,
+    SkillTreeNotFoundPayload,
+    SkillTreeResultsPayload,
     SkillUnavailablePayload,
 )
 from toram_skill_search.runtime import DEFAULT_SEMANTIC_RUNTIME
 from toram_skills.hybrid_search import HybridSkillSearcher
-from toram_skills.models import SkillDraft
+from toram_skills.models import SkillDraft, SkillTreeDraft
+from toram_skills.parsing import normalize_skill_name
 from toram_skills.repository import SkillRepository
 from toram_skills.retrieval_config import DEFAULT_FUSION_CONFIG
 from toram_skills.schema import SchemaError
 from toram_skills.semantic_search import EmbeddingIndexError, EmbeddingUnavailable
+
+TREE_PREFIX = "tree"
+TREE_FUZZY_MIN_SCORE = 80.0
+TREE_FUZZY_AMBIGUITY_MARGIN = 10.0
+
+
+def _tree_shorthand(name: str) -> str:
+    normalized = normalize_skill_name(name)
+    suffix = " skills"
+    return normalized[:-len(suffix)].strip() if normalized.endswith(suffix) else normalized
+
+
+def _tree_request(cleaned: str) -> tuple[bool, str]:
+    parts = cleaned.split(maxsplit=1)
+    if not parts or parts[0].casefold() != TREE_PREFIX:
+        return False, ""
+    return True, "" if len(parts) == 1 else parts[1].strip()
 
 
 def parse_skill_command(query: str) -> str | None:
@@ -64,6 +89,70 @@ class SkillSearchService:
         self.repository = repository
         self.semantic_runtime = semantic_runtime
 
+    def _tree_results(self, tree: SkillTreeDraft) -> SkillTreeResultsPayload:
+        return SkillTreeResultsPayload(
+            tree=tree,
+            results=tuple(
+                _result_item(self.repository, skill)
+                for skill in self.repository.list_skills_in_tree(tree.id)
+            ),
+        )
+
+    def _resolve_exact_tree(self, query: str) -> SkillTreeDraft | None:
+        exact = self.repository.resolve_tree_name(query)
+        if len(exact) == 1:
+            return exact[0]
+
+        normalized_query = normalize_skill_name(query)
+        shorthand_names = [
+            name
+            for name in self.repository.list_tree_names()
+            if _tree_shorthand(name) == normalized_query
+        ]
+        if len(shorthand_names) != 1:
+            return None
+        resolved = self.repository.resolve_tree_name(shorthand_names[0])
+        return resolved[0] if len(resolved) == 1 else None
+
+    def handle_tree_request(self, query: str) -> SkillPayload:
+        cleaned = " ".join(query.split())
+        names = tuple(self.repository.list_tree_names())
+        if not cleaned:
+            return SkillTreeHelpPayload(names)
+
+        exact = self._resolve_exact_tree(cleaned)
+        if exact is not None:
+            return self._tree_results(exact)
+
+        normalized_query = normalize_skill_name(cleaned)
+        scored: list[tuple[float, str]] = []
+        for name in names:
+            score = max(
+                fuzz.WRatio(normalized_query, normalize_skill_name(name)),
+                fuzz.WRatio(normalized_query, _tree_shorthand(name)),
+            )
+            scored.append((float(score), name))
+        scored.sort(key=lambda item: (-item[0], item[1].casefold(), item[1]))
+
+        suggestions = tuple(name for _, name in scored[:3])
+        if not scored or scored[0][0] < TREE_FUZZY_MIN_SCORE:
+            return SkillTreeNotFoundPayload(cleaned, suggestions)
+
+        best_score = scored[0][0]
+        actionable_names = [
+            name
+            for score, name in scored
+            if score >= TREE_FUZZY_MIN_SCORE
+            and score >= best_score - TREE_FUZZY_AMBIGUITY_MARGIN
+        ]
+        candidates = tuple(
+            self.repository.resolve_tree_name(name)[0]
+            for name in actionable_names
+        )
+        if len(candidates) == 1:
+            return SkillTreeConfirmationPayload(cleaned, candidates[0])
+        return SkillTreeChoicesPayload(cleaned, candidates)
+
     def handle(self, query: str) -> SkillPayload:
         cleaned = " ".join(str(query).split())
         if not cleaned:
@@ -72,6 +161,10 @@ class SkillSearchService:
                 "`skill magic finale`, `skill attack while moving`, "
                 "`skill inflict tumble`."
             )
+
+        is_tree_request, tree_query = _tree_request(cleaned)
+        if is_tree_request:
+            return self.handle_tree_request(tree_query)
 
         exact = self.repository.resolve_skill_name(cleaned)
         if len(exact) == 1:
@@ -142,4 +235,25 @@ def run_skill_search(
             repository.close()
 
 
-__all__ = ["SkillSearchService", "parse_skill_command", "run_skill_search"]
+def run_skill_tree_by_id(
+    database_path: Path,
+    tree_id: str,
+    *,
+    repository_factory=SkillRepository,
+) -> SkillTreeResultsPayload:
+    repository = None
+    try:
+        repository = repository_factory(Path(database_path).expanduser().resolve())
+        service = SkillSearchService(repository, semantic_runtime=None)
+        return service._tree_results(repository.get_tree(tree_id))
+    finally:
+        if repository is not None:
+            repository.close()
+
+
+__all__ = [
+    "SkillSearchService",
+    "parse_skill_command",
+    "run_skill_search",
+    "run_skill_tree_by_id",
+]

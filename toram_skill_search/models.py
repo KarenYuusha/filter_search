@@ -25,6 +25,35 @@ class SkillResultsPayload:
 
 
 @dataclass(frozen=True)
+class SkillTreeResultsPayload:
+    tree: SkillTreeDraft
+    results: tuple[SkillResultItem, ...]
+
+
+@dataclass(frozen=True)
+class SkillTreeConfirmationPayload:
+    query: str
+    suggested_tree: SkillTreeDraft
+
+
+@dataclass(frozen=True)
+class SkillTreeChoicesPayload:
+    query: str
+    candidates: tuple[SkillTreeDraft, ...]
+
+
+@dataclass(frozen=True)
+class SkillTreeNotFoundPayload:
+    query: str
+    suggestions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class SkillTreeHelpPayload:
+    tree_names: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class SkillHelpPayload:
     text: str
 
@@ -37,6 +66,11 @@ class SkillUnavailablePayload:
 SkillPayload = (
     SkillDetailPayload
     | SkillResultsPayload
+    | SkillTreeResultsPayload
+    | SkillTreeConfirmationPayload
+    | SkillTreeChoicesPayload
+    | SkillTreeNotFoundPayload
+    | SkillTreeHelpPayload
     | SkillHelpPayload
     | SkillUnavailablePayload
 )
@@ -48,5 +82,10 @@ __all__ = [
     "SkillPayload",
     "SkillResultItem",
     "SkillResultsPayload",
+    "SkillTreeChoicesPayload",
+    "SkillTreeConfirmationPayload",
+    "SkillTreeHelpPayload",
+    "SkillTreeNotFoundPayload",
+    "SkillTreeResultsPayload",
     "SkillUnavailablePayload",
 ]

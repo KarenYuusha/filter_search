@@ -57,6 +57,7 @@ async def process_tagged_query(
                 sessions=sessions,
                 key=key,
                 generation=session.generation,
+                database_path=config.skill_database_path,
             )
             await message.reply(
                 embed=embed,
