@@ -3,8 +3,10 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from types import SimpleNamespace
+import tempfile
 import unittest
 
+from toram_skill_search import SkillUnavailablePayload, run_skill_search
 from toram_skill_search.runtime import SemanticRuntimeCache
 from toram_skill_search.service import SkillSearchService, parse_skill_command
 from toram_skills.repository import SkillRepository
@@ -210,6 +212,21 @@ class SkillSearchServiceTests(unittest.TestCase):
         ).handle("magic: finale")
         self.assertEqual(type(free_text).__name__, "SkillResultsPayload")
         self.assertEqual(type(exact).__name__, "SkillDetailPayload")
+
+    def test_missing_skill_database_returns_unavailable(self):
+        payload = run_skill_search(
+            Path("/definitely/missing/skills.sqlite"),
+            "magic finale",
+        )
+        self.assertIsInstance(payload, SkillUnavailablePayload)
+        self.assertIn("unavailable", payload.text.casefold())
+
+    def test_corrupt_skill_database_returns_unavailable(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "skills.sqlite"
+            path.write_bytes(b"not a sqlite database")
+            payload = run_skill_search(path, "magic finale")
+        self.assertIsInstance(payload, SkillUnavailablePayload)
 
 
 class SemanticRuntimeCacheTests(unittest.TestCase):
