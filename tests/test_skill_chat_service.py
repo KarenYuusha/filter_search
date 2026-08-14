@@ -113,16 +113,21 @@ class SkillChatServiceTests(unittest.TestCase):
         self.assertEqual(self.context.active_skill_ids, result.skill_ids)
         self.assertIsNone(self.context.selected_skill_id)
 
-    def test_full_comparison_uses_one_grounded_rag_call(self):
+    def test_full_comparison_is_structured_without_rag(self):
         result = self.service.answer(
             "compare Protection and Aegis",
             context=self.context,
         )
 
-        self.assertEqual(result.kind, "answer")
-        self.assertEqual(result.text, "Grounded database explanation.")
+        self.assertEqual(result.kind, "structured")
         self.assertEqual(len(result.skill_ids), 2)
-        self.assertEqual(len(self.client.calls), 1)
+        rendered = (result.text or "").casefold()
+        self.assertIn("protection", rendered)
+        self.assertIn("aegis", rendered)
+        self.assertIn("tree", rendered)
+        self.assertIn("mp", rendered)
+        self.assertIn("tier", rendered)
+        self.assertEqual(self.client.calls, [])
         self.assertEqual(self.context.active_skill_ids, result.skill_ids)
         self.assertIsNone(self.context.selected_skill_id)
 
