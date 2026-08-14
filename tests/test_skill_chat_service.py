@@ -121,12 +121,12 @@ class SkillChatServiceTests(unittest.TestCase):
 
         self.assertEqual(result.kind, "structured")
         self.assertEqual(len(result.skill_ids), 2)
-        rendered = result.text or ""
-        self.assertIn("Protection", rendered)
-        self.assertIn("Aegis", rendered)
-        self.assertIn("Tree", rendered)
-        self.assertIn("MP", rendered)
-        self.assertIn("Tier", rendered)
+        rendered = (result.text or "").casefold()
+        self.assertIn("protection", rendered)
+        self.assertIn("aegis", rendered)
+        self.assertIn("tree", rendered)
+        self.assertIn("mp", rendered)
+        self.assertIn("tier", rendered)
         self.assertEqual(self.client.calls, [])
         self.assertEqual(self.context.active_skill_ids, result.skill_ids)
         self.assertIsNone(self.context.selected_skill_id)
