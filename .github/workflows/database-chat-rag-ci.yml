@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feat/database-chat-rag
+      - fix/rich-skill-chat-presentation
   workflow_dispatch:
 
 jobs:
