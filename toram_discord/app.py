@@ -22,6 +22,11 @@ from toram_discord.views import build_service_outcome_message, run_query_sync
 
 
 logger = logging.getLogger(__name__)
+RESET_QUERIES = frozenset({"reset", "clear", "new search"})
+
+
+def _is_reset_query(query: str) -> bool:
+    return " ".join(str(query).casefold().split()) in RESET_QUERIES
 
 
 async def process_tagged_query(
@@ -37,6 +42,16 @@ async def process_tagged_query(
         query = "help"
     key: SessionKey = (message.guild.id, message.channel.id, message.author.id)
     session = sessions.start_query(key, query)
+
+    if _is_reset_query(query):
+        sessions.clear_chat_context(key)
+        session.failed_context.clear()
+        await message.reply(
+            content="Search context cleared. Start a new item, skill, or database question.",
+            mention_author=False,
+            allowed_mentions=discord.AllowedMentions.none(),
+        )
+        return
 
     skill_query = parse_skill_command(query)
     if skill_query is not None:
