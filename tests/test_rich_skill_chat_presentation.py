@@ -128,6 +128,41 @@ class RichSkillChatPresentationTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("hard hit", (embeds[0].title or "").casefold())
         self.assertEqual(embeds[-1].title, "Explanation")
 
+    async def test_rich_detail_load_failure_falls_back_to_compact_chat_embed(self):
+        message = _Message("<@99> how does Hard Hit work")
+        outcome = DatabaseChatOutcome(
+            kind="skill",
+            skill_result=SkillChatResult(
+                kind="answer",
+                text="Grounded Hard Hit explanation.",
+                skill_ids=(self.skill_id,),
+            ),
+            skill_ids=(self.skill_id,),
+        )
+
+        with patch(
+            "toram_discord.app.run_database_chat_sync",
+            return_value=outcome,
+        ), patch(
+            "toram_discord.app.run_skill_detail_by_id_sync",
+            side_effect=FileNotFoundError("skill detail unavailable"),
+        ), patch(
+            "toram_discord.app.run_query_sync",
+            side_effect=AssertionError("item fallback must not run"),
+        ):
+            await process_tagged_query(
+                message,
+                bot_user=self.bot_user,
+                config=self.config,
+                sessions=DiscordSessionManager(),
+            )
+
+        self.assertEqual(len(message.replies), 1)
+        reply = message.replies[0]
+        self.assertIn("embed", reply)
+        self.assertNotIn("embeds", reply)
+        self.assertEqual(reply["embed"].description, "Grounded Hard Hit explanation.")
+
     async def test_structured_single_skill_answer_keeps_compact_chat_embed(self):
         message = _Message("<@99> guardian mp cost")
         outcome = DatabaseChatOutcome(
