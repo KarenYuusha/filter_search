@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import logging
 import re
 
 from .llm import SkillRagResponseError, SkillRagUnavailableError
 from .models import SkillChatResult, SkillEvidence
 
+
+logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """You answer questions about the local Toram skill database.
 
@@ -139,7 +142,9 @@ class GroundedSkillRag:
         required_skill_ids: tuple[str, ...] = (),
         general_mechanic: bool = False,
     ) -> SkillChatResult:
+        document_ids = tuple(chunk.document_id for chunk in evidence)
         if _is_unsupported_recommendation(question):
+            logger.debug("skill rag gemma_called=False fallback=unsupported_recommendation")
             return SkillChatResult(kind="refuse", text=_REFUSAL_TEXT)
 
         sufficient = bool(evidence) and _evidence_covers_required_skills(
@@ -149,6 +154,10 @@ class GroundedSkillRag:
         if sufficient and general_mechanic:
             sufficient = _mechanic_evidence_is_relevant(question, evidence)
         if not sufficient:
+            logger.debug(
+                "skill rag gemma_called=False fallback=insufficient_evidence document_ids=%s",
+                document_ids,
+            )
             return SkillChatResult(
                 kind="not_found",
                 text=(
@@ -157,9 +166,28 @@ class GroundedSkillRag:
                 evidence=evidence,
             )
 
+        logger.debug(
+            "skill rag gemma_called=True document_ids=%s",
+            document_ids,
+        )
         try:
             answer = self.client.complete(SYSTEM_PROMPT, _user_prompt(question, evidence))
-        except (SkillRagUnavailableError, SkillRagResponseError):
+        except SkillRagUnavailableError:
+            logger.debug(
+                "skill rag fallback=llm_unavailable document_ids=%s",
+                document_ids,
+            )
+            return SkillChatResult(
+                kind="answer",
+                text=_fallback_text(evidence),
+                skill_ids=_skill_ids(evidence),
+                evidence=evidence,
+            )
+        except SkillRagResponseError:
+            logger.debug(
+                "skill rag fallback=llm_response_error document_ids=%s",
+                document_ids,
+            )
             return SkillChatResult(
                 kind="answer",
                 text=_fallback_text(evidence),
