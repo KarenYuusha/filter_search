@@ -11,11 +11,11 @@ from toram_discord.app import process_tagged_query
 from toram_discord.config import DiscordBotConfig
 from toram_discord.database_chat import DatabaseChatOutcome
 from toram_discord.sessions import DiscordSessionManager
-from toram_discord.skill_ui import (
-    SkillRenderedMessage,
+from toram_discord.skill_chat_ui import (
     build_skill_chat_detail_message,
     run_skill_detail_by_id_sync,
 )
+from toram_discord.skill_ui import SkillRenderedMessage
 from toram_skill_chat.models import SkillChatResult
 from toram_skill_search.models import SkillDetailPayload
 from toram_skills.repository import SkillRepository
