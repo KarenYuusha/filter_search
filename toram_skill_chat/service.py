@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import fields
+import logging
 
 from toram_skills.models import SkillDraft
 from toram_skills.repository import SkillRepository
@@ -11,6 +12,7 @@ from .retrieval import SkillEvidenceRetriever
 from .router import SkillChatRouter
 
 
+logger = logging.getLogger(__name__)
 _NOT_FOUND_TEXT = "I couldn't find enough matching skill database information for that question."
 
 
@@ -63,10 +65,7 @@ class SkillChatService:
         direction = plan.direction
         if field not in COMPARABLE_FIELDS or direction not in ("asc", "desc"):
             return ()
-        candidates = [
-            self.repository.get_skill(skill_id)
-            for skill_id in plan.skill_ids
-        ]
+        candidates = [self.repository.get_skill(skill_id) for skill_id in plan.skill_ids]
         candidates = [skill for skill in candidates if getattr(skill, field) is not None]
         if direction == "asc":
             candidates.sort(
@@ -177,6 +176,7 @@ class SkillChatService:
 
     def _rag_answer(self, query: str, plan: SkillChatPlan) -> SkillChatResult:
         if self.rag is None:
+            logger.debug("skill chat rag unavailable reason=no_rag_service")
             return SkillChatResult(
                 kind="unavailable",
                 text="A synthesized skill explanation is currently unavailable.",
@@ -186,6 +186,11 @@ class SkillChatService:
             skill_ids=plan.skill_ids,
             limit=self.top_k,
             max_chars=self.max_context_chars,
+        )
+        logger.debug(
+            "skill chat evidence intent=%s document_ids=%s",
+            plan.intent,
+            tuple(chunk.document_id for chunk in evidence),
         )
         return self.rag.answer(
             query,
@@ -228,6 +233,13 @@ class SkillChatService:
 
     def answer(self, query: str, *, context) -> SkillChatResult:
         plan = self.router.route(query, context=context)
+        logger.debug(
+            "skill chat route intent=%s field=%s direction=%s skill_ids=%s",
+            plan.intent,
+            plan.field,
+            plan.direction,
+            plan.skill_ids,
+        )
 
         if plan.intent == "refuse":
             return SkillChatResult(kind="refuse", text=plan.refusal_reason)
@@ -251,6 +263,7 @@ class SkillChatService:
         else:
             result = SkillChatResult(kind="not_found", text=_NOT_FOUND_TEXT)
 
+        logger.debug("skill chat outcome kind=%s", result.kind)
         self._update_context(
             context,
             query=query,
