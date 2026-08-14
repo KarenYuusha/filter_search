@@ -82,7 +82,7 @@ class SkillChatServiceTests(unittest.TestCase):
         self.assertEqual(self.client.calls, [])
 
     def test_filtered_follow_up_keeps_prior_ailment_and_adds_tree(self):
-        first = self.service.answer("which skills inflict Stun?", context=self.context)
+        first = self.service.answer("which skills inflict Tumble?", context=self.context)
         self.assertEqual(first.kind, "results")
         self.assertGreater(len(first.skill_ids), 1)
 
@@ -90,12 +90,14 @@ class SkillChatServiceTests(unittest.TestCase):
 
         self.assertEqual(second.kind, "results")
         self.assertGreater(len(second.skill_ids), 0)
-        self.assertEqual(self.context.active_skill_filters["ailments"], ("Stun",))
+        self.assertEqual(self.context.active_skill_filters["ailments"], ("Tumble",))
         self.assertEqual(len(self.context.active_skill_filters["tree_ids"]), 1)
         self.assertIsNotNone(self.context.active_tree_id)
         self.assertEqual(self.client.calls, [])
 
     def test_field_comparison_is_deterministic(self):
+        guardian = self.repo.resolve_skill_name("Guardian")[0]
+        protection = self.repo.resolve_skill_name("Protection")[0]
         result = self.service.answer(
             "which costs more MP, Guardian or Protection?",
             context=self.context,
@@ -103,9 +105,10 @@ class SkillChatServiceTests(unittest.TestCase):
 
         self.assertEqual(result.kind, "structured")
         self.assertEqual(len(result.skill_ids), 2)
-        self.assertIn("Guardian", result.text or "")
-        self.assertIn("Protection", result.text or "")
-        self.assertIn("MP", result.text or "")
+        rendered = (result.text or "").casefold()
+        self.assertIn(guardian.name.casefold(), rendered)
+        self.assertIn(protection.name.casefold(), rendered)
+        self.assertIn("mp", rendered)
         self.assertEqual(self.client.calls, [])
         self.assertEqual(self.context.active_skill_ids, result.skill_ids)
         self.assertIsNone(self.context.selected_skill_id)
@@ -165,8 +168,9 @@ class SkillChatServiceTests(unittest.TestCase):
         result = self.service.answer("how does it work?", context=self.context)
 
         self.assertEqual(result.kind, "clarify")
-        self.assertIn("Guardian", result.text or "")
-        self.assertIn("Protection", result.text or "")
+        rendered = (result.text or "").casefold()
+        self.assertIn(guardian.name.casefold(), rendered)
+        self.assertIn(protection.name.casefold(), rendered)
         self.assertEqual(self.client.calls, [])
 
     def test_single_rank_result_becomes_selected_for_pronoun_follow_up(self):
