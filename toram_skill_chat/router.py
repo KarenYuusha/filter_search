@@ -232,10 +232,21 @@ class SkillChatRouter:
                 )
 
         skill_ids = self._skill_ids(normalized)
+        tree_id = self._tree_id(normalized)
+
+        if tree_id is not None and (
+            normalized.endswith("skill tree")
+            or normalized.endswith("skills tree")
+            or normalized.startswith("skill tree ")
+        ):
+            return SkillChatPlan(
+                intent="filter",
+                filters=SkillChatFilter(tree_ids=(tree_id,)),
+                limit=20,
+            )
 
         if "mp" in normalized and any(word in normalized for word in ("highest", "lowest", "least")):
             direction = "desc" if "highest" in normalized else "asc"
-            tree_id = self._tree_id(normalized)
             filters = SkillChatFilter(tree_ids=(tree_id,)) if tree_id else SkillChatFilter()
             return SkillChatPlan(
                 intent="rank",
