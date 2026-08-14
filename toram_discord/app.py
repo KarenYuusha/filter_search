@@ -87,6 +87,8 @@ async def _reply_skill_chat_result(
                 config.skill_database_path,
                 result.skill_ids[0],
             )
+            if not sessions.is_current(key, session.generation):
+                return
             rendered = build_skill_chat_detail_message(
                 detail_payload,
                 result.text,
@@ -99,6 +101,8 @@ async def _reply_skill_chat_result(
                 "rich skill chat detail unavailable; using compact chat embed",
                 exc_info=True,
             )
+            if not sessions.is_current(key, session.generation):
+                return
         else:
             kwargs = {
                 "embeds": list(rendered.embeds),
