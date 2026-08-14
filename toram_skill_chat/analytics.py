@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from toram_skills.models import SkillDraft
 from toram_skills.repository import SkillRepository
@@ -36,25 +36,86 @@ class SkillAnalytics:
     def __init__(self, repository: SkillRepository) -> None:
         self.repository = repository
 
+    def _documented_positive_ailment_ids(
+        self,
+        ailments: tuple[str, ...],
+    ) -> set[str]:
+        """Find conservative positive prose evidence such as 'inflict STUN'."""
+        matched: set[str] = set()
+        for ailment in ailments:
+            term = " ".join(str(ailment).casefold().split())
+            if not term:
+                continue
+            positive_patterns = (
+                f"%inflict {term}%",
+                f"%inflicts {term}%",
+                f"%cause {term}%",
+                f"%causes {term}%",
+            )
+            rows = self.repository.connection.execute(
+                """
+                SELECT DISTINCT skill_id, LOWER(text) AS lowered_text
+                FROM skill_search_documents
+                WHERE LOWER(text) LIKE ?
+                   OR LOWER(text) LIKE ?
+                   OR LOWER(text) LIKE ?
+                   OR LOWER(text) LIKE ?
+                ORDER BY skill_id
+                """,
+                positive_patterns,
+            )
+            for row in rows:
+                text = str(row["lowered_text"])
+                negative_phrases = (
+                    f"cannot inflict {term}",
+                    f"can't inflict {term}",
+                    f"does not inflict {term}",
+                    f"doesn't inflict {term}",
+                    f"not inflict {term}",
+                    f"cannot cause {term}",
+                    f"does not cause {term}",
+                )
+                if any(phrase in text for phrase in negative_phrases):
+                    continue
+                matched.add(str(row["skill_id"]))
+        return matched
+
     def filter_skills(
         self,
         filters: SkillChatFilter = SkillChatFilter(),
     ) -> tuple[SkillDraft, ...]:
-        return tuple(
-            self.repository.get_skill(skill_id)
-            for skill_id in structured_skill_ids(
+        if not filters.ailments:
+            skill_ids = structured_skill_ids(
                 self.repository,
                 _search_filters(filters),
             )
-        )
+            return tuple(self.repository.get_skill(skill_id) for skill_id in skill_ids)
 
-    def count(self, filters: SkillChatFilter = SkillChatFilter()) -> int:
-        return len(
+        # Structured ailment rows remain authoritative when present. For older parser
+        # records where a positive ailment is documented only in prose (for example
+        # "Chance to inflict STUN"), conservatively union that evidence while still
+        # applying every other structured filter such as tree/weapon/tier.
+        eligible_ids = structured_skill_ids(
+            self.repository,
+            _search_filters(replace(filters, ailments=())),
+        )
+        eligible = set(eligible_ids)
+        structured_matches = set(
             structured_skill_ids(
                 self.repository,
                 _search_filters(filters),
             )
         )
+        documented_matches = self._documented_positive_ailment_ids(filters.ailments)
+        matched = structured_matches | (documented_matches & eligible)
+        return tuple(
+            self.repository.get_skill(skill_id)
+            for skill_id in eligible_ids
+            if skill_id in matched
+        )
+
+    def count(self, filters: SkillChatFilter = SkillChatFilter()) -> int:
+        return len(self.filter_skills(filters))
 
     def rank(
         self,
