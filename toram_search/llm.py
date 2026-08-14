@@ -29,7 +29,12 @@ class OllamaQwenClient:
         client: object | None = None,
         client_factory: Callable[..., object] = ollama.Client,
     ) -> None:
-        self.model = model or os.environ.get("OLLAMA_MODEL", DEFAULT_MODEL)
+        self.model = (
+            model
+            or os.environ.get("ITEM_LLM_MODEL", "").strip()
+            or os.environ.get("OLLAMA_MODEL", "").strip()
+            or DEFAULT_MODEL
+        )
         if client is not None:
             self._client = client
             return
