@@ -24,6 +24,10 @@ from toram_discord.database_chat import (
     run_database_chat_sync,
 )
 from toram_discord.sessions import DiscordSessionManager, SessionKey
+from toram_discord.skill_chat_ui import (
+    build_skill_chat_detail_message,
+    run_skill_detail_by_id_sync,
+)
 from toram_discord.skill_ui import build_skill_payload_message, run_skill_query_sync
 from toram_discord.views import build_service_outcome_message, run_query_sync
 
@@ -65,6 +69,54 @@ async def _reply_item_outcome(
     if file is not None:
         kwargs["file"] = file
     await message.reply(**kwargs)
+
+
+async def _reply_skill_chat_result(
+    message,
+    result,
+    *,
+    config: DiscordBotConfig,
+    sessions: DiscordSessionManager,
+    key: SessionKey,
+    session,
+) -> None:
+    if result.kind == "answer" and len(result.skill_ids) == 1:
+        try:
+            detail_payload = await asyncio.to_thread(
+                run_skill_detail_by_id_sync,
+                config.skill_database_path,
+                result.skill_ids[0],
+            )
+            rendered = build_skill_chat_detail_message(
+                detail_payload,
+                result.text,
+                sessions=sessions,
+                key=key,
+                generation=session.generation,
+            )
+        except Exception:
+            logger.debug(
+                "rich skill chat detail unavailable; using compact chat embed",
+                exc_info=True,
+            )
+        else:
+            kwargs = {
+                "embeds": list(rendered.embeds),
+                "view": rendered.view,
+                "mention_author": False,
+                "allowed_mentions": discord.AllowedMentions.none(),
+            }
+            if rendered.files:
+                kwargs["files"] = list(rendered.files)
+            await message.reply(**kwargs)
+            return
+
+    await message.reply(
+        embed=build_skill_chat_embed(result),
+        view=None,
+        mention_author=False,
+        allowed_mentions=discord.AllowedMentions.none(),
+    )
 
 
 async def process_tagged_query(
@@ -179,11 +231,13 @@ async def process_tagged_query(
             )
             return
         if chat_outcome.kind == "skill" and chat_outcome.skill_result is not None:
-            await message.reply(
-                embed=build_skill_chat_embed(chat_outcome.skill_result),
-                view=None,
-                mention_author=False,
-                allowed_mentions=discord.AllowedMentions.none(),
+            await _reply_skill_chat_result(
+                message,
+                chat_outcome.skill_result,
+                config=config,
+                sessions=sessions,
+                key=key,
+                session=session,
             )
             return
         if chat_outcome.kind == "mixed":
