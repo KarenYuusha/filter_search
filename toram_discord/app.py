@@ -16,6 +16,13 @@ from toram_discord.config import (
     load_config,
     load_project_environment,
 )
+from toram_discord.database_chat import (
+    build_database_chat_help_embed,
+    build_mixed_chat_message,
+    build_skill_chat_embed,
+    is_database_chat_candidate,
+    run_database_chat_sync,
+)
 from toram_discord.sessions import DiscordSessionManager, SessionKey
 from toram_discord.skill_ui import build_skill_payload_message, run_skill_query_sync
 from toram_discord.views import build_service_outcome_message, run_query_sync
@@ -27,6 +34,37 @@ RESET_QUERIES = frozenset({"reset", "clear", "new search"})
 
 def _is_reset_query(query: str) -> bool:
     return " ".join(str(query).casefold().split()) in RESET_QUERIES
+
+
+async def _reply_item_outcome(
+    message,
+    outcome,
+    *,
+    bot_user,
+    config: DiscordBotConfig,
+    sessions: DiscordSessionManager,
+    key: SessionKey,
+    session,
+) -> None:
+    if outcome.kind == "search" and not isinstance(outcome.payload, StatClarificationPayload):
+        session.failed_context.clear()
+    embed, view, file = build_service_outcome_message(
+        outcome,
+        bot_example_prefix=bot_example_prefix(message.guild, bot_user),
+        sessions=sessions,
+        key=key,
+        generation=session.generation,
+        database_path=config.database_path,
+    )
+    kwargs = {
+        "embed": embed,
+        "view": view,
+        "mention_author": False,
+        "allowed_mentions": discord.AllowedMentions.none(),
+    }
+    if file is not None:
+        kwargs["file"] = file
+    await message.reply(**kwargs)
 
 
 async def process_tagged_query(
@@ -48,6 +86,15 @@ async def process_tagged_query(
         session.failed_context.clear()
         await message.reply(
             content="Search context cleared. Start a new item, skill, or database question.",
+            mention_author=False,
+            allowed_mentions=discord.AllowedMentions.none(),
+        )
+        return
+
+    if query.casefold() == "help":
+        await message.reply(
+            embed=build_database_chat_help_embed(bot_example_prefix(message.guild, bot_user)),
+            view=None,
             mention_author=False,
             allowed_mentions=discord.AllowedMentions.none(),
         )
@@ -101,6 +148,59 @@ async def process_tagged_query(
             )
         return
 
+    if is_database_chat_candidate(query, session.chat_context):
+        chat_outcome = await asyncio.to_thread(
+            run_database_chat_sync,
+            config.database_path,
+            config.skill_database_path,
+            query,
+            session.chat_context,
+            skill_rag_model=config.skill_rag_model,
+            ollama_host=config.ollama_host,
+            skill_rag_top_k=config.skill_rag_top_k,
+            skill_rag_max_context_chars=config.skill_rag_max_context_chars,
+            skill_rag_max_output_tokens=config.skill_rag_max_output_tokens,
+            skill_rag_keep_alive=config.skill_rag_keep_alive,
+        )
+        if not sessions.is_current(key, session.generation):
+            return
+        session = sessions.get(key)
+        if session is None:
+            return
+        if chat_outcome.kind == "item" and chat_outcome.item_outcome is not None:
+            await _reply_item_outcome(
+                message,
+                chat_outcome.item_outcome,
+                bot_user=bot_user,
+                config=config,
+                sessions=sessions,
+                key=key,
+                session=session,
+            )
+            return
+        if chat_outcome.kind == "skill" and chat_outcome.skill_result is not None:
+            await message.reply(
+                embed=build_skill_chat_embed(chat_outcome.skill_result),
+                view=None,
+                mention_author=False,
+                allowed_mentions=discord.AllowedMentions.none(),
+            )
+            return
+        if chat_outcome.kind == "mixed":
+            embed, view = build_mixed_chat_message(
+                chat_outcome,
+                sessions=sessions,
+                key=key,
+                generation=session.generation,
+            )
+            await message.reply(
+                embed=embed,
+                view=view,
+                mention_author=False,
+                allowed_mentions=discord.AllowedMentions.none(),
+            )
+            return
+
     outcome = await asyncio.to_thread(
         run_query_sync,
         config.database_path,
@@ -112,25 +212,15 @@ async def process_tagged_query(
     session = sessions.get(key)
     if session is None:
         return
-    if outcome.kind == "search" and not isinstance(outcome.payload, StatClarificationPayload):
-        session.failed_context.clear()
-    embed, view, file = build_service_outcome_message(
+    await _reply_item_outcome(
+        message,
         outcome,
-        bot_example_prefix=bot_example_prefix(message.guild, bot_user),
+        bot_user=bot_user,
+        config=config,
         sessions=sessions,
         key=key,
-        generation=session.generation,
-        database_path=config.database_path,
+        session=session,
     )
-    kwargs = {
-        "embed": embed,
-        "view": view,
-        "mention_author": False,
-        "allowed_mentions": discord.AllowedMentions.none(),
-    }
-    if file is not None:
-        kwargs["file"] = file
-    await message.reply(**kwargs)
 
 
 def create_client(config: DiscordBotConfig) -> discord.Client:
