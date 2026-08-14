@@ -3,11 +3,20 @@ from __future__ import annotations
 from pathlib import Path
 import unittest
 
+import search_items as core
+
 from toram_discord.database_chat import (
+    DatabaseChatOutcome,
+    build_database_chat_help_embed,
+    build_mixed_chat_message,
+    build_skill_chat_embed,
+    is_database_chat_candidate,
     probe_item_deterministically,
     run_database_chat_sync,
 )
-from toram_discord.sessions import DatabaseChatContext
+from toram_discord.sessions import DatabaseChatContext, DiscordSessionManager
+from toram_search.service import ItemResultsPayload, ServiceOutcome
+from toram_skill_chat.models import SkillChatResult, SkillEvidence
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -27,8 +36,6 @@ class _ForbiddenSkillRepository:
 
 class DatabaseChatRoutingTests(unittest.TestCase):
     def test_deterministic_item_probe_never_calls_llm(self):
-        import search_items as core
-
         repo = core.ItemRepository(ITEM_DATABASE)
         try:
             item = probe_item_deterministically(repo, "cr bow")
@@ -115,6 +122,97 @@ class DatabaseChatRoutingTests(unittest.TestCase):
             context,
         )
         self.assertEqual(outcome.kind, "item")
+
+    def test_candidate_detection_keeps_short_item_queries_on_existing_fast_path(self):
+        self.assertFalse(is_database_chat_candidate("cr bow", DatabaseChatContext()))
+        self.assertFalse(is_database_chat_candidate("hp armor", DatabaseChatContext()))
+        self.assertTrue(is_database_chat_candidate("which skill has the highest MP cost?", DatabaseChatContext()))
+        self.assertTrue(is_database_chat_candidate("what gives crit rate?", DatabaseChatContext()))
+        context = DatabaseChatContext(active_domain="skill", active_skill_ids=("x",))
+        self.assertTrue(is_database_chat_candidate("only shield skills", context))
+
+
+class DatabaseChatRenderingTests(unittest.TestCase):
+    def test_top_level_help_contains_item_skill_natural_and_reset_examples(self):
+        embed = build_database_chat_help_embed("@Toram Search")
+        visible = "\n".join(
+            [embed.title or "", embed.description or ""]
+            + [field.name + "\n" + field.value for field in embed.fields]
+        )
+        self.assertIn("Item Search", visible)
+        self.assertIn("Skill Search", visible)
+        self.assertIn("Ask Naturally", visible)
+        self.assertIn("@Toram Search skill hard hit", visible)
+        self.assertIn("@Toram Search how does Hard Hit work?", visible)
+        self.assertIn("@Toram Search reset", visible)
+
+    def test_skill_refusal_explains_available_objective_comparisons(self):
+        embed = build_skill_chat_embed(
+            SkillChatResult(kind="refuse", text="No subjective recommendation.")
+        )
+        visible = (embed.description or "").casefold()
+        self.assertIn("objective", visible)
+        self.assertIn("mp cost", visible)
+        self.assertIn("ailments", visible)
+
+    def test_mixed_render_shows_three_per_section_and_more_buttons(self):
+        item_rows = tuple(
+            core.RankedItem(
+                core.ItemSummary(index, f"Item {index}", "Armor"),
+                100.0 - index,
+                "exact",
+            )
+            for index in range(1, 6)
+        )
+        item_outcome = ServiceOutcome(
+            "search",
+            payload=ItemResultsPayload("crit rate", item_rows),
+        )
+        evidence = tuple(
+            SkillEvidence(
+                document_id=f"skill-{index}#summary",
+                skill_id=f"skill-{index}",
+                skill_name=f"Skill {index}",
+                tree_name="Test Tree",
+                text=f"Skill {index} context",
+                source_kind="summary",
+            )
+            for index in range(1, 6)
+        )
+        skill_result = SkillChatResult(
+            kind="results",
+            text="skills",
+            skill_ids=tuple(f"skill-{index}" for index in range(1, 6)),
+            evidence=evidence,
+        )
+        outcome = DatabaseChatOutcome(
+            kind="mixed",
+            item_outcome=item_outcome,
+            skill_result=skill_result,
+            item_ids=tuple(range(1, 6)),
+            skill_ids=skill_result.skill_ids,
+        )
+        sessions = DiscordSessionManager()
+        key = (10, 30, 20)
+        session = sessions.start_query(key, "what gives crit rate?")
+
+        embed, view = build_mixed_chat_message(
+            outcome,
+            sessions=sessions,
+            key=key,
+            generation=session.generation,
+        )
+
+        fields = {field.name: field.value for field in embed.fields}
+        self.assertIn("Items", fields)
+        self.assertIn("Skills", fields)
+        self.assertIn("Item 3", fields["Items"])
+        self.assertNotIn("Item 4", fields["Items"])
+        self.assertIn("Skill 3", fields["Skills"])
+        self.assertNotIn("Skill 4", fields["Skills"])
+        labels = {getattr(child, "label", None) for child in view.children}
+        self.assertIn("More Items", labels)
+        self.assertIn("More Skills", labels)
 
 
 if __name__ == "__main__":
