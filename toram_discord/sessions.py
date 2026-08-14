@@ -22,6 +22,45 @@ class DatabaseChatContext:
     last_metric: str | None = None
     last_user_query: str | None = None
 
+    def __post_init__(self) -> None:
+        self._normalize_domain_state()
+
+    def __setattr__(self, name: str, value: object) -> None:
+        if name != "active_domain":
+            object.__setattr__(self, name, value)
+            return
+
+        previous = self.__dict__.get("active_domain")
+        object.__setattr__(self, name, value)
+        if previous is None or previous == value:
+            return
+        if value == "item":
+            object.__setattr__(self, "active_skill_ids", ())
+            object.__setattr__(self, "selected_skill_id", None)
+            object.__setattr__(self, "active_tree_id", None)
+            object.__setattr__(self, "active_skill_filters", {})
+        elif value == "skill":
+            object.__setattr__(self, "active_item_ids", ())
+            object.__setattr__(self, "selected_item_id", None)
+        elif value == "mixed":
+            object.__setattr__(self, "selected_skill_id", None)
+            object.__setattr__(self, "selected_item_id", None)
+            object.__setattr__(self, "active_tree_id", None)
+            object.__setattr__(self, "active_skill_filters", {})
+
+    def _normalize_domain_state(self) -> None:
+        if self.active_domain == "item":
+            self.active_skill_ids = ()
+            self.selected_skill_id = None
+            self.active_tree_id = None
+            self.active_skill_filters = {}
+        elif self.active_domain == "skill":
+            self.active_item_ids = ()
+            self.selected_item_id = None
+        elif self.active_domain == "mixed":
+            self.selected_skill_id = None
+            self.selected_item_id = None
+
     def clear(self) -> None:
         self.active_domain = None
         self.active_skill_ids = ()
