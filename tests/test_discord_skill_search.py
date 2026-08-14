@@ -497,20 +497,32 @@ class DiscordSkillDetailInteractionTests(unittest.IsolatedAsyncioTestCase):
         next_interaction = FakeInteraction()
         await first._next(next_interaction)
         next_edit = next_interaction.response.edits[-1]
-        self.assertEqual(next_edit["embed"].footer.text, f"Page 2 / {len(self.long_pages)}")
+        self.assertIn("attachments", next_edit)
+        self.assertEqual(
+            next_edit["embeds"][0].footer.text,
+            f"Page 2 / {len(self.long_pages)}",
+        )
         self.assertEqual(session.page, 1)
 
         second_view = next_edit["view"]
         previous_interaction = FakeInteraction()
         await second_view._previous(previous_interaction)
         previous_edit = previous_interaction.response.edits[-1]
-        self.assertEqual(previous_edit["embed"].footer.text, f"Page 1 / {len(self.long_pages)}")
+        self.assertIn("attachments", previous_edit)
+        self.assertEqual(
+            previous_edit["embeds"][0].footer.text,
+            f"Page 1 / {len(self.long_pages)}",
+        )
         self.assertEqual(session.page, 1)
 
         back_interaction = FakeInteraction()
         await second_view._back(back_interaction)
         back_edit = back_interaction.response.edits[-1]
-        self.assertIn("Showing 6–6 of 6", back_edit["embed"].description or "")
+        self.assertIn("attachments", back_edit)
+        self.assertIn(
+            "Showing 6–6 of 6",
+            back_edit["embeds"][0].description or "",
+        )
         self.assertEqual(session.page, 1)
 
     async def test_detail_view_preserves_owner_and_generation_protections(self):
