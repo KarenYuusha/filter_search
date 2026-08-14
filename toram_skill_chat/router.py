@@ -4,7 +4,6 @@ from dataclasses import replace
 import re
 from typing import Protocol
 
-from toram_skills.parsing import normalize_skill_name
 from toram_skills.repository import SkillRepository
 
 from .concepts import CONCEPT_ALIASES, resolve_ailment
@@ -12,6 +11,7 @@ from .models import SkillChatFilter, SkillChatPlan
 
 
 _POSSESSIVE_RE = re.compile(r"['’]s\b", re.IGNORECASE)
+_NON_WORD_RE = re.compile(r"[^\w]+", re.UNICODE)
 
 
 class SkillChatContextLike(Protocol):
@@ -24,6 +24,11 @@ _REFUSAL_REASON = (
     "I can compare objective database facts, but I can't decide which skill is "
     "best for DPS, tanking, a build, or overall strength."
 )
+
+
+def _match_normalize(text: str) -> str:
+    value = _POSSESSIVE_RE.sub("", str(text).casefold().replace("’", "'"))
+    return " ".join(_NON_WORD_RE.sub(" ", value).split())
 
 
 def _contains_phrase(normalized_query: str, phrase: str) -> bool:
@@ -82,9 +87,9 @@ class SkillChatRouter:
             """
         )
         values = {
-            (str(row["phrase"]), str(row["id"]))
+            (_match_normalize(str(row["phrase"])), str(row["id"]))
             for row in rows
-            if str(row["phrase"]).strip()
+            if _match_normalize(str(row["phrase"]))
         }
         return tuple(sorted(values, key=lambda value: (-len(value[0]), value[0], value[1])))
 
@@ -95,16 +100,13 @@ class SkillChatRouter:
         )
         for row in rows:
             tree_id = str(row["id"])
-            name = str(row["normalized_name"])
+            name = _match_normalize(str(row["normalized_name"]))
             values.add((name, tree_id))
             if name.endswith(" skills"):
                 shorthand = name[:-len(" skills")].strip()
                 if shorthand:
                     values.add((shorthand, tree_id))
         return tuple(sorted(values, key=lambda value: (-len(value[0]), value[0], value[1])))
-
-    def _normalized_query(self, query: str) -> str:
-        return normalize_skill_name(_POSSESSIVE_RE.sub("", query))
 
     def _skill_ids(self, normalized_query: str) -> tuple[str, ...]:
         padded = f" {normalized_query} "
@@ -132,7 +134,7 @@ class SkillChatRouter:
     def _ailment(self, normalized_query: str) -> str | None:
         candidates = tuple(self._known_ailments) + tuple(CONCEPT_ALIASES)
         for candidate in candidates:
-            normalized = normalize_skill_name(candidate)
+            normalized = _match_normalize(candidate)
             if not _contains_phrase(normalized_query, normalized):
                 continue
             resolved = resolve_ailment(candidate, self._known_ailments)
@@ -165,7 +167,7 @@ class SkillChatRouter:
         context: SkillChatContextLike | None = None,
     ) -> SkillChatPlan:
         cleaned = " ".join(str(query).split())
-        normalized = self._normalized_query(cleaned)
+        normalized = _match_normalize(cleaned)
         if not normalized:
             return SkillChatPlan(intent="unknown")
 
