@@ -61,6 +61,17 @@ class RichSkillChatPresentationTests(unittest.IsolatedAsyncioTestCase):
             skill_database_path=SKILL_DATABASE,
         )
 
+    def _answer_outcome(self) -> DatabaseChatOutcome:
+        return DatabaseChatOutcome(
+            kind="skill",
+            skill_result=SkillChatResult(
+                kind="answer",
+                text="Grounded Hard Hit explanation.",
+                skill_ids=(self.skill_id,),
+            ),
+            skill_ids=(self.skill_id,),
+        )
+
     def test_detail_loader_resolves_exact_skill_id(self):
         payload = run_skill_detail_by_id_sync(SKILL_DATABASE, self.skill_id)
         self.assertEqual(payload.skill.id, self.skill_id)
@@ -91,15 +102,7 @@ class RichSkillChatPresentationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_exact_natural_explanation_uses_rich_detail_reply(self):
         message = _Message("<@99> how does Hard Hit work")
-        outcome = DatabaseChatOutcome(
-            kind="skill",
-            skill_result=SkillChatResult(
-                kind="answer",
-                text="Grounded Hard Hit explanation.",
-                skill_ids=(self.skill_id,),
-            ),
-            skill_ids=(self.skill_id,),
-        )
+        outcome = self._answer_outcome()
 
         with patch(
             "toram_discord.app.run_database_chat_sync",
@@ -128,17 +131,37 @@ class RichSkillChatPresentationTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("hard hit", (embeds[0].title or "").casefold())
         self.assertEqual(embeds[-1].title, "Explanation")
 
+    async def test_stale_rich_detail_load_does_not_send_old_reply(self):
+        message = _Message("<@99> how does Hard Hit work")
+        sessions = DiscordSessionManager()
+        key = (10, 30, 20)
+
+        def supersede_query(*args, **kwargs):
+            sessions.start_query(key, "guardian mp cost")
+            return self.detail_payload
+
+        with patch(
+            "toram_discord.app.run_database_chat_sync",
+            return_value=self._answer_outcome(),
+        ), patch(
+            "toram_discord.app.run_skill_detail_by_id_sync",
+            side_effect=supersede_query,
+        ), patch(
+            "toram_discord.app.run_query_sync",
+            side_effect=AssertionError("item fallback must not run"),
+        ):
+            await process_tagged_query(
+                message,
+                bot_user=self.bot_user,
+                config=self.config,
+                sessions=sessions,
+            )
+
+        self.assertEqual(message.replies, [])
+
     async def test_rich_detail_load_failure_falls_back_to_compact_chat_embed(self):
         message = _Message("<@99> how does Hard Hit work")
-        outcome = DatabaseChatOutcome(
-            kind="skill",
-            skill_result=SkillChatResult(
-                kind="answer",
-                text="Grounded Hard Hit explanation.",
-                skill_ids=(self.skill_id,),
-            ),
-            skill_ids=(self.skill_id,),
-        )
+        outcome = self._answer_outcome()
 
         with patch(
             "toram_discord.app.run_database_chat_sync",
