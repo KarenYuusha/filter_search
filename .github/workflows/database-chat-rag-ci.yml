@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -20,9 +20,37 @@ jobs:
         run: python -m pip install --upgrade pip uv
       - name: Sync dependencies
         run: uv sync --frozen
+      - name: Focused database chat suites
+        run: |
+          uv run python -m unittest tests.test_skill_chat_models -v
+          uv run python -m unittest tests.test_skill_chat_concepts -v
+          uv run python -m unittest tests.test_skill_chat_analytics -v
+          uv run python -m unittest tests.test_skill_chat_router -v
+          uv run python -m unittest tests.test_skill_chat_retrieval -v
+          uv run python -m unittest tests.test_skill_chat_rag -v
+          uv run python -m unittest tests.test_skill_chat_service -v
+          uv run python -m unittest tests.test_skill_chat_logging -v
+          uv run python -m unittest tests.test_discord_chat_sessions -v
+          uv run python -m unittest tests.test_discord_database_chat -v
+          uv run python -m unittest tests.test_discord_database_chat_app -v
+          uv run python -m unittest tests.test_database_chat_degradation -v
+          uv run python -m unittest tests.test_database_chat_acceptance_edges -v
+      - name: High-risk Discord regressions
+        run: |
+          uv run python -m unittest tests.test_discord_skill_search -v
+          uv run python -m unittest tests.test_skill_tree_listing -v
+          uv run python -m unittest tests.test_discord_skill_detail_pages -v
+          uv run python -m unittest tests.test_discord_skill_review_regressions -v
       - name: Run full test suite
         run: uv run python -m unittest discover -s tests -p "test_*.py" -v
       - name: Static sanity
         run: |
-          git diff --check HEAD^
-          uv run python -m py_compile toram_discord/app.py toram_discord/config.py toram_discord/sessions.py
+          git diff --check origin/main...HEAD
+          uv run python -m py_compile \
+            toram_discord/app.py \
+            toram_discord/config.py \
+            toram_discord/sessions.py \
+            toram_discord/database_chat.py \
+            toram_search/llm.py \
+            toram_skills/repository.py \
+            toram_skill_chat/*.py
