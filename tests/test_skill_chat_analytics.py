@@ -50,10 +50,29 @@ class SkillChatAnalyticsTests(unittest.TestCase):
             sorted(skill.mp_cost_value for skill in results),
         )
 
-    def test_ailment_filter_and_count_use_existing_structured_search(self):
+    def test_ailment_filter_accepts_structured_or_explicit_positive_evidence(self):
         ignite = self.analytics.filter_skills(SkillChatFilter(ailments=("Ignite",)))
         self.assertGreater(len(ignite), 0)
-        self.assertTrue(all("Ignite" in skill.ailments for skill in ignite))
+        for skill in ignite:
+            if "Ignite" in skill.ailments:
+                continue
+            rows = self.repo.connection.execute(
+                "SELECT text FROM skill_search_documents WHERE skill_id = ?",
+                (skill.id,),
+            )
+            documented = "\n".join(str(row["text"]) for row in rows).casefold()
+            self.assertTrue(
+                any(
+                    phrase in documented
+                    for phrase in (
+                        "inflict ignite",
+                        "inflicts ignite",
+                        "cause ignite",
+                        "causes ignite",
+                    )
+                ),
+                skill.name,
+            )
 
         stun = self.analytics.filter_skills(SkillChatFilter(ailments=("Stun",)))
         self.assertEqual(
