@@ -177,6 +177,18 @@ class SkillChatRouter:
         active_ids = tuple(getattr(context, "active_skill_ids", ()) or ())
         selected_id = getattr(context, "selected_skill_id", None) if context is not None else None
 
+        if "mp cost" in normalized and (" its " in f" {normalized} " or normalized.startswith("what about")):
+            if selected_id:
+                return SkillChatPlan(intent="lookup", skill_ids=(selected_id,), field="mp_cost")
+            if len(active_ids) == 1:
+                return SkillChatPlan(intent="lookup", skill_ids=active_ids, field="mp_cost")
+            if len(active_ids) > 1:
+                return SkillChatPlan(
+                    intent="unknown",
+                    skill_ids=active_ids,
+                    mechanic_query="ambiguous_reference",
+                )
+
         if normalized in {
             "how does it work",
             "what does it do",
