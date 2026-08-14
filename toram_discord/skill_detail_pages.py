@@ -94,33 +94,30 @@ def _with_fields(
     )
 
 
-def _logical_fields(payload: SkillDetailPayload) -> tuple[tuple[str, str], ...]:
+def _logical_fields(
+    payload: SkillDetailPayload,
+) -> tuple[tuple[str, str, bool], ...]:
     skill = payload.skill
-    fields: list[tuple[str, str]] = []
+    fields: list[tuple[str, str, bool]] = []
 
-    overview = []
-    for label, value in (
-        ("Skill type", skill.skill_type),
-        ("MP cost", skill.mp_cost_text),
-        ("Damage type", skill.damage_type),
+    fixed_values = (
+        ("Type", skill.skill_type),
+        (
+            "MP Cost",
+            skill.mp_cost_value
+            if skill.mp_cost_value is not None
+            else skill.mp_cost_text,
+        ),
+        ("Damage", skill.damage_type),
         ("Element", skill.element),
-    ):
+        ("Cast Range", skill.cast_range_text),
+        ("Hit Range", skill.hit_range_text),
+        ("Cast Time", skill.cast_time_text),
+        ("Hit Count", skill.hit_count_text),
+    )
+    for label, value in fixed_values:
         if value is not None and str(value).strip():
-            overview.append(f"{label}: {value}")
-    if overview:
-        fields.append(("Overview", "\n".join(overview)))
-
-    timing = []
-    for label, value in (
-        ("Cast range", skill.cast_range_text),
-        ("Hit range", skill.hit_range_text),
-        ("Cast time", skill.cast_time_text),
-        ("Hit count", skill.hit_count_text),
-    ):
-        if value is not None and str(value).strip():
-            timing.append(f"{label}: {value}")
-    if timing:
-        fields.append(("Range / Timing", "\n".join(timing)))
+            fields.append((label, str(value).strip(), True))
 
     for label, values in (
         ("Ailments", skill.ailments),
@@ -128,26 +125,35 @@ def _logical_fields(payload: SkillDetailPayload) -> tuple[tuple[str, str], ...]:
         ("Weapon restrictions", skill.weapon_restrictions),
     ):
         if values:
-            fields.append((label, ", ".join(values)))
+            fields.append((label, ", ".join(values), False))
 
     if skill.description and skill.description.strip():
-        fields.append(("Description", skill.description.strip()))
+        fields.append(("Description", skill.description.strip(), False))
     if skill.game_description and skill.game_description.strip():
-        fields.append(("Game description", skill.game_description.strip()))
+        fields.append(("Game description", skill.game_description.strip(), False))
 
     for section in skill.sections:
         if section.body.strip():
-            fields.append((section.label.strip() or "Info", section.body.strip()))
+            fields.append(
+                (section.label.strip() or "Info", section.body.strip(), False)
+            )
 
     return tuple(fields)
 
 
-def _section_chunks(name: str, value: str) -> tuple[SkillDetailField, ...]:
+def _section_chunks(
+    name: str,
+    value: str,
+    *,
+    inline: bool,
+) -> tuple[SkillDetailField, ...]:
     chunks = _split_text(value, DISCORD_FIELD_VALUE_LIMIT)
+    chunk_inline = inline and len(chunks) == 1
     return tuple(
         SkillDetailField(
             name=name if index == 0 else f"{name} (continued)",
             value=chunk,
+            inline=chunk_inline,
         )
         for index, chunk in enumerate(chunks)
     )
@@ -185,8 +191,8 @@ def build_skill_detail_pages(
     pages: list[SkillDetailPage] = []
     current = base
 
-    for label, body in _logical_fields(payload):
-        chunks = _section_chunks(label, body)
+    for label, body, inline in _logical_fields(payload):
+        chunks = _section_chunks(label, body, inline=inline)
         if not chunks:
             continue
 

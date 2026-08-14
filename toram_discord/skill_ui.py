@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+from hashlib import sha1
 from pathlib import Path
 from typing import Sequence
 
 import discord
 
 from toram_discord.render import PAGE_SIZE, truncate_discord_text
+from toram_discord.skill_icons import DEFAULT_SKILL_ICON_CATALOG, SkillIconCatalog
 from toram_discord.sessions import DiscordSessionManager, SessionKey
 from toram_discord.skill_detail_pages import (
     SkillDetailPage,
@@ -26,6 +29,52 @@ from toram_skill_search.models import (
     SkillTreeResultsPayload,
     SkillUnavailablePayload,
 )
+
+
+@dataclass(frozen=True)
+class SkillRenderedMessage:
+    embeds: tuple[discord.Embed, ...]
+    files: tuple[discord.File, ...] = ()
+    view: discord.ui.View | None = None
+
+    @property
+    def primary_embed(self) -> discord.Embed:
+        if not self.embeds:
+            raise ValueError("Skill rendered message requires at least one embed")
+        return self.embeds[0]
+
+    def __iter__(self):
+        """Keep legacy `(embed, view)` unpacking working for existing callers/tests."""
+        yield self.primary_embed
+        yield self.view
+
+
+def _page_bounds(total: int, page: int) -> tuple[int, int, int, int]:
+    max_page = max((total - 1) // PAGE_SIZE, 0)
+    page = min(max(page, 0), max_page)
+    start = page * PAGE_SIZE
+    end = min(start + PAGE_SIZE, total)
+    return page, max_page, start, end
+
+
+def _attachment_name(path: Path, slot: int) -> str:
+    digest = sha1(str(path).encode("utf-8")).hexdigest()[:10]
+    suffix = path.suffix.casefold() if path.suffix else ".png"
+    return f"skill-{slot}-{digest}{suffix}"
+
+
+def _attach_skill_icon(
+    embed: discord.Embed,
+    *,
+    path: Path | None,
+    slot: int,
+) -> discord.File | None:
+    if path is None or not path.is_file():
+        return None
+    filename = _attachment_name(path, slot)
+    file = discord.File(path, filename=filename)
+    embed.set_thumbnail(url=f"attachment://{filename}")
+    return file
 
 
 def run_skill_query_sync(
@@ -101,9 +150,124 @@ def _compact_tree_skill_metadata(result: SkillResultItem) -> str:
     return " • ".join(parts)
 
 
+def _compact_search_card_metadata(result: SkillResultItem) -> str:
+    detail = _compact_tree_skill_metadata(result)
+    return " • ".join(part for part in (result.tree.name, detail) if part)
+
+
 def _compact_skill_preview(text: str, limit: int = 160) -> str:
     normalized = " ".join(str(text).split())
     return truncate_discord_text(normalized, limit) if normalized else ""
+
+
+def _build_skill_card(
+    result: SkillResultItem,
+    *,
+    absolute_index: int,
+    tree_listing: bool,
+    slot: int,
+    icon_catalog: SkillIconCatalog,
+) -> tuple[discord.Embed, discord.File | None]:
+    metadata = (
+        _compact_tree_skill_metadata(result)
+        if tree_listing
+        else _compact_search_card_metadata(result)
+    )
+    preview = _compact_skill_preview(result.snippet)
+    lines = [line for line in (metadata, preview) if line]
+    embed = discord.Embed(
+        title=truncate_discord_text(
+            f"{absolute_index + 1}. {result.skill.name}",
+            256,
+        ),
+        description=(
+            truncate_discord_text("\n".join(lines), 4096)
+            if lines
+            else None
+        ),
+    )
+    file = _attach_skill_icon(
+        embed,
+        path=icon_catalog.resolve(result.tree.name, result.skill.name),
+        slot=slot,
+    )
+    return embed, file
+
+
+def build_skill_results_message(
+    payload: SkillResultsPayload,
+    page: int,
+    *,
+    view: discord.ui.View | None = None,
+    icon_catalog: SkillIconCatalog = DEFAULT_SKILL_ICON_CATALOG,
+) -> SkillRenderedMessage:
+    total = len(payload.results)
+    if total == 0:
+        return SkillRenderedMessage(
+            embeds=(build_skill_results_embed(payload, page),),
+            view=view,
+        )
+
+    page, max_page, start, end = _page_bounds(total, page)
+    header = discord.Embed(
+        title=truncate_discord_text(f"Skill search: {payload.query}", 256),
+        description=f"Closest matches first · Showing {start + 1}–{end} of {total}",
+    )
+    if max_page > 0:
+        header.set_footer(text=f"Page {page + 1} / {max_page + 1}")
+
+    embeds: list[discord.Embed] = [header]
+    files: list[discord.File] = []
+    for slot, index in enumerate(range(start, end), start=1):
+        card, file = _build_skill_card(
+            payload.results[index],
+            absolute_index=index,
+            tree_listing=False,
+            slot=slot,
+            icon_catalog=icon_catalog,
+        )
+        embeds.append(card)
+        if file is not None:
+            files.append(file)
+    return SkillRenderedMessage(tuple(embeds), tuple(files), view)
+
+
+def build_skill_tree_results_message(
+    payload: SkillTreeResultsPayload,
+    page: int,
+    *,
+    view: discord.ui.View | None = None,
+    icon_catalog: SkillIconCatalog = DEFAULT_SKILL_ICON_CATALOG,
+) -> SkillRenderedMessage:
+    total = len(payload.results)
+    if total == 0:
+        return SkillRenderedMessage(
+            embeds=(build_skill_tree_results_embed(payload, page),),
+            view=view,
+        )
+
+    page, max_page, start, end = _page_bounds(total, page)
+    header = discord.Embed(
+        title=truncate_discord_text(payload.tree.name, 256),
+        description=f"{total} skills · Showing {start + 1}–{end} of {total}",
+    )
+    if max_page > 0:
+        header.set_footer(text=f"Page {page + 1} / {max_page + 1}")
+
+    embeds: list[discord.Embed] = [header]
+    files: list[discord.File] = []
+    for slot, index in enumerate(range(start, end), start=1):
+        card, file = _build_skill_card(
+            payload.results[index],
+            absolute_index=index,
+            tree_listing=True,
+            slot=slot,
+            icon_catalog=icon_catalog,
+        )
+        embeds.append(card)
+        if file is not None:
+            files.append(file)
+    return SkillRenderedMessage(tuple(embeds), tuple(files), view)
 
 
 def build_skill_results_embed(
@@ -293,6 +457,43 @@ def build_skill_detail_embed(payload: SkillDetailPayload) -> discord.Embed:
     )
 
 
+def build_skill_detail_message(
+    payload: SkillDetailPayload,
+    page_index: int,
+    *,
+    view: discord.ui.View | None = None,
+    icon_catalog: SkillIconCatalog = DEFAULT_SKILL_ICON_CATALOG,
+) -> SkillRenderedMessage:
+    pages = build_skill_detail_pages(payload)
+    page_index = min(max(page_index, 0), len(pages) - 1)
+    embed = render_skill_detail_page(
+        pages[page_index],
+        page_index=page_index,
+        total_pages=len(pages),
+    )
+    file = _attach_skill_icon(
+        embed,
+        path=icon_catalog.resolve(payload.tree.name, payload.skill.name),
+        slot=0,
+    )
+    return SkillRenderedMessage(
+        embeds=(embed,),
+        files=(file,) if file is not None else (),
+        view=view,
+    )
+
+
+async def _edit_skill_message(
+    interaction: discord.Interaction,
+    rendered: SkillRenderedMessage,
+) -> None:
+    await interaction.response.edit_message(
+        embeds=list(rendered.embeds),
+        attachments=list(rendered.files),
+        view=rendered.view,
+    )
+
+
 class SkillResultsView(SessionBoundView):
     def __init__(
         self,
@@ -365,14 +566,15 @@ class SkillResultsView(SessionBoundView):
         if session is None:
             return
         session.page = max(session.page - 1, 0)
-        await interaction.response.edit_message(
-            embed=build_skill_results_embed(self.payload, session.page),
-            view=SkillResultsView(
-                sessions=self.sessions,
-                key=self.key,
-                generation=self.generation,
-                payload=self.payload,
-            ),
+        view = SkillResultsView(
+            sessions=self.sessions,
+            key=self.key,
+            generation=self.generation,
+            payload=self.payload,
+        )
+        await _edit_skill_message(
+            interaction,
+            build_skill_results_message(self.payload, session.page, view=view),
         )
 
     async def _next(self, interaction: discord.Interaction) -> None:
@@ -381,14 +583,15 @@ class SkillResultsView(SessionBoundView):
             return
         max_page = max((len(self.payload.results) - 1) // PAGE_SIZE, 0)
         session.page = min(session.page + 1, max_page)
-        await interaction.response.edit_message(
-            embed=build_skill_results_embed(self.payload, session.page),
-            view=SkillResultsView(
-                sessions=self.sessions,
-                key=self.key,
-                generation=self.generation,
-                payload=self.payload,
-            ),
+        view = SkillResultsView(
+            sessions=self.sessions,
+            key=self.key,
+            generation=self.generation,
+            payload=self.payload,
+        )
+        await _edit_skill_message(
+            interaction,
+            build_skill_results_message(self.payload, session.page, view=view),
         )
 
     async def _select_skill(
@@ -415,20 +618,18 @@ class SkillResultsView(SessionBoundView):
         session = self.sessions.get(self.key)
         if session is not None:
             session.selected_index = index
-        await interaction.response.edit_message(
-            embed=render_skill_detail_page(
-                pages[0],
-                page_index=0,
-                total_pages=len(pages),
-            ),
-            view=SkillDetailView(
-                sessions=self.sessions,
-                key=self.key,
-                generation=self.generation,
-                pages=pages,
-                page_index=0,
-                results_payload=self.payload,
-            ),
+        view = SkillDetailView(
+            sessions=self.sessions,
+            key=self.key,
+            generation=self.generation,
+            pages=pages,
+            page_index=0,
+            detail_payload=detail,
+            results_payload=self.payload,
+        )
+        await _edit_skill_message(
+            interaction,
+            build_skill_detail_message(detail, 0, view=view),
         )
 
 
@@ -508,14 +709,15 @@ class SkillTreeResultsView(SessionBoundView):
         if session is None:
             return
         session.page = max(session.page - 1, 0)
-        await interaction.response.edit_message(
-            embed=build_skill_tree_results_embed(self.payload, session.page),
-            view=SkillTreeResultsView(
-                sessions=self.sessions,
-                key=self.key,
-                generation=self.generation,
-                payload=self.payload,
-            ),
+        view = SkillTreeResultsView(
+            sessions=self.sessions,
+            key=self.key,
+            generation=self.generation,
+            payload=self.payload,
+        )
+        await _edit_skill_message(
+            interaction,
+            build_skill_tree_results_message(self.payload, session.page, view=view),
         )
 
     async def _next(self, interaction: discord.Interaction) -> None:
@@ -524,14 +726,15 @@ class SkillTreeResultsView(SessionBoundView):
             return
         max_page = max((len(self.payload.results) - 1) // PAGE_SIZE, 0)
         session.page = min(session.page + 1, max_page)
-        await interaction.response.edit_message(
-            embed=build_skill_tree_results_embed(self.payload, session.page),
-            view=SkillTreeResultsView(
-                sessions=self.sessions,
-                key=self.key,
-                generation=self.generation,
-                payload=self.payload,
-            ),
+        view = SkillTreeResultsView(
+            sessions=self.sessions,
+            key=self.key,
+            generation=self.generation,
+            payload=self.payload,
+        )
+        await _edit_skill_message(
+            interaction,
+            build_skill_tree_results_message(self.payload, session.page, view=view),
         )
 
     async def _select_skill(
@@ -558,20 +761,18 @@ class SkillTreeResultsView(SessionBoundView):
         session = self.sessions.get(self.key)
         if session is not None:
             session.selected_index = index
-        await interaction.response.edit_message(
-            embed=render_skill_detail_page(
-                pages[0],
-                page_index=0,
-                total_pages=len(pages),
-            ),
-            view=SkillDetailView(
-                sessions=self.sessions,
-                key=self.key,
-                generation=self.generation,
-                pages=pages,
-                page_index=0,
-                results_payload=self.payload,
-            ),
+        view = SkillDetailView(
+            sessions=self.sessions,
+            key=self.key,
+            generation=self.generation,
+            pages=pages,
+            page_index=0,
+            detail_payload=detail,
+            results_payload=self.payload,
+        )
+        await _edit_skill_message(
+            interaction,
+            build_skill_detail_message(detail, 0, view=view),
         )
 
 
@@ -584,6 +785,7 @@ class SkillDetailView(SessionBoundView):
         generation: int,
         pages: tuple[SkillDetailPage, ...],
         page_index: int = 0,
+        detail_payload: SkillDetailPayload | None = None,
         results_payload: SkillResultsPayload | SkillTreeResultsPayload | None = None,
     ) -> None:
         if not pages:
@@ -596,6 +798,7 @@ class SkillDetailView(SessionBoundView):
         )
         self.pages = pages
         self.page_index = min(max(page_index, 0), len(pages) - 1)
+        self.detail_payload = detail_payload
         self.results_payload = results_payload
 
         if len(pages) > 1:
@@ -637,30 +840,53 @@ class SkillDetailView(SessionBoundView):
             generation=self.generation,
             pages=self.pages,
             page_index=page_index,
+            detail_payload=self.detail_payload,
             results_payload=self.results_payload,
         )
 
     async def _previous(self, interaction: discord.Interaction) -> None:
         next_index = max(self.page_index - 1, 0)
-        await interaction.response.edit_message(
-            embed=render_skill_detail_page(
-                self.pages[next_index],
-                page_index=next_index,
-                total_pages=len(self.pages),
-            ),
-            view=self._replacement_view(next_index),
-        )
+        view = self._replacement_view(next_index)
+        if self.detail_payload is not None:
+            rendered = build_skill_detail_message(
+                self.detail_payload,
+                next_index,
+                view=view,
+            )
+        else:
+            rendered = SkillRenderedMessage(
+                embeds=(
+                    render_skill_detail_page(
+                        self.pages[next_index],
+                        page_index=next_index,
+                        total_pages=len(self.pages),
+                    ),
+                ),
+                view=view,
+            )
+        await _edit_skill_message(interaction, rendered)
 
     async def _next(self, interaction: discord.Interaction) -> None:
         next_index = min(self.page_index + 1, len(self.pages) - 1)
-        await interaction.response.edit_message(
-            embed=render_skill_detail_page(
-                self.pages[next_index],
-                page_index=next_index,
-                total_pages=len(self.pages),
-            ),
-            view=self._replacement_view(next_index),
-        )
+        view = self._replacement_view(next_index)
+        if self.detail_payload is not None:
+            rendered = build_skill_detail_message(
+                self.detail_payload,
+                next_index,
+                view=view,
+            )
+        else:
+            rendered = SkillRenderedMessage(
+                embeds=(
+                    render_skill_detail_page(
+                        self.pages[next_index],
+                        page_index=next_index,
+                        total_pages=len(self.pages),
+                    ),
+                ),
+                view=view,
+            )
+        await _edit_skill_message(interaction, rendered)
 
     async def _back(self, interaction: discord.Interaction) -> None:
         if self.results_payload is None:
@@ -670,22 +896,30 @@ class SkillDetailView(SessionBoundView):
             return
         session.selected_index = None
         if isinstance(self.results_payload, SkillTreeResultsPayload):
-            embed = build_skill_tree_results_embed(self.results_payload, session.page)
             view = SkillTreeResultsView(
                 sessions=self.sessions,
                 key=self.key,
                 generation=self.generation,
                 payload=self.results_payload,
             )
+            rendered = build_skill_tree_results_message(
+                self.results_payload,
+                session.page,
+                view=view,
+            )
         else:
-            embed = build_skill_results_embed(self.results_payload, session.page)
             view = SkillResultsView(
                 sessions=self.sessions,
                 key=self.key,
                 generation=self.generation,
                 payload=self.results_payload,
             )
-        await interaction.response.edit_message(embed=embed, view=view)
+            rendered = build_skill_results_message(
+                self.results_payload,
+                session.page,
+                view=view,
+            )
+        await _edit_skill_message(interaction, rendered)
 
 
 class SkillTreeConfirmationView(SessionBoundView):
@@ -731,27 +965,32 @@ class SkillTreeConfirmationView(SessionBoundView):
             return
         session.page = 0
         session.selected_index = None
-        await interaction.response.edit_message(
-            embed=build_skill_tree_results_embed(payload, 0),
-            view=(
-                SkillTreeResultsView(
-                    sessions=self.sessions,
-                    key=self.key,
-                    generation=self.generation,
-                    payload=payload,
-                )
-                if payload.results
-                else None
-            ),
+        view = (
+            SkillTreeResultsView(
+                sessions=self.sessions,
+                key=self.key,
+                generation=self.generation,
+                payload=payload,
+            )
+            if payload.results
+            else None
+        )
+        await _edit_skill_message(
+            interaction,
+            build_skill_tree_results_message(payload, 0, view=view),
         )
 
     async def _cancel(self, interaction: discord.Interaction) -> None:
-        await interaction.response.edit_message(
-            embed=discord.Embed(
-                title="Skill tree search cancelled",
-                description="No skill tree was opened.",
+        await _edit_skill_message(
+            interaction,
+            SkillRenderedMessage(
+                embeds=(
+                    discord.Embed(
+                        title="Skill tree search cancelled",
+                        description="No skill tree was opened.",
+                    ),
+                ),
             ),
-            view=None,
         )
 
 
@@ -817,19 +1056,26 @@ class SkillTreeChoicesView(SessionBoundView):
             return
         session.page = 0
         session.selected_index = None
-        await interaction.response.edit_message(
-            embed=build_skill_tree_results_embed(payload, 0),
-            view=(
-                SkillTreeResultsView(
-                    sessions=self.sessions,
-                    key=self.key,
-                    generation=self.generation,
-                    payload=payload,
-                )
-                if payload.results
-                else None
-            ),
+        view = (
+            SkillTreeResultsView(
+                sessions=self.sessions,
+                key=self.key,
+                generation=self.generation,
+                payload=payload,
+            )
+            if payload.results
+            else None
         )
+        await _edit_skill_message(
+            interaction,
+            build_skill_tree_results_message(payload, 0, view=view),
+        )
+
+
+def _require_skill_database_path(database_path: Path | None) -> Path:
+    if database_path is None:
+        raise ValueError("database_path is required for interactive skill-tree choices")
+    return Path(database_path)
 
 
 def build_skill_payload_message(
@@ -839,54 +1085,57 @@ def build_skill_payload_message(
     sessions: DiscordSessionManager,
     key: SessionKey,
     generation: int,
-    database_path: Path,
-) -> tuple[discord.Embed, discord.ui.View | None]:
+    database_path: Path | None = None,
+) -> SkillRenderedMessage:
     if isinstance(payload, SkillHelpPayload):
-        return (
-            build_skill_help_embed(
-                payload,
-                bot_example_prefix=bot_example_prefix,
+        return SkillRenderedMessage(
+            embeds=(
+                build_skill_help_embed(
+                    payload,
+                    bot_example_prefix=bot_example_prefix,
+                ),
             ),
-            None,
         )
     if isinstance(payload, SkillUnavailablePayload):
-        return (
-            discord.Embed(
-                title="Skill search unavailable",
-                description=truncate_discord_text(payload.text, 4096),
+        return SkillRenderedMessage(
+            embeds=(
+                discord.Embed(
+                    title="Skill search unavailable",
+                    description=truncate_discord_text(payload.text, 4096),
+                ),
             ),
-            None,
         )
     if isinstance(payload, SkillTreeHelpPayload):
-        return (
-            build_skill_tree_help_embed(
-                payload,
-                bot_example_prefix=bot_example_prefix,
+        return SkillRenderedMessage(
+            embeds=(
+                build_skill_tree_help_embed(
+                    payload,
+                    bot_example_prefix=bot_example_prefix,
+                ),
             ),
-            None,
         )
     if isinstance(payload, SkillTreeNotFoundPayload):
-        return build_skill_tree_not_found_embed(payload), None
+        return SkillRenderedMessage(embeds=(build_skill_tree_not_found_embed(payload),))
     if isinstance(payload, SkillTreeConfirmationPayload):
-        return (
-            build_skill_tree_confirmation_embed(payload),
-            SkillTreeConfirmationView(
+        return SkillRenderedMessage(
+            embeds=(build_skill_tree_confirmation_embed(payload),),
+            view=SkillTreeConfirmationView(
                 sessions=sessions,
                 key=key,
                 generation=generation,
                 payload=payload,
-                database_path=database_path,
+                database_path=_require_skill_database_path(database_path),
             ),
         )
     if isinstance(payload, SkillTreeChoicesPayload):
-        return (
-            build_skill_tree_choices_embed(payload),
-            SkillTreeChoicesView(
+        return SkillRenderedMessage(
+            embeds=(build_skill_tree_choices_embed(payload),),
+            view=SkillTreeChoicesView(
                 sessions=sessions,
                 key=key,
                 generation=generation,
                 payload=payload,
-                database_path=database_path,
+                database_path=_require_skill_database_path(database_path),
             ),
         )
     if isinstance(payload, SkillTreeResultsPayload):
@@ -900,7 +1149,7 @@ def build_skill_payload_message(
                 generation=generation,
                 payload=payload,
             )
-        return build_skill_tree_results_embed(payload, page), view
+        return build_skill_tree_results_message(payload, page, view=view)
     if isinstance(payload, SkillDetailPayload):
         pages = build_skill_detail_pages(payload)
         view = None
@@ -911,16 +1160,10 @@ def build_skill_payload_message(
                 generation=generation,
                 pages=pages,
                 page_index=0,
+                detail_payload=payload,
                 results_payload=None,
             )
-        return (
-            render_skill_detail_page(
-                pages[0],
-                page_index=0,
-                total_pages=len(pages),
-            ),
-            view,
-        )
+        return build_skill_detail_message(payload, 0, view=view)
 
     session = sessions.get(key)
     page = session.page if session is not None else 0
@@ -932,22 +1175,26 @@ def build_skill_payload_message(
             generation=generation,
             payload=payload,
         )
-    return build_skill_results_embed(payload, page), view
+    return build_skill_results_message(payload, page, view=view)
 
 
 __all__ = [
     "SkillDetailView",
+    "SkillRenderedMessage",
     "SkillResultsView",
     "SkillTreeChoicesView",
     "SkillTreeConfirmationView",
     "SkillTreeResultsView",
     "build_skill_detail_embed",
+    "build_skill_detail_message",
     "build_skill_help_embed",
     "build_skill_payload_message",
     "build_skill_results_embed",
+    "build_skill_results_message",
     "build_skill_tree_help_embed",
     "build_skill_tree_not_found_embed",
     "build_skill_tree_results_embed",
+    "build_skill_tree_results_message",
     "render_skill_detail_page",
     "run_skill_query_sync",
 ]

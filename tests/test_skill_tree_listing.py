@@ -13,6 +13,7 @@ from toram_discord.skill_ui import (
     SkillTreeResultsView,
     build_skill_payload_message,
     build_skill_tree_results_embed,
+    build_skill_tree_results_message,
 )
 from toram_skill_search.models import (
     SkillDetailPayload,
@@ -174,6 +175,11 @@ class SkillTreeServiceTests(unittest.TestCase):
         )
 
 
+class _NoIconCatalog:
+    def resolve(self, tree_name: str, skill_name: str):
+        return None
+
+
 class SkillTreeDiscordTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
         self.sessions = DiscordSessionManager()
@@ -201,6 +207,21 @@ class SkillTreeDiscordTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn("Closest matches first", first.description or "")
         self.assertNotIn("Shield Skills •", first.description or "")
         self.assertIn("6. **Skill 5**", second.description or "")
+
+    def test_tree_results_message_uses_header_plus_skill_cards(self):
+        rendered = build_skill_tree_results_message(
+            self.payload,
+            0,
+            icon_catalog=_NoIconCatalog(),
+        )
+        self.assertEqual(len(rendered.embeds), 6)
+        self.assertEqual(rendered.embeds[0].title, "Shield Skills")
+        self.assertIn("6 skills", rendered.embeds[0].description or "")
+        self.assertEqual(rendered.embeds[1].title, "1. Skill 0")
+        self.assertNotIn("Shield Skills", rendered.embeds[1].description or "")
+        self.assertIn("Tier 2", rendered.embeds[1].description or "")
+        self.assertIn("Required Lv 20", rendered.embeds[1].description or "")
+        self.assertEqual(rendered.files, ())
 
     def test_bare_tree_help_and_not_found_are_noninteractive(self):
         help_embed, help_view = build_skill_payload_message(
@@ -241,8 +262,10 @@ class SkillTreeDiscordTests(unittest.IsolatedAsyncioTestCase):
 
         back = FakeInteraction()
         await detail_view._back(back)
-        self.assertIsInstance(back.response.edits[-1]["view"], SkillTreeResultsView)
-        self.assertEqual(back.response.edits[-1]["embed"].title, "Shield Skills")
+        back_edit = back.response.edits[-1]
+        self.assertIsInstance(back_edit["view"], SkillTreeResultsView)
+        self.assertIn("attachments", back_edit)
+        self.assertEqual(back_edit["embeds"][0].title, "Shield Skills")
 
     async def test_confirmation_and_choices_use_trusted_tree_ids(self):
         confirmation = SkillTreeConfirmationPayload("sheild", self.tree)

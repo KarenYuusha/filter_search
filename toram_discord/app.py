@@ -51,7 +51,7 @@ async def process_tagged_query(
             session = sessions.get(key)
             if session is None:
                 return
-            embed, view = build_skill_payload_message(
+            rendered = build_skill_payload_message(
                 payload,
                 bot_example_prefix=bot_example_prefix(message.guild, bot_user),
                 sessions=sessions,
@@ -59,12 +59,15 @@ async def process_tagged_query(
                 generation=session.generation,
                 database_path=config.skill_database_path,
             )
-            await message.reply(
-                embed=embed,
-                view=view,
-                mention_author=False,
-                allowed_mentions=discord.AllowedMentions.none(),
-            )
+            kwargs = {
+                "embeds": list(rendered.embeds),
+                "view": rendered.view,
+                "mention_author": False,
+                "allowed_mentions": discord.AllowedMentions.none(),
+            }
+            if rendered.files:
+                kwargs["files"] = list(rendered.files)
+            await message.reply(**kwargs)
         except Exception:
             logger.exception("Discord skill search failed")
             if not sessions.is_current(key, session.generation):
