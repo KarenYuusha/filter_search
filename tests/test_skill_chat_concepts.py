@@ -28,6 +28,12 @@ class SkillChatConceptTests(unittest.TestCase):
             ConceptResolution(None, "none"),
         )
 
+    def test_explicit_alias_overlays_same_named_database_value(self):
+        self.assertEqual(
+            resolve_ailment("ignition", ("Ignition", "Ignite", "Stun")),
+            ConceptResolution("Ignite", "alias"),
+        )
+
     def test_unrelated_phrase_does_not_invent_a_concept(self):
         self.assertEqual(
             resolve_ailment("set enemies on fire", ("Ignite", "Stun")),
