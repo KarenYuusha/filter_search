@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import logging
 from pathlib import Path
 import re
 import sqlite3
@@ -35,6 +36,8 @@ from toram_skills.schema import SchemaError
 from .sessions import DatabaseChatContext, DiscordSessionManager, SessionKey
 from .views import ActionButton, SessionBoundView
 
+
+logger = logging.getLogger(__name__)
 
 DatabaseChatKind = Literal["item", "skill", "mixed", "fallback"]
 _SHARED_DISCOVERY_RE = re.compile(
@@ -83,9 +86,14 @@ def is_database_chat_candidate(query: str, context: DatabaseChatContext) -> bool
 
 
 def probe_item_deterministically(repository, query: str) -> ServiceOutcome | None:
+    """Run the existing item interpretation stages without entering Qwen fallback."""
     service = SearchService(repository, llm_client=_RoutingOnlyItemLlm())
     route = route_deterministically(
-        query, repository, service.all_items, service.help_service, service.database_service
+        query,
+        repository,
+        service.all_items,
+        service.help_service,
+        service.database_service,
     )
     if route.kind == "search":
         if route.parsed is None:
@@ -96,7 +104,10 @@ def probe_item_deterministically(repository, query: str) -> ServiceOutcome | Non
     if route.kind == "database":
         if route.database_request is None:
             return None
-        return ServiceOutcome("database", text=service.database_service.execute(route.database_request))
+        return ServiceOutcome(
+            "database",
+            text=service.database_service.execute(route.database_request),
+        )
     if route.kind == "refuse":
         return ServiceOutcome("refuse")
 
@@ -146,7 +157,11 @@ def _item_ids(outcome: ServiceOutcome | None) -> tuple[int, ...]:
 
 def _meaningful_skill(result: SkillChatResult | None) -> bool:
     return result is not None and result.kind in {
-        "structured", "results", "answer", "clarify", "refuse"
+        "structured",
+        "results",
+        "answer",
+        "clarify",
+        "refuse",
     }
 
 
@@ -179,7 +194,11 @@ def _skill_discovery_result(
     )
 
 
-def _set_item_context(context: DatabaseChatContext, query: str, item_ids: tuple[int, ...]) -> None:
+def _set_item_context(
+    context: DatabaseChatContext,
+    query: str,
+    item_ids: tuple[int, ...],
+) -> None:
     context.active_domain = "item"
     context.active_item_ids = item_ids
     context.selected_item_id = item_ids[0] if len(item_ids) == 1 else None
@@ -204,6 +223,92 @@ def _set_mixed_context(
     context.last_user_query = query
 
 
+def _probe_item_side(
+    item_database_path: Path,
+    query: str,
+    shared_concept: str | None,
+    *,
+    item_repository_factory,
+) -> tuple[ServiceOutcome | None, tuple[int, ...]]:
+    item_repository = None
+    try:
+        item_repository = item_repository_factory(
+            Path(item_database_path).expanduser().resolve()
+        )
+        item_outcome = probe_item_deterministically(item_repository, query)
+        if shared_concept is not None:
+            concept_outcome = probe_item_deterministically(item_repository, shared_concept)
+            if concept_outcome is None or not _item_ids(concept_outcome):
+                concept_outcome = probe_item_deterministically(
+                    item_repository,
+                    f"stat {shared_concept}",
+                )
+            if concept_outcome is not None and _item_ids(concept_outcome):
+                item_outcome = concept_outcome
+        return item_outcome, _item_ids(item_outcome)
+    except (FileNotFoundError, OSError, sqlite3.DatabaseError):
+        logger.debug("database chat item probe unavailable", exc_info=True)
+        return None, ()
+    finally:
+        if item_repository is not None:
+            item_repository.close()
+
+
+def _probe_skill_side(
+    skill_database_path: Path,
+    query: str,
+    shared_concept: str | None,
+    context: DatabaseChatContext,
+    *,
+    skill_repository_factory,
+    skill_semantic_runtime,
+    rag_client,
+    skill_rag_model: str,
+    ollama_host: str | None,
+    skill_rag_top_k: int,
+    skill_rag_max_context_chars: int,
+    skill_rag_max_output_tokens: int,
+    skill_rag_keep_alive: str,
+) -> SkillChatResult | None:
+    skill_repository = None
+    try:
+        skill_repository = skill_repository_factory(
+            Path(skill_database_path).expanduser().resolve()
+        )
+        retriever = SkillEvidenceRetriever(
+            skill_repository,
+            semantic_runtime=skill_semantic_runtime,
+        )
+        if shared_concept is not None:
+            return _skill_discovery_result(
+                retriever,
+                shared_concept,
+                top_k=skill_rag_top_k,
+                max_context_chars=skill_rag_max_context_chars,
+            )
+
+        effective_rag_client = rag_client or OllamaSkillRagClient(
+            model=skill_rag_model,
+            host=ollama_host,
+            max_output_tokens=skill_rag_max_output_tokens,
+            keep_alive=skill_rag_keep_alive,
+        )
+        skill_service = SkillChatService(
+            skill_repository,
+            retriever=retriever,
+            rag=GroundedSkillRag(effective_rag_client),
+            top_k=skill_rag_top_k,
+            max_context_chars=skill_rag_max_context_chars,
+        )
+        return skill_service.answer(query, context=context)
+    except (FileNotFoundError, OSError, sqlite3.DatabaseError, SchemaError):
+        logger.debug("database chat skill probe unavailable", exc_info=True)
+        return None
+    finally:
+        if skill_repository is not None:
+            skill_repository.close()
+
+
 def run_database_chat_sync(
     item_database_path: Path,
     skill_database_path: Path,
@@ -222,98 +327,125 @@ def run_database_chat_sync(
     skill_rag_keep_alive: str = "10m",
 ) -> DatabaseChatOutcome:
     shared_concept = _shared_discovery_concept(query)
-    item_repository = item_repository_factory(Path(item_database_path).expanduser().resolve())
-    try:
-        item_outcome = probe_item_deterministically(item_repository, query)
-        if shared_concept is not None:
-            concept_outcome = probe_item_deterministically(item_repository, shared_concept)
-            if concept_outcome is None or not _item_ids(concept_outcome):
-                concept_outcome = probe_item_deterministically(item_repository, f"stat {shared_concept}")
-            if concept_outcome is not None and _item_ids(concept_outcome):
-                item_outcome = concept_outcome
-        item_ids = _item_ids(item_outcome)
+    item_outcome, item_ids = _probe_item_side(
+        item_database_path,
+        query,
+        shared_concept,
+        item_repository_factory=item_repository_factory,
+    )
 
-        if shared_concept is None and item_outcome is not None and item_outcome.kind in {
-            "search", "help", "database", "refuse"
-        }:
-            _set_item_context(context, query, item_ids)
-            return DatabaseChatOutcome(kind="item", item_outcome=item_outcome, item_ids=item_ids)
+    # A clear deterministic item/stat request remains the fastest path and does not
+    # open the skill database. A missing item DB, however, no longer blocks skill chat.
+    if shared_concept is None and item_outcome is not None and item_outcome.kind in {
+        "search",
+        "help",
+        "database",
+        "refuse",
+    }:
+        _set_item_context(context, query, item_ids)
+        logger.debug("database chat route selected=item")
+        return DatabaseChatOutcome(
+            kind="item",
+            item_outcome=item_outcome,
+            item_ids=item_ids,
+        )
 
-        skill_repository = None
-        try:
-            skill_repository = skill_repository_factory(Path(skill_database_path).expanduser().resolve())
-            retriever = SkillEvidenceRetriever(skill_repository, semantic_runtime=skill_semantic_runtime)
-            if shared_concept is not None:
-                skill_result = _skill_discovery_result(
-                    retriever,
-                    shared_concept,
-                    top_k=skill_rag_top_k,
-                    max_context_chars=skill_rag_max_context_chars,
-                )
-            else:
-                effective_rag_client = rag_client or OllamaSkillRagClient(
-                    model=skill_rag_model,
-                    host=ollama_host,
-                    max_output_tokens=skill_rag_max_output_tokens,
-                    keep_alive=skill_rag_keep_alive,
-                )
-                skill_service = SkillChatService(
-                    skill_repository,
-                    retriever=retriever,
-                    rag=GroundedSkillRag(effective_rag_client),
-                    top_k=skill_rag_top_k,
-                    max_context_chars=skill_rag_max_context_chars,
-                )
-                skill_result = skill_service.answer(query, context=context)
-        except (FileNotFoundError, OSError, sqlite3.DatabaseError, SchemaError):
-            skill_result = None
-        finally:
-            if skill_repository is not None:
-                skill_repository.close()
+    skill_result = _probe_skill_side(
+        skill_database_path,
+        query,
+        shared_concept,
+        context,
+        skill_repository_factory=skill_repository_factory,
+        skill_semantic_runtime=skill_semantic_runtime,
+        rag_client=rag_client,
+        skill_rag_model=skill_rag_model,
+        ollama_host=ollama_host,
+        skill_rag_top_k=skill_rag_top_k,
+        skill_rag_max_context_chars=skill_rag_max_context_chars,
+        skill_rag_max_output_tokens=skill_rag_max_output_tokens,
+        skill_rag_keep_alive=skill_rag_keep_alive,
+    )
+    skill_ids = () if skill_result is None else skill_result.skill_ids
 
-        skill_ids = () if skill_result is None else skill_result.skill_ids
-        if item_ids and _meaningful_skill(skill_result):
-            _set_mixed_context(context, query, item_ids, skill_ids)
-            return DatabaseChatOutcome(
-                kind="mixed", item_outcome=item_outcome, skill_result=skill_result,
-                item_ids=item_ids, skill_ids=skill_ids,
-            )
-        if _meaningful_skill(skill_result):
-            return DatabaseChatOutcome(kind="skill", skill_result=skill_result, skill_ids=skill_ids)
-        if item_outcome is not None:
-            _set_item_context(context, query, item_ids)
-            return DatabaseChatOutcome(kind="item", item_outcome=item_outcome, item_ids=item_ids)
-        return DatabaseChatOutcome(kind="fallback")
-    finally:
-        item_repository.close()
+    if item_ids and _meaningful_skill(skill_result):
+        _set_mixed_context(context, query, item_ids, skill_ids)
+        logger.debug("database chat route selected=mixed")
+        return DatabaseChatOutcome(
+            kind="mixed",
+            item_outcome=item_outcome,
+            skill_result=skill_result,
+            item_ids=item_ids,
+            skill_ids=skill_ids,
+        )
+    if _meaningful_skill(skill_result):
+        logger.debug("database chat route selected=skill")
+        return DatabaseChatOutcome(
+            kind="skill",
+            skill_result=skill_result,
+            skill_ids=skill_ids,
+        )
+    if item_outcome is not None:
+        _set_item_context(context, query, item_ids)
+        logger.debug("database chat route selected=item-degraded")
+        return DatabaseChatOutcome(
+            kind="item",
+            item_outcome=item_outcome,
+            item_ids=item_ids,
+        )
+
+    logger.debug("database chat route selected=fallback")
+    return DatabaseChatOutcome(kind="fallback")
 
 
 def build_database_chat_help_embed(bot_example_prefix: str) -> discord.Embed:
     embed = discord.Embed(
         title="Toram Search",
-        description="Search item and skill databases directly, or ask grounded natural-language questions.",
+        description=(
+            "Search item and skill databases directly, or ask grounded "
+            "natural-language questions."
+        ),
     )
-    embed.add_field(name="Item Search", value="\n".join((
-        f"`{bot_example_prefix} hp armor`",
-        f"`{bot_example_prefix} hp > 5000 and cr bow`",
-        f"`{bot_example_prefix} item Rapier`",
-    )), inline=False)
-    embed.add_field(name="Skill Search", value="\n".join((
-        f"`{bot_example_prefix} skill hard hit`",
-        f"`{bot_example_prefix} skill magic finale`",
-        f"`{bot_example_prefix} skill tree shield`",
-    )), inline=False)
-    embed.add_field(name="Ask Naturally", value="\n".join((
-        f"`{bot_example_prefix} how does Hard Hit work?`",
-        f"`{bot_example_prefix} which skills inflict Ignite?`",
-        f"`{bot_example_prefix} which skill has the highest MP cost?`",
-        f"`{bot_example_prefix} compare Protection and Aegis`",
-        f"`{bot_example_prefix} what gives Crit Rate?`",
-    )), inline=False)
+    embed.add_field(
+        name="Item Search",
+        value="\n".join(
+            (
+                f"`{bot_example_prefix} hp armor`",
+                f"`{bot_example_prefix} hp > 5000 and cr bow`",
+                f"`{bot_example_prefix} item Rapier`",
+            )
+        ),
+        inline=False,
+    )
+    embed.add_field(
+        name="Skill Search",
+        value="\n".join(
+            (
+                f"`{bot_example_prefix} skill hard hit`",
+                f"`{bot_example_prefix} skill magic finale`",
+                f"`{bot_example_prefix} skill tree shield`",
+            )
+        ),
+        inline=False,
+    )
+    embed.add_field(
+        name="Ask Naturally",
+        value="\n".join(
+            (
+                f"`{bot_example_prefix} how does Hard Hit work?`",
+                f"`{bot_example_prefix} which skills inflict Ignite?`",
+                f"`{bot_example_prefix} which skill has the highest MP cost?`",
+                f"`{bot_example_prefix} compare Protection and Aegis`",
+                f"`{bot_example_prefix} what gives Crit Rate?`",
+            )
+        ),
+        inline=False,
+    )
     embed.add_field(
         name="Conversation",
-        value=("Follow-ups can use previous database results. "
-               f"Use `{bot_example_prefix} reset` to clear conversation context."),
+        value=(
+            "Follow-ups can use previous database results. "
+            f"Use `{bot_example_prefix} reset` to clear conversation context."
+        ),
         inline=False,
     )
     return embed
@@ -323,21 +455,28 @@ def build_skill_chat_embed(result: SkillChatResult) -> discord.Embed:
     if result.kind == "refuse":
         title = "Unsupported request"
         description = (
-            "I can compare objective database facts such as MP cost, ailments, requirements, "
-            "range, tier, and documented mechanics, but I can't decide which skill is best for "
-            "DPS, tanking, or a build."
+            "I can compare objective database facts such as MP cost, ailments, "
+            "requirements, range, tier, and documented mechanics, but I can't decide "
+            "which skill is best for DPS, tanking, or a build."
         )
     elif result.kind == "clarify":
-        title, description = "Which skill?", result.text or "Please specify the skill you mean."
+        title = "Which skill?"
+        description = result.text or "Please specify the skill you mean."
     elif result.kind == "not_found":
         title = "Not enough database information"
-        description = result.text or "The skill database does not contain enough information to answer reliably."
+        description = (
+            result.text
+            or "The skill database does not contain enough information to answer reliably."
+        )
     elif result.kind == "unavailable":
-        title, description = "Skill explanation unavailable", result.text or "Structured skill search is still available."
+        title = "Skill explanation unavailable"
+        description = result.text or "Structured skill search is still available."
     elif result.kind == "results":
-        title, description = "Skill results", result.text or "No skill details available."
+        title = "Skill results"
+        description = result.text or "No skill details available."
     else:
-        title, description = "Skill database", result.text or "No answer available."
+        title = "Skill database"
+        description = result.text or "No answer available."
     return discord.Embed(title=title, description=description[:4096])
 
 
@@ -346,8 +485,13 @@ def _item_preview_lines(outcome: ServiceOutcome | None) -> tuple[str, ...]:
         return ()
     payload = outcome.payload
     if isinstance(payload, ItemDetailPayload):
-        return (f"1. **{payload.detail.summary.name}** — {payload.detail.summary.item_type}",)
-    if isinstance(payload, (ItemResultsPayload, UpgradeResultsPayload, StatResultsPayload, ExpressionResultsPayload)):
+        return (
+            f"1. **{payload.detail.summary.name}** — {payload.detail.summary.item_type}",
+        )
+    if isinstance(
+        payload,
+        (ItemResultsPayload, UpgradeResultsPayload, StatResultsPayload, ExpressionResultsPayload),
+    ):
         return tuple(
             f"{index}. **{row.item.name}** — {row.item.item_type}"
             for index, row in enumerate(payload.results, start=1)
@@ -370,49 +514,91 @@ def _skill_preview_lines(result: SkillChatResult | None) -> tuple[str, ...]:
 
 class MixedResultsView(SessionBoundView):
     def __init__(
-        self, *, sessions: DiscordSessionManager, key: SessionKey, generation: int,
-        item_lines: tuple[str, ...], skill_lines: tuple[str, ...],
+        self,
+        *,
+        sessions: DiscordSessionManager,
+        key: SessionKey,
+        generation: int,
+        item_lines: tuple[str, ...],
+        skill_lines: tuple[str, ...],
     ) -> None:
-        super().__init__(sessions=sessions, key=key, generation=generation, owner_id=key[2])
+        super().__init__(
+            sessions=sessions,
+            key=key,
+            generation=generation,
+            owner_id=key[2],
+        )
         self.item_lines = item_lines
         self.skill_lines = skill_lines
         if len(item_lines) > 3:
-            self.add_item(ActionButton(label="More Items", style=discord.ButtonStyle.secondary, handler=self._more_items))
+            self.add_item(
+                ActionButton(
+                    label="More Items",
+                    style=discord.ButtonStyle.secondary,
+                    handler=self._more_items,
+                )
+            )
         if len(skill_lines) > 3:
-            self.add_item(ActionButton(label="More Skills", style=discord.ButtonStyle.secondary, handler=self._more_skills))
+            self.add_item(
+                ActionButton(
+                    label="More Skills",
+                    style=discord.ButtonStyle.secondary,
+                    handler=self._more_skills,
+                )
+            )
 
     async def _more_items(self, interaction: discord.Interaction) -> None:
         await interaction.response.send_message(
-            embed=discord.Embed(title="More item matches", description="\n".join(self.item_lines)[:4096]),
+            embed=discord.Embed(
+                title="More item matches",
+                description="\n".join(self.item_lines)[:4096],
+            ),
             ephemeral=True,
         )
 
     async def _more_skills(self, interaction: discord.Interaction) -> None:
         await interaction.response.send_message(
-            embed=discord.Embed(title="More skill matches", description="\n".join(self.skill_lines)[:4096]),
+            embed=discord.Embed(
+                title="More skill matches",
+                description="\n".join(self.skill_lines)[:4096],
+            ),
             ephemeral=True,
         )
 
 
 def build_mixed_chat_message(
     outcome: DatabaseChatOutcome,
-    *, sessions: DiscordSessionManager, key: SessionKey, generation: int,
+    *,
+    sessions: DiscordSessionManager,
+    key: SessionKey,
+    generation: int,
 ) -> tuple[discord.Embed, discord.ui.View]:
     item_lines = _item_preview_lines(outcome.item_outcome)
     skill_lines = _skill_preview_lines(outcome.skill_result)
-    embed = discord.Embed(title="Item and skill matches", description="Showing up to 3 matches from each database.")
+    embed = discord.Embed(
+        title="Item and skill matches",
+        description="Showing up to 3 matches from each database.",
+    )
     if item_lines:
         embed.add_field(name="Items", value="\n".join(item_lines[:3]), inline=False)
     if skill_lines:
         embed.add_field(name="Skills", value="\n".join(skill_lines[:3]), inline=False)
     return embed, MixedResultsView(
-        sessions=sessions, key=key, generation=generation,
-        item_lines=item_lines, skill_lines=skill_lines,
+        sessions=sessions,
+        key=key,
+        generation=generation,
+        item_lines=item_lines,
+        skill_lines=skill_lines,
     )
 
 
 __all__ = [
-    "DatabaseChatOutcome", "MixedResultsView", "build_database_chat_help_embed",
-    "build_mixed_chat_message", "build_skill_chat_embed", "is_database_chat_candidate",
-    "probe_item_deterministically", "run_database_chat_sync",
+    "DatabaseChatOutcome",
+    "MixedResultsView",
+    "build_database_chat_help_embed",
+    "build_mixed_chat_message",
+    "build_skill_chat_embed",
+    "is_database_chat_candidate",
+    "probe_item_deterministically",
+    "run_database_chat_sync",
 ]
