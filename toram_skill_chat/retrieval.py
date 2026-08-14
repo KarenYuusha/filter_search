@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+import logging
 
 from toram_skill_search.runtime import DEFAULT_SEMANTIC_RUNTIME
 from toram_skills.hybrid_search import HybridSkillSearcher
 from toram_skills.repository import SkillRepository
 
 from .models import SkillEvidence
+
+
+logger = logging.getLogger(__name__)
 
 
 class SkillEvidenceRetriever:
@@ -98,8 +102,6 @@ class SkillEvidenceRetriever:
         rows_by_skill = [self._document_rows_for_skill(skill_id) for skill_id in skill_ids]
         ordered_rows: list[object] = []
 
-        # Seed one summary/first document for every requested skill before consuming
-        # additional sections so a comparison cannot starve one side of evidence.
         for rows in rows_by_skill:
             if rows:
                 ordered_rows.append(rows[0])
@@ -117,14 +119,19 @@ class SkillEvidenceRetriever:
 
     def _search_evidence(self, question: str, *, limit: int) -> list[SkillEvidence]:
         semantic_index = None
-        if self.semantic_runtime is not None:
+        semantic_requested = self.semantic_runtime is not None
+        if semantic_requested:
             try:
                 semantic_index = self.semantic_runtime.get_index(self.repository)
             except Exception:
-                # Retrieval must remain available in lexical-only mode when the
-                # optional embedding runtime is missing or stale.
+                logger.debug("skill retrieval semantic fallback=runtime_unavailable", exc_info=True)
                 semantic_index = None
 
+        logger.debug(
+            "skill retrieval search semantic_requested=%s semantic_available=%s",
+            semantic_requested,
+            semantic_index is not None,
+        )
         searcher = self.searcher_factory(
             self.repository,
             semantic_index=semantic_index,
@@ -158,7 +165,10 @@ class SkillEvidenceRetriever:
         max_chars: int = 12000,
     ) -> tuple[SkillEvidence, ...]:
         if limit <= 0 or max_chars <= 0:
+            logger.debug("skill retrieval skipped reason=non_positive_budget")
             return ()
+
+        semantic_needed = not bool(skill_ids) and self.semantic_runtime is not None
         if skill_ids:
             evidence = self._known_skill_evidence(skill_ids)
         else:
@@ -171,11 +181,17 @@ class SkillEvidenceRetriever:
                 continue
             seen.add(chunk.document_id)
             deduplicated.append(chunk)
-        return self._apply_budget(
+        output = self._apply_budget(
             deduplicated,
             limit=limit,
             max_chars=max_chars,
         )
+        logger.debug(
+            "skill retrieval semantic_needed=%s document_ids=%s",
+            semantic_needed,
+            tuple(chunk.document_id for chunk in output),
+        )
+        return output
 
 
 __all__ = ["SkillEvidenceRetriever"]
