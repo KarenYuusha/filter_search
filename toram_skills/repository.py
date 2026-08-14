@@ -66,6 +66,17 @@ class SkillRepository:
         )
         return [str(row["name"]) for row in rows]
 
+    def list_known_ailments(self) -> tuple[str, ...]:
+        rows = self.connection.execute(
+            """
+            SELECT MIN(name) AS name
+            FROM skill_ailments
+            GROUP BY normalized_name
+            ORDER BY name COLLATE NOCASE, name
+            """
+        )
+        return tuple(str(row["name"]) for row in rows)
+
     def _tree_from_row(self, row: sqlite3.Row) -> SkillTreeDraft:
         tier_values = json.loads(str(row["tier_requirements_json"]))
         restrictions = json.loads(str(row["weapon_restrictions_json"]))
