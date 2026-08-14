@@ -3,10 +3,11 @@ from __future__ import annotations
 from pathlib import Path
 import unittest
 
-from toram_discord.database_chat import run_database_chat_sync
+from toram_discord.database_chat import (
+    probe_item_deterministically,
+    run_database_chat_sync,
+)
 from toram_discord.sessions import DatabaseChatContext
-from toram_search.service import SearchService
-from toram_skills.repository import SkillRepository
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,14 +26,13 @@ class _ForbiddenSkillRepository:
 
 
 class DatabaseChatRoutingTests(unittest.TestCase):
-    def test_search_service_exposes_deterministic_probe_without_llm(self):
+    def test_deterministic_item_probe_never_calls_llm(self):
         import search_items as core
 
         repo = core.ItemRepository(ITEM_DATABASE)
         try:
-            service = SearchService(repo, llm_client=_ForbiddenLlm())
-            item = service.handle_query_deterministically("cr bow")
-            unknown = service.handle_query_deterministically("tell me a bedtime story")
+            item = probe_item_deterministically(repo, "cr bow")
+            unknown = probe_item_deterministically(repo, "tell me a bedtime story")
         finally:
             repo.close()
 
