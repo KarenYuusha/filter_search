@@ -10,6 +10,8 @@ from toram_skill_chat.llm import (
     SkillRagResponseError,
     SkillRagUnavailableError,
 )
+from toram_skill_chat.models import SkillEvidence
+from toram_skill_chat.rag import GroundedSkillRag
 
 
 class _FakeClient:
@@ -23,6 +25,30 @@ class _FakeClient:
         if self.error is not None:
             raise self.error
         return SimpleNamespace(message=SimpleNamespace(content=self.content))
+
+
+class _RecordingRagClient:
+    def __init__(self, *, answer: str = "grounded answer", error: Exception | None = None) -> None:
+        self.answer = answer
+        self.error = error
+        self.calls: list[tuple[str, str]] = []
+
+    def complete(self, system_prompt: str, user_prompt: str) -> str:
+        self.calls.append((system_prompt, user_prompt))
+        if self.error is not None:
+            raise self.error
+        return self.answer
+
+
+def _evidence(skill_id: str, skill_name: str, text: str) -> SkillEvidence:
+    return SkillEvidence(
+        document_id=f"{skill_id}#summary",
+        skill_id=skill_id,
+        skill_name=skill_name,
+        tree_name="Test Tree",
+        text=text,
+        source_kind="summary",
+    )
 
 
 class OllamaSkillRagClientTests(unittest.TestCase):
@@ -88,6 +114,102 @@ class OllamaSkillRagClientTests(unittest.TestCase):
 
         self.assertEqual(captured["host"], "http://localhost:11434")
         self.assertEqual(captured["timeout"], 12.5)
+
+
+class GroundedSkillRagTests(unittest.TestCase):
+    def test_no_evidence_returns_insufficient_without_gemma_call(self):
+        client = _RecordingRagClient()
+        rag = GroundedSkillRag(client)
+
+        result = rag.answer("how does Hard Hit work?", evidence=(), required_skill_ids=("hard-hit",))
+
+        self.assertEqual(result.kind, "not_found")
+        self.assertIn("does not contain enough information", result.text or "")
+        self.assertEqual(client.calls, [])
+
+    def test_comparison_requires_evidence_for_both_skills(self):
+        client = _RecordingRagClient()
+        rag = GroundedSkillRag(client)
+        evidence = (_evidence("protection", "Protection", "Protection reduces physical damage."),)
+
+        result = rag.answer(
+            "compare Protection and Aegis",
+            evidence=evidence,
+            required_skill_ids=("protection", "aegis"),
+        )
+
+        self.assertEqual(result.kind, "not_found")
+        self.assertEqual(client.calls, [])
+
+    def test_gemma_receives_only_question_and_supplied_database_evidence(self):
+        client = _RecordingRagClient(answer="Protection is documented as reducing physical damage.")
+        rag = GroundedSkillRag(client)
+        evidence = (
+            _evidence("protection", "Protection", "Protection reduces physical damage."),
+            _evidence("aegis", "Aegis", "Aegis reduces magic damage."),
+        )
+
+        result = rag.answer(
+            "compare Protection and Aegis",
+            evidence=evidence,
+            required_skill_ids=("protection", "aegis"),
+        )
+
+        self.assertEqual(result.kind, "answer")
+        self.assertEqual(len(client.calls), 1)
+        system_prompt, user_prompt = client.calls[0]
+        self.assertIn("Use only DATABASE CONTEXT", system_prompt)
+        self.assertIn("Do not use outside knowledge", system_prompt)
+        self.assertIn("QUESTION:\ncompare Protection and Aegis", user_prompt)
+        self.assertIn("Protection reduces physical damage.", user_prompt)
+        self.assertIn("Aegis reduces magic damage.", user_prompt)
+        self.assertNotIn("unrelated outside fact", user_prompt)
+
+    def test_general_mechanic_requires_relevant_evidence_overlap(self):
+        client = _RecordingRagClient()
+        rag = GroundedSkillRag(client)
+
+        weak = rag.answer(
+            "what is Flinch?",
+            evidence=(_evidence("foo", "Foo", "This skill restores MP."),),
+            general_mechanic=True,
+        )
+        self.assertEqual(weak.kind, "not_found")
+        self.assertEqual(client.calls, [])
+
+        strong = rag.answer(
+            "what is Flinch?",
+            evidence=(_evidence("bar", "Bar", "This skill may inflict Flinch on the target."),),
+            general_mechanic=True,
+        )
+        self.assertEqual(strong.kind, "answer")
+        self.assertEqual(len(client.calls), 1)
+
+    def test_gemma_unavailable_degrades_to_database_evidence(self):
+        client = _RecordingRagClient(error=SkillRagUnavailableError("offline"))
+        rag = GroundedSkillRag(client)
+        evidence = (_evidence("hard-hit", "Hard Hit", "Hard Hit may inflict Flinch."),)
+
+        result = rag.answer(
+            "how does Hard Hit work?",
+            evidence=evidence,
+            required_skill_ids=("hard-hit",),
+        )
+
+        self.assertEqual(result.kind, "answer")
+        self.assertIn("Synthesized explanation is unavailable", result.text or "")
+        self.assertIn("Hard Hit may inflict Flinch", result.text or "")
+        self.assertEqual(result.evidence, evidence)
+
+    def test_unsupported_best_dps_never_reaches_gemma(self):
+        client = _RecordingRagClient()
+        rag = GroundedSkillRag(client)
+        evidence = (_evidence("hard-hit", "Hard Hit", "Hard Hit may inflict Flinch."),)
+
+        result = rag.answer("best skill for DPS", evidence=evidence)
+
+        self.assertEqual(result.kind, "refuse")
+        self.assertEqual(client.calls, [])
 
 
 if __name__ == "__main__":
