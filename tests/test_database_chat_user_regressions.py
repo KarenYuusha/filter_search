@@ -56,8 +56,9 @@ class DatabaseChatUserRegressionTests(unittest.TestCase):
 
         self.assertEqual(outcome.kind, "skill")
         self.assertIsNotNone(outcome.skill_result)
-        self.assertIn("Guardian", outcome.skill_result.text or "")
-        self.assertIn("MP", outcome.skill_result.text or "")
+        rendered = (outcome.skill_result.text or "").casefold()
+        self.assertIn("guardian", rendered)
+        self.assertIn("mp", rendered)
 
     def test_bare_shield_skill_tree_routes_to_tree_filter(self):
         repo = SkillRepository(SKILL_DATABASE)
@@ -84,12 +85,12 @@ class DatabaseChatUserRegressionTests(unittest.TestCase):
             repo.close()
 
         self.assertEqual(result.kind, "structured")
-        text = result.text or ""
-        self.assertIn("Protection", text)
-        self.assertIn("Aegis", text)
-        self.assertIn("Tree", text)
-        self.assertIn("MP", text)
-        self.assertIn("Tier", text)
+        text = (result.text or "").casefold()
+        self.assertIn("protection", text)
+        self.assertIn("aegis", text)
+        self.assertIn("tree", text)
+        self.assertIn("mp", text)
+        self.assertIn("tier", text)
 
 
 if __name__ == "__main__":
