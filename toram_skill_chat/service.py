@@ -40,6 +40,19 @@ def _metric_value(skill: SkillDraft, field: str) -> str:
     return f"{_metric_label(field)} {value}" if value is not None else f"{_metric_label(field)} not recorded"
 
 
+def _comparison_scalar(value: object | None) -> str:
+    if value is None:
+        return "not recorded"
+    if isinstance(value, str):
+        cleaned = " ".join(value.split())
+        return cleaned or "not recorded"
+    return str(value)
+
+
+def _comparison_list(values: tuple[str, ...]) -> str:
+    return ", ".join(values) if values else "none recorded"
+
+
 class SkillChatService:
     def __init__(
         self,
@@ -166,6 +179,84 @@ class SkillChatService:
             skill_ids=tuple(entry.skill.id for entry in values),
         )
 
+    def _compare(self, plan: SkillChatPlan) -> SkillChatResult:
+        if len(plan.skill_ids) != 2:
+            return SkillChatResult(kind="not_found", text=_NOT_FOUND_TEXT)
+
+        left = self.repository.get_skill(plan.skill_ids[0])
+        right = self.repository.get_skill(plan.skill_ids[1])
+        left_tree = self.repository.get_tree(left.tree_id)
+        right_tree = self.repository.get_tree(right.tree_id)
+
+        rows: list[tuple[str, str, str]] = [
+            ("Tree", left_tree.name, right_tree.name),
+            ("Tier", _comparison_scalar(left.tier), _comparison_scalar(right.tier)),
+            (
+                "Required Level",
+                _comparison_scalar(left.required_level),
+                _comparison_scalar(right.required_level),
+            ),
+            (
+                "MP",
+                _comparison_scalar(left.mp_cost_text),
+                _comparison_scalar(right.mp_cost_text),
+            ),
+            (
+                "Skill Type",
+                _comparison_scalar(left.skill_type),
+                _comparison_scalar(right.skill_type),
+            ),
+        ]
+
+        optional_rows = (
+            ("Damage Type", left.damage_type, right.damage_type),
+            ("Element", left.element, right.element),
+            ("Cast Range", left.cast_range_text, right.cast_range_text),
+            ("Hit Range", left.hit_range_text, right.hit_range_text),
+            ("Cast Time", left.cast_time_text, right.cast_time_text),
+            ("Hit Count", left.hit_count_text, right.hit_count_text),
+        )
+        for label, left_value, right_value in optional_rows:
+            if left_value is None and right_value is None:
+                continue
+            rows.append(
+                (
+                    label,
+                    _comparison_scalar(left_value),
+                    _comparison_scalar(right_value),
+                )
+            )
+
+        if left.ailments or right.ailments:
+            rows.append(("Ailments", _comparison_list(left.ailments), _comparison_list(right.ailments)))
+        if left.weapon_requirements or right.weapon_requirements:
+            rows.append(
+                (
+                    "Weapon Requirements",
+                    _comparison_list(left.weapon_requirements),
+                    _comparison_list(right.weapon_requirements),
+                )
+            )
+        if left.weapon_restrictions or right.weapon_restrictions:
+            rows.append(
+                (
+                    "Weapon Restrictions",
+                    _comparison_list(left.weapon_restrictions),
+                    _comparison_list(right.weapon_restrictions),
+                )
+            )
+
+        lines = [f"**{left.name} vs {right.name}**"]
+        lines.extend(
+            f"{label}: {left.name} = {left_value} | {right.name} = {right_value}"
+            for label, left_value, right_value in rows
+        )
+        return SkillChatResult(
+            kind="structured",
+            text="\n".join(lines),
+            skill_ids=(left.id, right.id),
+        )
+
     def _clarify_reference(self, plan: SkillChatPlan) -> SkillChatResult:
         names = [self.repository.get_skill(skill_id).name for skill_id in plan.skill_ids]
         return SkillChatResult(
@@ -267,7 +358,9 @@ class SkillChatService:
             result = self._rank(plan)
         elif plan.intent == "compare_field":
             result = self._compare_field(plan)
-        elif plan.intent in ("explain", "compare", "general_mechanic"):
+        elif plan.intent == "compare":
+            result = self._compare(plan)
+        elif plan.intent in ("explain", "general_mechanic"):
             result = self._rag_answer(query, plan)
         else:
             result = SkillChatResult(kind="not_found", text=_NOT_FOUND_TEXT)
