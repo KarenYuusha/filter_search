@@ -36,6 +36,7 @@ jobs:
           uv run python -m unittest tests.test_discord_database_chat_app -v
           uv run python -m unittest tests.test_database_chat_degradation -v
           uv run python -m unittest tests.test_database_chat_acceptance_edges -v
+          uv run python -m unittest tests.test_rich_skill_chat_presentation -v
       - name: High-risk Discord regressions
         run: |
           uv run python -m unittest tests.test_discord_skill_search -v
@@ -52,6 +53,7 @@ jobs:
             toram_discord/config.py \
             toram_discord/sessions.py \
             toram_discord/database_chat.py \
+            toram_discord/skill_chat_ui.py \
             toram_search/llm.py \
             toram_skills/repository.py \
             toram_skill_chat/*.py
