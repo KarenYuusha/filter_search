@@ -48,6 +48,7 @@ _SHARED_TAIL_RE = re.compile(
     r"\s+and\s+(?:how|what)\s+does\s+(?:it|that)\b.*$",
     re.IGNORECASE,
 )
+_COMPACT_SKILL_RE = re.compile(r"(?:\bmp\s+cost\b|\bskills?\s+tree\b)", re.IGNORECASE)
 _NATURAL_CHAT_PREFIXES = ("what ", "which ", "how ", "compare ", "only ")
 
 
@@ -74,9 +75,15 @@ def _shared_discovery_concept(query: str) -> str | None:
     return concept or None
 
 
+def _is_compact_skill_query(query: str) -> bool:
+    return _COMPACT_SKILL_RE.search(" ".join(str(query).casefold().split())) is not None
+
+
 def is_database_chat_candidate(query: str, context: DatabaseChatContext) -> bool:
     normalized = " ".join(str(query).casefold().split())
     if _shared_discovery_concept(query) is not None:
+        return True
+    if _is_compact_skill_query(query):
         return True
     if normalized.startswith(_NATURAL_CHAT_PREFIXES):
         return True
@@ -327,28 +334,33 @@ def run_database_chat_sync(
     skill_rag_keep_alive: str = "10m",
 ) -> DatabaseChatOutcome:
     shared_concept = _shared_discovery_concept(query)
-    item_outcome, item_ids = _probe_item_side(
-        item_database_path,
-        query,
-        shared_concept,
-        item_repository_factory=item_repository_factory,
-    )
+    compact_skill_query = _is_compact_skill_query(query)
 
-    # A clear deterministic item/stat request remains the fastest path and does not
-    # open the skill database. A missing item DB, however, no longer blocks skill chat.
-    if shared_concept is None and item_outcome is not None and item_outcome.kind in {
-        "search",
-        "help",
-        "database",
-        "refuse",
-    }:
-        _set_item_context(context, query, item_ids)
-        logger.debug("database chat route selected=item")
-        return DatabaseChatOutcome(
-            kind="item",
-            item_outcome=item_outcome,
-            item_ids=item_ids,
+    if compact_skill_query:
+        item_outcome, item_ids = None, ()
+    else:
+        item_outcome, item_ids = _probe_item_side(
+            item_database_path,
+            query,
+            shared_concept,
+            item_repository_factory=item_repository_factory,
         )
+
+        # A clear deterministic item/stat request remains the fastest path and does not
+        # open the skill database. A missing item DB, however, no longer blocks skill chat.
+        if shared_concept is None and item_outcome is not None and item_outcome.kind in {
+            "search",
+            "help",
+            "database",
+            "refuse",
+        }:
+            _set_item_context(context, query, item_ids)
+            logger.debug("database chat route selected=item")
+            return DatabaseChatOutcome(
+                kind="item",
+                item_outcome=item_outcome,
+                item_ids=item_ids,
+            )
 
     skill_result = _probe_skill_side(
         skill_database_path,
@@ -366,6 +378,22 @@ def run_database_chat_sync(
         skill_rag_keep_alive=skill_rag_keep_alive,
     )
     skill_ids = () if skill_result is None else skill_result.skill_ids
+
+    if compact_skill_query and _meaningful_skill(skill_result):
+        logger.debug("database chat route selected=skill-compact")
+        return DatabaseChatOutcome(
+            kind="skill",
+            skill_result=skill_result,
+            skill_ids=skill_ids,
+        )
+
+    if compact_skill_query:
+        item_outcome, item_ids = _probe_item_side(
+            item_database_path,
+            query,
+            shared_concept,
+            item_repository_factory=item_repository_factory,
+        )
 
     if item_ids and _meaningful_skill(skill_result):
         _set_mixed_context(context, query, item_ids, skill_ids)
