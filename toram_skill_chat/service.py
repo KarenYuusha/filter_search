@@ -209,27 +209,36 @@ class SkillChatService:
     ) -> None:
         if result.kind not in ("structured", "results", "answer"):
             return
+
+        # A successful skill-domain answer becomes the active domain and must not
+        # retain stale item selections from a previous mixed/item conversation.
         context.active_domain = "skill"
+        context.active_item_ids = ()
+        context.selected_item_id = None
         context.last_operation = plan.intent
         context.last_metric = plan.field
         context.last_user_query = query
+        context.active_skill_ids = result.skill_ids
 
-        if result.skill_ids:
-            context.active_skill_ids = result.skill_ids
-        if plan.intent == "lookup" and len(result.skill_ids) == 1:
+        if plan.intent in ("lookup", "explain") and len(result.skill_ids) == 1:
             context.selected_skill_id = result.skill_ids[0]
         elif plan.intent == "rank" and len(result.skill_ids) == 1:
             context.selected_skill_id = result.skill_ids[0]
-        elif plan.intent in ("compare", "compare_field"):
-            context.selected_skill_id = None
-        elif plan.intent == "general_mechanic":
+        else:
             context.selected_skill_id = None
 
         filter_values = _filter_dict(plan.filters)
         if filter_values:
             context.active_skill_filters = filter_values
             tree_ids = filter_values.get("tree_ids", ())
-            context.active_tree_id = tree_ids[0] if isinstance(tree_ids, tuple) and tree_ids else None
+            context.active_tree_id = (
+                tree_ids[0] if isinstance(tree_ids, tuple) and tree_ids else None
+            )
+        elif not (plan.intent == "rank" and plan.skill_ids):
+            # A new exact/global skill topic must not inherit filters from an older
+            # result set. A rank follow-up over explicit active IDs may keep them.
+            context.active_skill_filters = {}
+            context.active_tree_id = None
 
     def answer(self, query: str, *, context) -> SkillChatResult:
         plan = self.router.route(query, context=context)
