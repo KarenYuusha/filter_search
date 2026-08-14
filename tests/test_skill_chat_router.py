@@ -122,6 +122,20 @@ class SkillChatRouterTests(unittest.TestCase):
         self.assertEqual(plan.field, "mp_cost_value")
         self.assertEqual(plan.direction, "asc")
 
+    def test_follow_up_selected_skill_field_lookup(self):
+        guardian = self.skill_id("Guardian")
+        context = SimpleNamespace(
+            active_skill_ids=(guardian,),
+            selected_skill_id=guardian,
+            active_skill_filters={},
+        )
+
+        plan = self.router.route("what about its MP cost?", context=context)
+
+        self.assertEqual(plan.intent, "lookup")
+        self.assertEqual(plan.skill_ids, (guardian,))
+        self.assertEqual(plan.field, "mp_cost")
+
     def test_pronoun_explanation_never_silently_selects_first_result(self):
         hard_hit = self.skill_id("Hard Hit")
         sonic_blade = self.skill_id("Sonic Blade")
