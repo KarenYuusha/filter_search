@@ -33,8 +33,8 @@ The custom table should:
 1. Enable internal dragging and row selection.
 2. Track the source row at drag start.
 3. Resolve the target insertion row at drop time.
-4. Normalize the target index when dragging downward so the final insertion position matches the visual drop location.
-5. Emit a row-move signal/callback containing source and destination indexes.
+4. Normalize the target when dragging downward.
+5. Emit a row-move signal/callback containing the source row and the **final destination index in the list after the source row has been removed**. For example, moving row `0` to the end of a four-row list emits destination index `3`.
 6. Avoid directly mutating `ItemDraft` or owning application state.
 
 ### `StatsTab` responsibilities
@@ -42,16 +42,16 @@ The custom table should:
 `StatsTab` should handle the row-move request by:
 
 1. Ignoring invalid or no-op moves.
-2. Moving the matching `StatDraft` inside `draft.stats` using list `pop` / `insert`.
+2. Moving the matching `StatDraft` inside `draft.stats` using `stat = draft.stats.pop(source)` followed by `draft.stats.insert(destination, stat)`, where `destination` already uses the post-removal index semantics defined above.
 3. Rebuilding the table from the updated draft while `_loading` is active so existing item/condition change handlers do not fire during reconstruction.
-4. Restoring selection to the moved row.
+4. Restoring selection to the moved row at `destination`.
 5. Refreshing `_previous_names` through the normal row-building path.
 6. Emitting `draftChanged` exactly once for the completed reorder.
 
 ## Data Flow
 
 1. User drags a stat row.
-2. The table calculates `(source_row, destination_row)`.
+2. The table calculates `(source_row, destination_row)` using post-removal destination semantics.
 3. `StatsTab` reorders `draft.stats`.
 4. `StatsTab` redraws table rows from the reordered list.
 5. `draftChanged` marks the editor session dirty.
