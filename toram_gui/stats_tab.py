@@ -2,13 +2,59 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from PySide6.QtCore import QSignalBlocker, Qt, Signal
-from PySide6.QtWidgets import QComboBox, QHBoxLayout, QInputDialog, QLineEdit, QMessageBox, QPushButton, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
+from PySide6.QtCore import QPoint, QSignalBlocker, Qt, Signal
+from PySide6.QtGui import QDropEvent
+from PySide6.QtWidgets import QAbstractItemView, QComboBox, QHBoxLayout, QInputDialog, QLineEdit, QMessageBox, QPushButton, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 
 from toram_data import KNOWN_CONDITIONS, ItemDraft, ItemRepository, StatDraft, condition_from_slug, free_text_condition
 from toram_data.aliases import STAT_ALIASES, STAT_AMBIGUOUS_GROUPS, normalize_name, normalize_stat_text, resolve_editor_value
 from .widgets.numeric_delegate import NumericDelegate
 from .widgets.stat_name_delegate import StatNameDelegate
+
+
+class StatTableWidget(QTableWidget):
+    rowMoveRequested = Signal(int, int)
+
+    def __init__(self, rows: int, columns: int, parent=None) -> None:
+        super().__init__(rows, columns, parent)
+        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.setDragEnabled(True)
+        self.setAcceptDrops(True)
+        self.setDropIndicatorShown(True)
+        self.setDragDropMode(QAbstractItemView.InternalMove)
+        self.setDefaultDropAction(Qt.MoveAction)
+
+    def _destination_for_drop(self, position: QPoint, source: int) -> int:
+        row_count = self.rowCount()
+        if row_count <= 1:
+            return source
+
+        index = self.indexAt(position)
+        if not index.isValid():
+            insertion = row_count
+        else:
+            target_row = index.row()
+            rect = self.visualRect(index)
+            insertion = target_row + (1 if position.y() >= rect.center().y() else 0)
+
+        if insertion > source:
+            insertion -= 1
+        return max(0, min(insertion, row_count - 1))
+
+    def dropEvent(self, event: QDropEvent) -> None:
+        source = self.currentRow()
+        if not (0 <= source < self.rowCount()):
+            event.ignore()
+            return
+
+        destination = self._destination_for_drop(event.position().toPoint(), source)
+        if destination == source:
+            event.ignore()
+            return
+
+        self.rowMoveRequested.emit(source, destination)
+        event.acceptProposedAction()
 
 
 class StatsTab(QWidget):
@@ -26,7 +72,7 @@ class StatsTab(QWidget):
         self._loading = False
         self._previous_names: dict[int, str] = {}
 
-        self.table = QTableWidget(0, 4)
+        self.table = StatTableWidget(0, 4)
         self.table.setHorizontalHeaderLabels(["Stat Name", "Amount", "Condition", "Review"])
         self.table.setItemDelegateForColumn(self.COL_AMOUNT, NumericDelegate(self.table))
         self.table.setItemDelegateForColumn(self.COL_NAME, StatNameDelegate(repository.list_stat_names(), self.table))
@@ -37,6 +83,7 @@ class StatsTab(QWidget):
         layout = QVBoxLayout(self); layout.addLayout(row); layout.addWidget(self.table)
         self.add_button.clicked.connect(self.add_stat)
         self.remove_button.clicked.connect(self.remove_selected)
+        self.table.rowMoveRequested.connect(self._move_stat_row)
         self.table.itemChanged.connect(self._item_changed)
 
     def _default_confirm_resolution(self, typed: str, candidates: tuple[str, ...], status: str) -> str | None:
@@ -57,15 +104,19 @@ class StatsTab(QWidget):
         self.setEnabled(draft is not None)
         self._loading = True
         try:
-            self.table.setRowCount(0)
-            self._previous_names.clear()
-            if draft is not None:
-                for stat in draft.stats:
-                    if normalize_name(stat.stat_name) == "upgrade for":
-                        continue
-                    self._append_row(stat)
+            self._reload_rows()
         finally:
             self._loading = False
+
+    def _reload_rows(self) -> None:
+        self.table.setRowCount(0)
+        self._previous_names.clear()
+        if self.draft is None:
+            return
+        for stat in self.draft.stats:
+            if normalize_name(stat.stat_name) == "upgrade for":
+                continue
+            self._append_row(stat)
 
     def _condition_combo(self, stat: StatDraft) -> QComboBox:
         combo = QComboBox()
@@ -114,6 +165,29 @@ class StatsTab(QWidget):
             if 0 <= row < len(self.draft.stats): self.draft.stats.pop(row)
             self.table.removeRow(row)
         self._previous_names = {r: self.table.item(r, self.COL_NAME).text() for r in range(self.table.rowCount())}
+
+    def _move_stat_row(self, source: int, destination: int) -> None:
+        if self.draft is None:
+            return
+        if not (0 <= source < len(self.draft.stats)):
+            return
+        if not (0 <= destination < len(self.draft.stats)):
+            return
+        if source == destination:
+            return
+
+        stat = self.draft.stats.pop(source)
+        self.draft.stats.insert(destination, stat)
+
+        self._loading = True
+        try:
+            self._reload_rows()
+            self.table.selectRow(destination)
+            self.table.setCurrentCell(destination, self.COL_NAME)
+        finally:
+            self._loading = False
+
+        self.draftChanged.emit()
 
     def _resolve_name(self, typed: str) -> str | None:
         if normalize_name(typed) == "upgrade for":
