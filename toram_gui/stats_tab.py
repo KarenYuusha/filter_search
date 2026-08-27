@@ -20,10 +20,11 @@ class StatTableWidget(QTableWidget):
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setSelectionMode(QAbstractItemView.SingleSelection)
         self.setDragEnabled(True)
-        self.setAcceptDrops(True)
+        self.viewport().setAcceptDrops(True)
         self.setDropIndicatorShown(True)
         self.setDragDropMode(QAbstractItemView.InternalMove)
         self.setDefaultDropAction(Qt.MoveAction)
+        self.setSupportedDragActions(Qt.MoveAction)
 
     def _destination_for_drop(self, position: QPoint, source: int) -> int:
         row_count = self.rowCount()
