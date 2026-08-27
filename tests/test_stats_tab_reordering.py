@@ -8,7 +8,8 @@ from pathlib import Path
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-from PySide6.QtWidgets import QApplication
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QAbstractItemView, QApplication
 
 from toram_data import ConditionDraft, ItemDraft, ItemRepository, StatDraft
 from toram_gui.stats_tab import StatsTab
@@ -41,6 +42,15 @@ class StatsTabReorderingTests(unittest.TestCase):
 
     def names(self) -> list[str]:
         return [stat.stat_name for stat in self.draft.stats]
+
+    def test_table_drag_drop_configuration_allows_internal_moves(self) -> None:
+        table = self.tab.table
+        self.assertTrue(table.dragEnabled())
+        self.assertTrue(table.viewport().acceptDrops())
+        self.assertTrue(table.showDropIndicator())
+        self.assertEqual(table.dragDropMode(), QAbstractItemView.InternalMove)
+        self.assertEqual(table.defaultDropAction(), Qt.MoveAction)
+        self.assertTrue(table.supportedDragActions() & Qt.MoveAction)
 
     def test_move_first_stat_to_last(self) -> None:
         self.tab._move_stat_row(0, 3)
