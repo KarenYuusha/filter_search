@@ -1,0 +1,78 @@
+name: debug-dte-equipment
+
+on:
+  push:
+    branches:
+      - debug/dte-equipment-filter
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install uv
+        run: python -m pip install --upgrade pip uv
+      - name: Sync dependencies
+        run: uv sync --frozen
+      - name: Trace DTE filters
+        env:
+          OLLAMA_ENABLED: '0'
+        run: |
+          uv run python - <<'PY'
+          from pathlib import Path
+          from toram_data.search_repository import ItemRepository
+          from toram_data.aliases import resolve_stat_term
+          from toram_search.parser import parse_search_query
+          from toram_search.service import SearchService, ExpressionResultsPayload, StatResultsPayload
+          from toram_search.session import FailedQueryContext
+
+          db = Path('coryn_data/database/items.sqlite')
+          repo = ItemRepository(db)
+          try:
+              stats = repo.list_stat_names()
+              print('DTE-like stat names:')
+              for name in stats:
+                  n = name.casefold()
+                  if 'stronger against' in n or 'earth' in n or 'fire' in n:
+                      print('  ', repr(name))
+
+              for alias in ('dte', 'dtf'):
+                  r = resolve_stat_term(alias, stats, allow_fuzzy=True)
+                  print('resolve', alias, r)
+
+              print('\nRaw DB counts for element-like stats by item type:')
+              rows = repo.db.execute('''
+                  SELECT s.stat_name, i.item_type, COUNT(*) AS n
+                  FROM item_stats s
+                  JOIN items i ON i.id = s.item_id
+                  WHERE lower(s.stat_name) LIKE '%stronger against%'
+                     OR lower(s.stat_name) LIKE '%earth%'
+                     OR lower(s.stat_name) LIKE '%fire%'
+                  GROUP BY s.stat_name, i.item_type
+                  ORDER BY s.stat_name COLLATE NOCASE, i.item_type COLLATE NOCASE
+              ''').fetchall()
+              for row in rows:
+                  print(dict(row))
+
+              service = SearchService(repo)
+              for query in ('dte', 'bow dte', 'dte bow', 'dagger dte', 'dte dagger', 'xtal dte', 'dte xtal', 'bow dtf', 'xtal dtf'):
+                  parsed = parse_search_query(query, repo)
+                  print('\nQUERY', repr(query))
+                  print(' parsed intent=', parsed.intent, 'error=', parsed.error, 'filter=', parsed.filter)
+                  if parsed.parsed_expression:
+                      print(' parsed groups=', parsed.parsed_expression.groups)
+                  outcome = service.handle_query(query, FailedQueryContext(max_entries=3))
+                  payload = outcome.payload
+                  print(' outcome=', outcome.kind, 'payload=', type(payload).__name__ if payload else None, 'text=', outcome.text)
+                  if isinstance(payload, ExpressionResultsPayload):
+                      print(' resolved=', payload.parsed.resolved_expression)
+                      print(' result_count=', len(payload.results))
+                  elif isinstance(payload, StatResultsPayload):
+                      print(' stat=', payload.parsed.stat, 'result_count=', len(payload.results))
+          finally:
+              repo.close()
+          PY
